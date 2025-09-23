@@ -238,6 +238,8 @@ Be comprehensive and holistic in implementation.
 
 Maintain progressive builds: verify existing files, extend or enhance—never duplicate.
 
+**NO DOWNGRADES ALLOWED - ONLY COMPREHENSIVE ENHANCEMENTS**
+
 Enforce code sanitization and security best practices.
 
 Ensure no breaking changes between iterations.
@@ -261,6 +263,8 @@ Design for cross-platform resilience (extension + app).
 Build with future-proofing in mind (modular, replaceable APIs).
 
 Dashboards must always remain real-time, minimal, and user-friendly.
+
+**Every change must ADD value, NEVER remove functionality.**
 
 
 

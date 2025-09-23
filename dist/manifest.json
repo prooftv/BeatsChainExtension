@@ -5,7 +5,6 @@
   "description": "Mint your beats as NFTs with AI-generated licensing",
   "permissions": [
     "storage",
-    "identity",
     "activeTab"
   ],
   "host_permissions": [
@@ -14,10 +13,10 @@
     "https://*.polygon.technology/*"
   ],
   "background": {
-    "service_worker": "background/service-worker.js"
+    "service_worker": "service-worker.js"
   },
   "action": {
-    "default_popup": "popup/index.html",
+    "default_popup": "index.html",
     "default_title": "BeatsChain Minter",
     "default_icon": {
       "16": "assets/icons/icon16.png",
