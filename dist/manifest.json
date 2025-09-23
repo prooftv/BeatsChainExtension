@@ -5,13 +5,19 @@
   "description": "Mint your beats as NFTs with AI-generated licensing",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "identity"
   ],
   "host_permissions": [
     "https://*.thirdweb.com/*",
     "https://*.ipfs.io/*",
-    "https://*.polygon.technology/*"
+    "https://*.polygon.technology/*",
+    "https://accounts.google.com/*"
   ],
+  "oauth2": {
+    "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": ["openid", "email", "profile"]
+  },
   "background": {
     "service_worker": "service-worker.js"
   },

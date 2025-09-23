@@ -641,6 +641,323 @@ Quality: Professional Studio Grade`;
     }
 }
 
+// Authentication Manager
+class AuthManager {
+    constructor() {
+        this.isSignedIn = false;
+        this.userProfile = null;
+    }
+
+    async initialize() {
+        const savedProfile = await StorageManager.get('user_profile');
+        if (savedProfile) {
+            this.userProfile = savedProfile;
+            this.isSignedIn = true;
+            this.updateProfileUI();
+        }
+    }
+
+    async signInWithGoogle() {
+        try {
+            if (chrome.identity) {
+                const token = await chrome.identity.getAuthToken({ interactive: true });
+                const userInfo = await this.fetchUserInfo(token);
+                
+                this.userProfile = {
+                    id: userInfo.id,
+                    name: userInfo.name,
+                    email: userInfo.email,
+                    picture: userInfo.picture,
+                    signInTime: Date.now()
+                };
+                
+                await StorageManager.set('user_profile', this.userProfile);
+                this.isSignedIn = true;
+                this.updateProfileUI();
+                return true;
+            } else {
+                // Fallback for development
+                this.userProfile = {
+                    id: 'demo_user',
+                    name: 'Demo Artist',
+                    email: 'demo@beatschain.com',
+                    picture: 'https://via.placeholder.com/40',
+                    signInTime: Date.now()
+                };
+                
+                await StorageManager.set('user_profile', this.userProfile);
+                this.isSignedIn = true;
+                this.updateProfileUI();
+                return true;
+            }
+        } catch (error) {
+            console.error('Google Sign-In failed:', error);
+            return false;
+        }
+    }
+
+    async fetchUserInfo(token) {
+        const response = await fetch(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${token}`);
+        return await response.json();
+    }
+
+    async signOut() {
+        if (chrome.identity) {
+            await chrome.identity.removeCachedAuthToken({ token: await chrome.identity.getAuthToken({ interactive: false }) });
+        }
+        
+        await StorageManager.set('user_profile', null);
+        this.userProfile = null;
+        this.isSignedIn = false;
+        this.updateProfileUI();
+    }
+
+    updateProfileUI() {
+        const signInBtn = document.getElementById('sign-in-btn');
+        const profileInfo = document.getElementById('profile-info');
+        const profileAvatar = document.getElementById('profile-avatar');
+        const profileName = document.getElementById('profile-name');
+        
+        if (this.isSignedIn && this.userProfile) {
+            if (signInBtn) signInBtn.style.display = 'none';
+            if (profileInfo) profileInfo.style.display = 'flex';
+            if (profileAvatar) profileAvatar.src = this.userProfile.picture;
+            if (profileName) profileName.textContent = this.userProfile.name;
+        } else {
+            if (signInBtn) signInBtn.style.display = 'block';
+            if (profileInfo) profileInfo.style.display = 'none';
+        }
+    }
+
+    getUserProfile() {
+        return this.userProfile;
+    }
+}
+
+// Image Upload Manager
+class ImageUploadManager {
+    constructor() {
+        this.currentImage = null;
+        this.imageHash = null;
+    }
+
+    setupImageUpload() {
+        const imageUploadArea = document.getElementById('image-upload-area');
+        const imageFileInput = document.getElementById('image-file');
+        const removeImageBtn = document.getElementById('remove-image');
+        
+        if (imageUploadArea && imageFileInput) {
+            imageUploadArea.addEventListener('click', () => imageFileInput.click());
+            imageFileInput.addEventListener('change', this.handleImageSelect.bind(this));
+        }
+        
+        if (removeImageBtn) {
+            removeImageBtn.addEventListener('click', this.removeImage.bind(this));
+        }
+    }
+
+    handleImageSelect(e) {
+        const file = e.target.files[0];
+        if (file && this.validateImageFile(file)) {
+            this.processImage(file);
+        }
+    }
+
+    validateImageFile(file) {
+        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        
+        return validTypes.includes(file.type) && file.size <= maxSize;
+    }
+
+    async processImage(file) {
+        try {
+            this.currentImage = file;
+            
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const previewImg = document.getElementById('preview-image');
+                const imagePreview = document.getElementById('image-preview');
+                
+                if (previewImg && imagePreview) {
+                    previewImg.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                }
+            };
+            reader.readAsDataURL(file);
+            
+            // Simulate IPFS upload
+            this.imageHash = 'Qm' + Array.from({length: 44}, () => 
+                Math.floor(Math.random() * 36).toString(36)).join('');
+            
+            console.log('Image processed:', file.name, 'Hash:', this.imageHash);
+            
+        } catch (error) {
+            console.error('Image processing failed:', error);
+        }
+    }
+
+    removeImage() {
+        this.currentImage = null;
+        this.imageHash = null;
+        
+        const imagePreview = document.getElementById('image-preview');
+        const imageFileInput = document.getElementById('image-file');
+        
+        if (imagePreview) imagePreview.style.display = 'none';
+        if (imageFileInput) imageFileInput.value = '';
+    }
+
+    getImageData() {
+        return {
+            file: this.currentImage,
+            hash: this.imageHash
+        };
+    }
+}
+
+// Dashboard Manager
+class DashboardManager {
+    constructor() {
+        this.currentTab = 'wallet';
+    }
+
+    setupDashboard() {
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const toggleBtn = document.getElementById('toggle-dashboard');
+        const saveProfileBtn = document.getElementById('save-profile');
+        
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const tabName = e.target.dataset.tab;
+                this.switchTab(tabName);
+            });
+        });
+        
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', this.toggleDashboard.bind(this));
+        }
+        
+        if (saveProfileBtn) {
+            saveProfileBtn.addEventListener('click', this.saveProfile.bind(this));
+        }
+        
+        this.loadProfileData();
+        this.loadMintHistory();
+    }
+
+    switchTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.tab === tabName) {
+                btn.classList.add('active');
+            }
+        });
+        
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        const targetTab = document.getElementById(`${tabName}-tab`);
+        if (targetTab) {
+            targetTab.classList.add('active');
+            this.currentTab = tabName;
+        }
+    }
+
+    async loadProfileData() {
+        const profile = await StorageManager.getArtistProfile();
+        
+        const displayNameInput = document.getElementById('display-name');
+        const bioInput = document.getElementById('bio');
+        const twitterInput = document.getElementById('social-twitter');
+        const instagramInput = document.getElementById('social-instagram');
+        
+        if (displayNameInput) displayNameInput.value = profile.name || '';
+        if (bioInput) bioInput.value = profile.bio || '';
+        if (twitterInput) twitterInput.value = profile.social?.twitter || '';
+        if (instagramInput) instagramInput.value = profile.social?.instagram || '';
+    }
+
+    async saveProfile() {
+        const displayName = document.getElementById('display-name')?.value || '';
+        const bio = document.getElementById('bio')?.value || '';
+        const twitter = document.getElementById('social-twitter')?.value || '';
+        const instagram = document.getElementById('social-instagram')?.value || '';
+        
+        const profile = {
+            name: displayName,
+            bio: bio,
+            social: { twitter, instagram }
+        };
+        
+        await StorageManager.setArtistProfile(profile);
+        
+        // Show success feedback
+        const saveBtn = document.getElementById('save-profile');
+        if (saveBtn) {
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = 'Saved!';
+            saveBtn.style.background = '#4CAF50';
+            
+            setTimeout(() => {
+                saveBtn.textContent = originalText;
+                saveBtn.style.background = '';
+            }, 2000);
+        }
+    }
+
+    async loadMintHistory() {
+        const nfts = await StorageManager.getAllNFTs();
+        const historyContainer = document.getElementById('mint-history');
+        
+        if (!historyContainer) return;
+        
+        if (nfts.length === 0) {
+            historyContainer.innerHTML = '<p style="color: rgba(255,255,255,0.7); text-align: center;">No minted NFTs yet</p>';
+            return;
+        }
+        
+        const historyHTML = nfts.map(nft => `
+            <div class="history-item">
+                <div class="title">${nft.title}</div>
+                <div class="date">${new Date(nft.timestamp).toLocaleDateString()}</div>
+            </div>
+        `).join('');
+        
+        historyContainer.innerHTML = historyHTML;
+    }
+
+    toggleDashboard() {
+        const panel = document.getElementById('dashboard-panel');
+        if (panel) {
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+    }
+
+    updateNFTCollection(nfts) {
+        const collection = document.getElementById('nft-collection');
+        if (!collection) return;
+        
+        if (nfts.length === 0) {
+            collection.innerHTML = '<p style="color: rgba(255,255,255,0.7); font-size: 12px;">No NFTs yet</p>';
+            return;
+        }
+        
+        const nftHTML = nfts.slice(-3).map(nft => `
+            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; margin-bottom: 5px;">
+                <div style="color: white; font-size: 12px; font-weight: 600;">${nft.title}</div>
+                <div style="color: rgba(255,255,255,0.7); font-size: 10px;">${new Date(nft.timestamp).toLocaleDateString()}</div>
+            </div>
+        `).join('');
+        
+        collection.innerHTML = nftHTML;
+    }
+}
+
 // Main Application
 class BeatsChainApp {
     constructor() {
@@ -649,8 +966,12 @@ class BeatsChainApp {
         this.metadataExtractor = new AudioMetadataExtractor();
         this.audioPlayer = new AudioPreviewPlayer();
         this.explorerManager = new BlockchainExplorerManager();
+        this.authManager = new AuthManager();
+        this.imageManager = new ImageUploadManager();
+        this.dashboardManager = new DashboardManager();
         this.currentSection = 'upload-section';
         this.beatFile = null;
+        this.imageFile = null;
         this.beatMetadata = {};
         this.artistProfile = {};
         this.licenseTerms = '';
@@ -661,7 +982,11 @@ class BeatsChainApp {
         try {
             console.log('Initializing BeatsChain...');
             
-            // Initialize wallet first
+            // Initialize authentication
+            await this.authManager.initialize();
+            console.log('Authentication initialized');
+            
+            // Initialize wallet
             await this.walletManager.initialize();
             console.log('Wallet initialized');
             
@@ -672,6 +997,11 @@ class BeatsChainApp {
             // Initialize AI APIs
             await this.aiManager.initialize();
             console.log('AI Manager initialized');
+            
+            // Setup all managers
+            this.imageManager.setupImageUpload();
+            this.dashboardManager.setupDashboard();
+            console.log('Managers setup complete');
             
             // Setup event listeners
             this.setupEventListeners();
@@ -702,6 +1032,12 @@ class BeatsChainApp {
     }
 
     setupEventListeners() {
+        // Authentication
+        const signInBtn = document.getElementById('sign-in-btn');
+        const profileMenuBtn = document.getElementById('profile-menu');
+        if (signInBtn) signInBtn.addEventListener('click', this.handleSignIn.bind(this));
+        if (profileMenuBtn) profileMenuBtn.addEventListener('click', this.handleProfileMenu.bind(this));
+        
         // File upload
         const uploadArea = document.getElementById('upload-area');
         const fileInput = document.getElementById('audio-file');
@@ -731,10 +1067,6 @@ class BeatsChainApp {
         const anotherBtn = document.getElementById('mint-another');
         if (viewBtn) viewBtn.addEventListener('click', this.viewNFT.bind(this));
         if (anotherBtn) anotherBtn.addEventListener('click', this.resetApp.bind(this));
-
-        // Wallet toggle
-        const walletBtn = document.getElementById('toggle-wallet');
-        if (walletBtn) walletBtn.addEventListener('click', this.toggleWallet.bind(this));
     }
 
     handleDragOver(e) {
@@ -780,6 +1112,10 @@ class BeatsChainApp {
             
             // Display enhanced metadata
             this.displayMetadata(this.beatMetadata);
+            
+            // Show image upload section
+            this.showImageUploadSection();
+            
             this.showProgress(false);
             
             // Move to licensing section
@@ -1005,6 +1341,9 @@ class BeatsChainApp {
         statusDiv.textContent = 'Preparing to mint NFT...';
 
         try {
+            // Get image data if available
+            const imageData = this.imageManager.getImageData();
+            
             // Simulate enhanced blockchain minting process
             await this.simulateEnhancedMinting(statusDiv);
             
@@ -1017,15 +1356,24 @@ class BeatsChainApp {
                 contractAddress: '0x742d35Cc6634C0532925a3b8D0C9964E5Bfe4d4B'
             };
             
-            // Store enhanced NFT data
-            await StorageManager.addNFT({
+            // Store enhanced NFT data with image
+            const nftData = {
                 ...this.beatMetadata,
                 artist: this.artistProfile.name,
                 licenseTerms: this.licenseTerms,
                 transactionHash: result.transactionHash,
                 tokenId: result.tokenId,
-                contractAddress: result.contractAddress
-            });
+                contractAddress: result.contractAddress,
+                imageHash: imageData.hash,
+                hasImage: !!imageData.file
+            };
+            
+            await StorageManager.addNFT(nftData);
+            
+            // Update dashboard
+            const allNFTs = await StorageManager.getAllNFTs();
+            this.dashboardManager.updateNFTCollection(allNFTs);
+            this.dashboardManager.loadMintHistory();
             
             // Show enhanced success
             this.showEnhancedMintSuccess(result);
@@ -1112,7 +1460,11 @@ class BeatsChainApp {
         // Cleanup audio player
         this.audioPlayer.destroy();
         
+        // Reset image manager
+        this.imageManager.removeImage();
+        
         this.beatFile = null;
+        this.imageFile = null;
         this.beatMetadata = {};
         this.licenseTerms = '';
         this.currentTxHash = null;
@@ -1124,17 +1476,20 @@ class BeatsChainApp {
         const licenseTextarea = document.getElementById('license-terms');
         const statusText = document.getElementById('ai-status-text');
         const mintStatus = document.getElementById('mint-status');
+        const imageSection = document.getElementById('image-upload-section');
         
         if (fileInput) fileInput.value = '';
         if (licenseTextarea) licenseTextarea.value = '';
         if (statusText) statusText.textContent = 'Ready to generate licensing terms';
         if (mintStatus) mintStatus.textContent = '';
+        if (imageSection) imageSection.style.display = 'none';
         
         // Reset upload area
         const uploadArea = document.getElementById('upload-area');
         if (uploadArea) {
             uploadArea.innerHTML = `
                 <input type="file" id="audio-file" accept="audio/*" hidden>
+                <input type="file" id="image-file" accept="image/*" hidden>
                 <div class="upload-content">
                     <span class="upload-icon">🎧</span>
                     <p>Drop your beat here or click to browse</p>
@@ -1143,19 +1498,18 @@ class BeatsChainApp {
             `;
         }
         
-        // Remove any existing audio preview players
-        document.querySelectorAll('.audio-preview-player').forEach(el => el.remove());
-        
-        // Remove metadata displays
-        document.querySelectorAll('.metadata-display, .enhanced-nft-preview, .explorer-links').forEach(el => el.remove());
+        // Remove any existing displays
+        document.querySelectorAll('.audio-preview-player, .metadata-display, .enhanced-nft-preview, .explorer-links').forEach(el => el.remove());
         
         this.showSection('upload-section');
         
-        // Re-setup file input listener
+        // Re-setup listeners
         const newFileInput = document.getElementById('audio-file');
         if (newFileInput) {
             newFileInput.addEventListener('change', this.handleFileSelect.bind(this));
         }
+        
+        this.imageManager.setupImageUpload();
     }
 
     showSection(sectionId) {
@@ -1199,10 +1553,32 @@ class BeatsChainApp {
         alert('BeatsChain: ' + message);
     }
 
-    toggleWallet() {
-        const panel = document.getElementById('wallet-panel');
-        if (panel) {
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    async handleSignIn() {
+        const success = await this.authManager.signInWithGoogle();
+        if (success) {
+            console.log('User signed in successfully');
+            // Update artist profile with user data
+            const userProfile = this.authManager.getUserProfile();
+            if (userProfile) {
+                this.artistProfile.name = userProfile.name;
+                await StorageManager.setArtistProfile(this.artistProfile);
+            }
+        }
+    }
+
+    handleProfileMenu() {
+        const menu = confirm('Profile Options:\n\n1. OK - View Profile\n2. Cancel - Sign Out');
+        if (menu) {
+            this.dashboardManager.switchTab('profile');
+        } else {
+            this.authManager.signOut();
+        }
+    }
+
+    showImageUploadSection() {
+        const imageSection = document.getElementById('image-upload-section');
+        if (imageSection) {
+            imageSection.style.display = 'block';
         }
     }
 
@@ -1221,6 +1597,10 @@ class BeatsChainApp {
 
     async updateWalletData() {
         await this.loadWalletData();
+        
+        // Update NFT collection in dashboard
+        const allNFTs = await StorageManager.getAllNFTs();
+        this.dashboardManager.updateNFTCollection(allNFTs);
     }
 }
 
