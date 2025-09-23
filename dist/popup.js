@@ -164,7 +164,11 @@ class AudioMetadataExtractor {
         const channelData = audioBuffer.getChannelData(0);
         
         // Mock BPM detection based on audio characteristics
-        const avgAmplitude = channelData.reduce((sum, val) => sum + Math.abs(val), 0) / channelData.length;
+        let sum = 0;
+        for (let i = 0; i < channelData.length; i++) {
+            sum += Math.abs(channelData[i]);
+        }
+        const avgAmplitude = sum / channelData.length;
         const estimatedBPM = Math.floor(avgAmplitude * 1000) % 60 + 120;
         
         return Math.min(Math.max(estimatedBPM, 80), 200);
@@ -197,7 +201,11 @@ class AudioMetadataExtractor {
 
     calculateEnergy(audioBuffer) {
         const channelData = audioBuffer.getChannelData(0);
-        const rms = Math.sqrt(channelData.reduce((sum, val) => sum + val * val, 0) / channelData.length);
+        let sum = 0;
+        for (let i = 0; i < channelData.length; i++) {
+            sum += channelData[i] * channelData[i];
+        }
+        const rms = Math.sqrt(sum / channelData.length);
         return Math.floor(rms * 1000) % 100;
     }
 
