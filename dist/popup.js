@@ -203,7 +203,11 @@ class AudioMetadataExtractor {
 
     calculateLoudness(audioBuffer) {
         const channelData = audioBuffer.getChannelData(0);
-        const peak = Math.max(...channelData.map(Math.abs));
+        let peak = 0;
+        for (let i = 0; i < channelData.length; i++) {
+            const abs = Math.abs(channelData[i]);
+            if (abs > peak) peak = abs;
+        }
         return Math.floor(peak * 100);
     }
 
