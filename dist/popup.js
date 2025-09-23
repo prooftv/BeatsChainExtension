@@ -129,6 +129,13 @@ class AudioMetadataExtractor {
         try {
             const audioContext = await this.initAudioContext();
             const arrayBuffer = await file.arrayBuffer();
+            
+            // Check file size - if too large, skip Web Audio API analysis
+            if (file.size > 20 * 1024 * 1024) { // 20MB limit
+                console.log('Large file detected, using mock analysis');
+                throw new Error('File too large for analysis');
+            }
+            
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
             
             const analysis = {
@@ -163,12 +170,13 @@ class AudioMetadataExtractor {
         const sampleRate = audioBuffer.sampleRate;
         const channelData = audioBuffer.getChannelData(0);
         
-        // Mock BPM detection based on audio characteristics
+        // Sample only first 10 seconds or 100k samples to prevent stack overflow
+        const maxSamples = Math.min(channelData.length, sampleRate * 10, 100000);
         let sum = 0;
-        for (let i = 0; i < channelData.length; i++) {
+        for (let i = 0; i < maxSamples; i++) {
             sum += Math.abs(channelData[i]);
         }
-        const avgAmplitude = sum / channelData.length;
+        const avgAmplitude = sum / maxSamples;
         const estimatedBPM = Math.floor(avgAmplitude * 1000) % 60 + 120;
         
         return Math.min(Math.max(estimatedBPM, 80), 200);
@@ -201,18 +209,20 @@ class AudioMetadataExtractor {
 
     calculateEnergy(audioBuffer) {
         const channelData = audioBuffer.getChannelData(0);
+        const maxSamples = Math.min(channelData.length, 100000);
         let sum = 0;
-        for (let i = 0; i < channelData.length; i++) {
+        for (let i = 0; i < maxSamples; i++) {
             sum += channelData[i] * channelData[i];
         }
-        const rms = Math.sqrt(sum / channelData.length);
+        const rms = Math.sqrt(sum / maxSamples);
         return Math.floor(rms * 1000) % 100;
     }
 
     calculateLoudness(audioBuffer) {
         const channelData = audioBuffer.getChannelData(0);
+        const maxSamples = Math.min(channelData.length, 100000);
         let peak = 0;
-        for (let i = 0; i < channelData.length; i++) {
+        for (let i = 0; i < maxSamples; i++) {
             const abs = Math.abs(channelData[i]);
             if (abs > peak) peak = abs;
         }
