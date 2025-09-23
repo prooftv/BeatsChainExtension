@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeatsChain Minter</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🎵 BeatsChain</h1>
+            <p>Mint your beats as NFTs</p>
+        </header>
+
+        <main class="main">
+            <!-- Upload Section -->
+            <section id="upload-section" class="section active">
+                <h2>Upload Beat</h2>
+                <div class="upload-area" id="upload-area">
+                    <input type="file" id="audio-file" accept="audio/*" hidden>
+                    <div class="upload-content">
+                        <span class="upload-icon">🎧</span>
+                        <p>Drop your beat here or click to browse</p>
+                        <small>Supports MP3, WAV, FLAC (max 50MB)</small>
+                    </div>
+                </div>
+                <div class="progress-bar" id="progress-bar" style="display: none;">
+                    <div class="progress-fill"></div>
+                </div>
+            </section>
+
+            <!-- AI Licensing Section -->
+            <section id="licensing-section" class="section">
+                <h2>AI-Generated Licensing</h2>
+                <div class="ai-status">
+                    <span class="ai-icon">🤖</span>
+                    <span id="ai-status-text">Ready to generate licensing terms</span>
+                </div>
+                <textarea id="license-terms" placeholder="AI will generate licensing terms here..." rows="6"></textarea>
+                <div class="license-actions">
+                    <button id="generate-license" class="btn btn-secondary">Generate with AI</button>
+                    <button id="approve-license" class="btn btn-primary" disabled>Approve & Continue</button>
+                </div>
+            </section>
+
+            <!-- Minting Section -->
+            <section id="minting-section" class="section">
+                <h2>Mint NFT</h2>
+                <div class="mint-preview">
+                    <div class="nft-preview">
+                        <div class="nft-image">🎵</div>
+                        <div class="nft-details">
+                            <h3 id="nft-title">Your Beat Title</h3>
+                            <p id="nft-description">AI-generated description</p>
+                        </div>
+                    </div>
+                </div>
+                <button id="mint-nft" class="btn btn-primary" disabled>Mint NFT</button>
+                <div id="mint-status" class="mint-status"></div>
+            </section>
+
+            <!-- Success Section -->
+            <section id="success-section" class="section">
+                <div class="success-content">
+                    <span class="success-icon">✅</span>
+                    <h2>NFT Minted Successfully!</h2>
+                    <div class="transaction-details">
+                        <p><strong>Transaction Hash:</strong></p>
+                        <code id="tx-hash"></code>
+                        <div class="action-buttons">
+                            <button id="view-nft" class="btn btn-primary">View NFT</button>
+                            <button id="mint-another" class="btn btn-secondary">Mint Another</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Wallet Dashboard -->
+        <aside class="wallet-panel" id="wallet-panel">
+            <div class="wallet-header">
+                <h3>Wallet</h3>
+                <button id="toggle-wallet" class="btn-icon">👛</button>
+            </div>
+            <div class="wallet-content">
+                <div class="wallet-balance">
+                    <span>Balance: </span>
+                    <span id="wallet-balance">0 MATIC</span>
+                </div>
+                <div class="nft-list">
+                    <h4>Your NFTs</h4>
+                    <div id="nft-collection"></div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

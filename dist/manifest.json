@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "BeatsChain - Music NFT Minter",
+  "version": "1.0.0",
+  "description": "Mint your beats as NFTs with AI-generated licensing",
+  "permissions": [
+    "storage",
+    "identity",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://*.thirdweb.com/*",
+    "https://*.ipfs.io/*",
+    "https://*.polygon.technology/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_title": "BeatsChain Minter",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
