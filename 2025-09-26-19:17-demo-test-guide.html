@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeatsChain Extension Demo Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .step {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        .code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .ready { background: #4CAF50; }
+        .optional { background: #FF9800; }
+        .info { background: #2196F3; }
+        .warning {
+            background: rgba(255, 152, 0, 0.2);
+            border: 1px solid #FF9800;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 BeatsChain Extension Demo Test</h1>
+        
+        <div class="success">
+            <strong>✅ Status: READY FOR TESTING</strong><br>
+            All critical bugs fixed, extension fully functional!
+        </div>
+
+        <div class="step">
+            <h3>1. Load Extension <span class="status ready">READY</span></h3>
+            <p>Load the BeatsChain extension in Chrome:</p>
+            <ul>
+                <li>Open Chrome and go to <code>chrome://extensions/</code></li>
+                <li>Enable "Developer mode" (top right toggle)</li>
+                <li>Click "Load unpacked"</li>
+                <li>Select the <code>dist/</code> folder</li>
+                <li>Extension should load successfully ✅</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>2. Test Basic Workflow <span class="status ready">READY</span></h3>
+            <p>Test the complete minting workflow:</p>
+            <ul>
+                <li>Click the BeatsChain extension icon in toolbar</li>
+                <li>Upload an audio file (MP3, WAV, etc.)</li>
+                <li>Watch metadata extraction and audio preview</li>
+                <li>Click "Generate License" - AI will create professional terms</li>
+                <li>Click "Approve License" to proceed</li>
+                <li>Click "Mint NFT" to complete the process</li>
+                <li>View success screen with multiple explorer links</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>3. Test Chrome AI APIs <span class="status optional">OPTIONAL</span></h3>
+            <p>For full AI functionality (Chrome Canary recommended):</p>
+            <ul>
+                <li>Download Chrome Canary</li>
+                <li>Enable: <code>chrome://flags/#optimization-guide-on-device-model</code></li>
+                <li>Enable: <code>chrome://flags/#prompt-api-for-gemini-nano</code></li>
+                <li>Restart browser and test extension</li>
+                <li>All 5 AI APIs will generate enhanced content</li>
+            </ul>
+            <div class="warning">
+                <strong>Note:</strong> Extension works perfectly without AI APIs using professional fallback templates.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>4. Test Advanced Features <span class="status ready">READY</span></h3>
+            <p>Explore additional functionality:</p>
+            <ul>
+                <li>Test drag & drop file upload</li>
+                <li>Try different audio formats (MP3, WAV, FLAC, M4A)</li>
+                <li>Upload cover art images</li>
+                <li>Use dashboard tabs (Wallet, Profile, History)</li>
+                <li>Edit artist profile information</li>
+                <li>View mint history and NFT collection</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>5. Verify All Features <span class="status info">CHECKLIST</span></h3>
+            <p>Confirm these features work:</p>
+            <ul>
+                <li>✅ File upload and validation</li>
+                <li>✅ Audio metadata extraction (BPM, key, genre, etc.)</li>
+                <li>✅ Audio preview player with controls</li>
+                <li>✅ AI license generation (or fallback templates)</li>
+                <li>✅ NFT minting simulation</li>
+                <li>✅ Multiple blockchain explorer links</li>
+                <li>✅ Dashboard functionality</li>
+                <li>✅ Artist profile management</li>
+                <li>✅ Image upload system</li>
+                <li>✅ Error handling and recovery</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>6. Performance Test <span class="status info">VALIDATION</span></h3>
+            <p>Test with different file types and sizes:</p>
+            <ul>
+                <li>Small files (< 5MB) - Should process quickly</li>
+                <li>Medium files (5-10MB) - Should process with progress</li>
+                <li>Large files (> 10MB) - Should use fallback analysis</li>
+                <li>Different formats - MP3, WAV, FLAC, M4A</li>
+                <li>Invalid files - Should show appropriate errors</li>
+            </ul>
+        </div>
+
+        <div class="success">
+            <h3>🎉 Demo Complete!</h3>
+            <p>If all steps work correctly, the extension is ready for:</p>
+            <ul>
+                <li>✅ Google Chrome AI Challenge 2025 submission</li>
+                <li>✅ Demo video creation</li>
+                <li>✅ User testing and feedback</li>
+                <li>✅ Production deployment</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>🚀 Next Steps</h3>
+            <p>Ready for contest submission:</p>
+            <ul>
+                <li>Create demo video (script in DEPLOYMENT-GUIDE.md)</li>
+                <li>Submit to Google Chrome AI Challenge</li>
+                <li>Setup real Thirdweb and OAuth2 credentials (optional)</li>
+                <li>Deploy to Chrome Web Store (optional)</li>
+            </ul>
+        </div>
+
+        <div class="code">
+            <strong>Quick Test Commands:</strong><br>
+            node test-extension.js<br>
+            node setup-infrastructure.js
+        </div>
+
+        <p style="text-align: center; margin-top: 30px; font-size: 1.2em;">
+            🎵 <strong>BeatsChain - Revolutionizing music NFTs with AI!</strong> 🚀
+        </p>
+    </div>
+</body>
+</html>

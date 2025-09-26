@@ -1,0 +1,20 @@
+# BeatsChain Production Environment Configuration
+# Replace these with your actual Thirdweb credentials
+
+# Thirdweb Configuration
+NEXT_PUBLIC_THIRDWEB_CLIENT_ID=0a51c6fdf5c54d8650380a82dd2b22ed
+NEXT_PUBLIC_THIRDWEB_SECRET_KEY=f9HPwAa9hpzClD0m2vTH5PZU76MpG2BF7np7GyMdSb1ZFixgiREHqKq9gYxiwXATi8alyNM_SRM_yu-UaderWQ
+NEXT_PUBLIC_CONTRACT_ADDRESS=0x742d35Cc6634C0532925a3b8D0C9964E5Bfe4d4B
+NEXT_PUBLIC_CHAIN_ID=80001
+
+# Google OAuth2 Configuration
+GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+
+# Network Configuration
+NETWORK=mumbai
+RPC_URL=https://rpc-mumbai.maticvigil.com/
+
+# IPFS Configuration
+IPFS_GATEWAY=https://ipfs.io/ipfs/
+PINATA_API_KEY=your_pinata_api_key
+PINATA_SECRET_KEY=your_pinata_secret_key
