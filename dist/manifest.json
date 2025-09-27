@@ -5,24 +5,19 @@
   "description": "Mint your beats as NFTs with AI-generated licensing",
   "permissions": [
     "storage",
-    "activeTab",
-    "identity"
+    "identity",
+    "activeTab"
   ],
   "host_permissions": [
     "https://*.thirdweb.com/*",
     "https://*.ipfs.io/*",
-    "https://*.polygon.technology/*",
-    "https://accounts.google.com/*"
+    "https://*.polygon.technology/*"
   ],
-  "oauth2": {
-    "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
-    "scopes": ["openid", "email", "profile"]
-  },
   "background": {
-    "service_worker": "service-worker.js"
+    "service_worker": "background/service-worker.js"
   },
   "action": {
-    "default_popup": "index.html",
+    "default_popup": "popup/index.html",
     "default_title": "BeatsChain Minter",
     "default_icon": {
       "16": "assets/icons/icon16.png",

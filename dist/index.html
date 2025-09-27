@@ -9,18 +9,8 @@
 <body>
     <div class="container">
         <header class="header">
-            <div class="header-content">
-                <h1>🎵 BeatsChain</h1>
-                <p>Mint your beats as NFTs</p>
-            </div>
-            <div class="profile-section">
-                <div id="profile-info" class="profile-info" style="display: none;">
-                    <img id="profile-avatar" class="profile-avatar" src="" alt="Profile">
-                    <span id="profile-name">User</span>
-                    <button id="profile-menu" class="btn-icon">⚙️</button>
-                </div>
-                <button id="sign-in-btn" class="btn btn-primary">Sign In</button>
-            </div>
+            <h1>🎵 BeatsChain</h1>
+            <p>Mint your beats as NFTs</p>
         </header>
 
         <main class="main">
@@ -29,25 +19,10 @@
                 <h2>Upload Beat</h2>
                 <div class="upload-area" id="upload-area">
                     <input type="file" id="audio-file" accept="audio/*" hidden>
-                    <input type="file" id="image-file" accept="image/*" hidden>
                     <div class="upload-content">
                         <span class="upload-icon">🎧</span>
                         <p>Drop your beat here or click to browse</p>
                         <small>Supports MP3, WAV, FLAC (max 50MB)</small>
-                    </div>
-                </div>
-                <div class="image-upload-section" id="image-upload-section" style="display: none;">
-                    <h3>Add Cover Image</h3>
-                    <div class="image-upload-area" id="image-upload-area">
-                        <div class="image-upload-content">
-                            <span class="upload-icon">🖼️</span>
-                            <p>Add cover image for your NFT</p>
-                            <small>JPG, PNG, GIF (max 10MB)</small>
-                        </div>
-                    </div>
-                    <div class="image-preview" id="image-preview" style="display: none;">
-                        <img id="preview-image" src="" alt="Cover preview">
-                        <button id="remove-image" class="btn btn-secondary">Remove</button>
                     </div>
                 </div>
                 <div class="progress-bar" id="progress-bar" style="display: none;">
@@ -102,60 +77,20 @@
             </section>
         </main>
 
-        <!-- Dashboard Panel -->
-        <aside class="dashboard-panel" id="dashboard-panel">
-            <div class="dashboard-tabs">
-                <button class="tab-btn active" data-tab="wallet">Wallet</button>
-                <button class="tab-btn" data-tab="profile">Profile</button>
-                <button class="tab-btn" data-tab="history">History</button>
+        <!-- Wallet Dashboard -->
+        <aside class="wallet-panel" id="wallet-panel">
+            <div class="wallet-header">
+                <h3>Wallet</h3>
+                <button id="toggle-wallet" class="btn-icon">👛</button>
             </div>
-            
-            <!-- Wallet Tab -->
-            <div class="tab-content active" id="wallet-tab">
-                <div class="wallet-header">
-                    <h3>Wallet</h3>
-                    <button id="toggle-dashboard" class="btn-icon">👛</button>
+            <div class="wallet-content">
+                <div class="wallet-balance">
+                    <span>Balance: </span>
+                    <span id="wallet-balance">0 MATIC</span>
                 </div>
-                <div class="wallet-content">
-                    <div class="wallet-balance">
-                        <span>Balance: </span>
-                        <span id="wallet-balance">0 MATIC</span>
-                    </div>
-                    <div class="nft-list">
-                        <h4>Your NFTs</h4>
-                        <div id="nft-collection"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Profile Tab -->
-            <div class="tab-content" id="profile-tab">
-                <div class="profile-editor">
-                    <h3>Profile Settings</h3>
-                    <div class="profile-form">
-                        <div class="form-group">
-                            <label>Display Name</label>
-                            <input type="text" id="display-name" placeholder="Your artist name">
-                        </div>
-                        <div class="form-group">
-                            <label>Bio</label>
-                            <textarea id="bio" placeholder="Tell us about your music..." rows="3"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Social Links</label>
-                            <input type="url" id="social-twitter" placeholder="Twitter URL">
-                            <input type="url" id="social-instagram" placeholder="Instagram URL">
-                        </div>
-                        <button id="save-profile" class="btn btn-primary">Save Profile</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- History Tab -->
-            <div class="tab-content" id="history-tab">
-                <div class="history-content">
-                    <h3>Minting History</h3>
-                    <div id="mint-history"></div>
+                <div class="nft-list">
+                    <h4>Your NFTs</h4>
+                    <div id="nft-collection"></div>
                 </div>
             </div>
         </aside>
