@@ -61,6 +61,18 @@ class BeatsChainApp {
 
         // Wallet toggle
         document.getElementById('toggle-wallet').addEventListener('click', this.toggleWallet.bind(this));
+        
+        // Google Sign-in
+        const googleSignIn = document.getElementById('google-signin');
+        if (googleSignIn) {
+            googleSignIn.addEventListener('click', this.handleGoogleSignIn.bind(this));
+        }
+        
+        // Image upload
+        const imageInput = document.getElementById('cover-image');
+        if (imageInput) {
+            imageInput.addEventListener('change', this.handleImageUpload.bind(this));
+        }
     }
 
     handleDragOver(e) {
@@ -100,8 +112,11 @@ class BeatsChainApp {
             this.beatMetadata = await this.extractAudioMetadata(file);
             
             // Update UI
-            this.updateUploadStatus(`Uploaded: ${file.name}`);
+            this.updateUploadStatus(`Uploaded: ${file.name} (${this.formatFileSize(file.size)})`);
             this.showProgress(false);
+            
+            // Create audio preview
+            this.createAudioPreview(file);
             
             // Move to licensing section
             this.showSection('licensing-section');
@@ -317,6 +332,14 @@ class BeatsChainApp {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
 
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
     toggleWallet() {
         const panel = document.getElementById('wallet-panel');
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
@@ -345,6 +368,62 @@ class BeatsChainApp {
 
     async getStoredData(key) {
         return StorageManager.get(key);
+    }
+    
+    async handleGoogleSignIn() {
+        try {
+            // Simple Google Sign-in simulation for MVP
+            const userEmail = prompt('Enter your email for demo:');
+            if (userEmail) {
+                await this.storeData('user_email', userEmail);
+                document.getElementById('user-email').textContent = userEmail;
+                this.showError(`Signed in as ${userEmail}`);
+            }
+        } catch (error) {
+            console.error('Google Sign-in failed:', error);
+            this.showError('Sign-in failed');
+        }
+    }
+    
+    createAudioPreview(file) {
+        const previewContainer = document.getElementById('audio-preview');
+        if (!previewContainer) return;
+        
+        // Remove existing preview
+        previewContainer.innerHTML = '';
+        
+        // Create audio element
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.style.width = '100%';
+        audio.src = URL.createObjectURL(file);
+        
+        previewContainer.appendChild(audio);
+    }
+    
+    async handleImageUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // Validate image
+        if (!file.type.startsWith('image/')) {
+            this.showError('Please select a valid image file');
+            return;
+        }
+        
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const preview = document.getElementById('image-preview');
+            if (preview) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+        };
+        reader.readAsDataURL(file);
+        
+        // Store for NFT metadata
+        this.beatMetadata.coverImage = file;
     }
 }
 

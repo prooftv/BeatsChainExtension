@@ -17,6 +17,13 @@
             <!-- Upload Section -->
             <section id="upload-section" class="section active">
                 <h2>Upload Beat</h2>
+                
+                <!-- Google Sign-in -->
+                <div class="auth-section">
+                    <button id="google-signin" class="btn btn-google">📧 Sign in with Google</button>
+                    <span id="user-email" class="user-info"></span>
+                </div>
+                
                 <div class="upload-area" id="upload-area">
                     <input type="file" id="audio-file" accept="audio/*" hidden>
                     <div class="upload-content">
@@ -25,6 +32,17 @@
                         <small>Supports MP3, WAV, FLAC (max 50MB)</small>
                     </div>
                 </div>
+                
+                <!-- Audio Preview -->
+                <div id="audio-preview" class="audio-preview"></div>
+                
+                <!-- Cover Image Upload -->
+                <div class="image-upload">
+                    <label for="cover-image">Cover Image (optional):</label>
+                    <input type="file" id="cover-image" accept="image/*">
+                    <img id="image-preview" class="image-preview" style="display: none;">
+                </div>
+                
                 <div class="progress-bar" id="progress-bar" style="display: none;">
                     <div class="progress-fill"></div>
                 </div>
