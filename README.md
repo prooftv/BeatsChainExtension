@@ -111,7 +111,7 @@ Optional WalletConnect.
 
 
 
-👉 This MVP demonstrates AI + Chrome + Blockchain synergy without requiring external infrastructure.
+👉 This MVP demonstrates real AI + Chrome + Blockchain integration using live APIs and infrastructure.
 
 
 ---

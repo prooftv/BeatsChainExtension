@@ -849,16 +849,51 @@ class BeatsChainApp {
     
     async handleGoogleSignIn() {
         try {
-            // Simple Google Sign-in simulation for MVP
-            const userEmail = prompt('Enter your email for demo:');
-            if (userEmail) {
-                await this.storeData('user_email', userEmail);
-                document.getElementById('user-email').textContent = userEmail;
-                this.showError(`Signed in as ${userEmail}`);
+            // Use Chrome Identity API for real Google Sign-in
+            if (chrome.identity) {
+                const token = await chrome.identity.getAuthToken({ interactive: true });
+                const userInfo = await this.fetchUserInfo(token);
+                
+                await this.storeData('user_profile', {
+                    email: userInfo.email,
+                    name: userInfo.name,
+                    picture: userInfo.picture
+                });
+                
+                // Update UI
+                const userElement = document.getElementById('user-email');
+                if (userElement) {
+                    userElement.textContent = userInfo.email;
+                }
+                
+                // Create wallet automatically
+                await this.walletManager.initialize();
+                
+                console.log('Google Sign-in successful:', userInfo.email);
+            } else {
+                // Fallback for development
+                const userEmail = prompt('Enter your email for demo:');
+                if (userEmail) {
+                    await this.storeData('user_email', userEmail);
+                    const userElement = document.getElementById('user-email');
+                    if (userElement) {
+                        userElement.textContent = userEmail;
+                    }
+                }
             }
         } catch (error) {
             console.error('Google Sign-in failed:', error);
-            this.showError('Sign-in failed');
+            this.showError('Sign-in failed: ' + error.message);
+        }
+    }
+    
+    async fetchUserInfo(token) {
+        try {
+            const response = await fetch(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${token}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Failed to fetch user info:', error);
+            throw error;
         }
     }
     
@@ -882,25 +917,51 @@ class BeatsChainApp {
         const file = e.target.files[0];
         if (!file) return;
         
-        // Validate image
-        if (!file.type.startsWith('image/')) {
-            this.showError('Please select a valid image file');
-            return;
-        }
-        
-        // Create preview
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const preview = document.getElementById('image-preview');
-            if (preview) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
+        try {
+            // Validate image
+            if (!file.type.startsWith('image/')) {
+                this.showError('Please select a valid image file (JPG, PNG, GIF)');
+                return;
             }
-        };
-        reader.readAsDataURL(file);
-        
-        // Store for NFT metadata
-        this.beatMetadata.coverImage = file;
+            
+            // Check file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                this.showError('Image file too large. Please select a file under 10MB.');
+                return;
+            }
+            
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const preview = document.getElementById('image-preview');
+                if (preview) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                
+                // Show upload success
+                const uploadStatus = document.getElementById('image-upload-status');
+                if (uploadStatus) {
+                    uploadStatus.textContent = `✅ Image uploaded: ${file.name} (${this.formatFileSize(file.size)})`;
+                    uploadStatus.style.color = '#4CAF50';
+                }
+            };
+            
+            reader.onerror = () => {
+                this.showError('Failed to read image file');
+            };
+            
+            reader.readAsDataURL(file);
+            
+            // Store for NFT metadata
+            this.beatMetadata.coverImage = file;
+            
+            console.log('Image uploaded successfully:', file.name);
+            
+        } catch (error) {
+            console.error('Image upload failed:', error);
+            this.showError('Image upload failed: ' + error.message);
+        }
     }
 }
 
