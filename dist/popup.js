@@ -595,8 +595,7 @@ class BeatsChainApp {
             // Create audio preview
             this.createAudioPreview(file);
             
-            // Move to licensing section
-            this.showSection('licensing-section');
+            // Don't auto-move to licensing - wait for user input
             
         } catch (error) {
             console.error('File processing failed:', error);
@@ -623,16 +622,74 @@ class BeatsChainApp {
                     duration: this.formatDuration(audio.duration),
                     size: file.size,
                     type: file.type,
-                    artist: 'Unknown Artist', // Could be enhanced with ID3 parsing
-                    genre: 'Electronic'
+                    artist: '', // User will input
+                    genre: '' // User will input
                 };
                 
                 URL.revokeObjectURL(url);
+                this.showMetadataForm(metadata);
                 resolve(metadata);
             });
             
             audio.src = url;
         });
+    }
+    
+    showMetadataForm(metadata) {
+        const formHTML = `
+            <div class="metadata-form" style="margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                <h4 style="margin: 0 0 10px 0; color: #fff;">📝 Track Information</h4>
+                <div style="display: grid; gap: 8px;">
+                    <input type="text" id="track-title" placeholder="Track Title" value="${metadata.title}" 
+                           style="padding: 8px; border-radius: 4px; border: none; background: rgba(255,255,255,0.9);">
+                    <input type="text" id="artist-name" placeholder="Artist Name" 
+                           style="padding: 8px; border-radius: 4px; border: none; background: rgba(255,255,255,0.9);">
+                    <select id="genre-select" style="padding: 8px; border-radius: 4px; border: none; background: rgba(255,255,255,0.9);">
+                        <option value="">Select Genre</option>
+                        <option value="Hip Hop">Hip Hop</option>
+                        <option value="Trap">Trap</option>
+                        <option value="Electronic">Electronic</option>
+                        <option value="House">House</option>
+                        <option value="Techno">Techno</option>
+                        <option value="Ambient">Ambient</option>
+                        <option value="R&B">R&B</option>
+                        <option value="Pop">Pop</option>
+                        <option value="Rock">Rock</option>
+                        <option value="Jazz">Jazz</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <button onclick="beatsChainApp.updateMetadata()" 
+                            style="padding: 8px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        ✅ Update Track Info
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        const uploadSection = document.getElementById('upload-section');
+        const existingForm = uploadSection.querySelector('.metadata-form');
+        if (existingForm) existingForm.remove();
+        
+        uploadSection.insertAdjacentHTML('beforeend', formHTML);
+    }
+    
+    updateMetadata() {
+        const title = document.getElementById('track-title').value.trim();
+        const artist = document.getElementById('artist-name').value.trim();
+        const genre = document.getElementById('genre-select').value;
+        
+        if (!title || !artist || !genre) {
+            this.showError('Please fill in all track information');
+            return;
+        }
+        
+        this.beatMetadata.title = title;
+        this.beatMetadata.artist = artist;
+        this.beatMetadata.genre = genre;
+        
+        // Remove form and proceed
+        document.querySelector('.metadata-form').remove();
+        this.showSection('licensing-section');
     }
 
     async generateLicense() {

@@ -92,6 +92,38 @@
                 <!-- Audio Preview -->
                 <div id="audio-preview" class="audio-preview"></div>
                 
+                <!-- Audio Metadata Display -->
+                <div id="metadata-display" class="metadata-display" style="display: none;">
+                    <h4>📊 Audio Analysis</h4>
+                    <div class="metadata-grid">
+                        <div class="meta-row">
+                            <span class="meta-label">Duration:</span>
+                            <span id="meta-duration">-</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Quality:</span>
+                            <span id="meta-quality">-</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Estimated BPM:</span>
+                            <span id="meta-bpm">-</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Suggested Genre:</span>
+                            <span id="meta-genre">-</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Energy Level:</span>
+                            <span id="meta-energy">-</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">File Size:</span>
+                            <span id="meta-size">-</span>
+                        </div>
+                    </div>
+                    <small class="meta-note">💡 This analysis will be used to generate professional licensing terms</small>
+                </div>
+                
                 <!-- Cover Image Upload -->
                 <div class="image-upload">
                     <label for="cover-image">Cover Image (optional):</label>
@@ -146,6 +178,7 @@
                         <code id="tx-hash"></code>
                         <div class="action-buttons">
                             <button id="view-nft" class="btn btn-primary">View Transaction</button>
+                            <button id="download-package" class="btn btn-secondary">📦 Download Package</button>
                             <button id="mint-another" class="btn btn-secondary">Mint Another</button>
                         </div>
                     </div>

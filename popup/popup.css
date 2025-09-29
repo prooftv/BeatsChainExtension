@@ -816,3 +816,51 @@ textarea:focus {
     margin-top: 10px;
     border: 2px solid rgba(255, 255, 255, 0.3);
 }
+
+.metadata-display {
+    margin: 15px 0;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.metadata-display h4 {
+    color: white;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.metadata-grid {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.meta-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.meta-row span:last-child {
+    color: #4CAF50;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: right;
+}
+
+.meta-note {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    font-style: italic;
+    display: block;
+    margin-top: 8px;
+}

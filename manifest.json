@@ -17,7 +17,8 @@
     "https://www.facebook.com/*",
     "https://www.linkedin.com/*",
     "https://reddit.com/*",
-    "https://chart.googleapis.com/*"
+    "https://chart.googleapis.com/*",
+    "https://cdnjs.cloudflare.com/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js"

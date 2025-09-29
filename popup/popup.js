@@ -55,6 +55,14 @@ class BeatsChainApp {
             mintAnotherBtn.addEventListener('click', this.resetApp.bind(this));
         }
 
+        const downloadBtn = document.getElementById('download-package');
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', () => this.generateDownloadPackage({
+                transactionHash: this.currentTxHash,
+                tokenId: this.currentTokenId
+            }));
+        }
+
         const googleSignIn = document.getElementById('google-signin');
         if (googleSignIn) {
             googleSignIn.addEventListener('click', this.handleGoogleSignIn.bind(this));
@@ -154,6 +162,7 @@ class BeatsChainApp {
             this.updateUploadStatus(`Uploaded: ${file.name} (${this.formatFileSize(file.size)})`);
             this.showProgress(false);
             this.createAudioPreview(file);
+            this.displayMetadata(this.beatMetadata);
             
             // Show proceed button
             const proceedBtn = document.getElementById('proceed-to-licensing');
@@ -177,20 +186,93 @@ class BeatsChainApp {
             const url = URL.createObjectURL(file);
             
             audio.addEventListener('loadedmetadata', () => {
+                // Enhanced metadata extraction
+                const fileName = file.name.replace(/\.[^/.]+$/, "");
+                const fileExt = file.name.split('.').pop().toUpperCase();
+                const bitrate = this.estimateBitrate(file.size, audio.duration);
+                const quality = this.getQualityLevel(bitrate, fileExt);
+                
                 const metadata = {
-                    title: file.name.replace(/\.[^/.]+$/, ""),
+                    // Basic Info
+                    title: fileName,
+                    originalFileName: file.name,
                     duration: this.formatDuration(audio.duration),
-                    size: file.size,
-                    type: file.type,
-                    artist: 'Unknown Artist',
-                    genre: 'Electronic'
+                    durationSeconds: Math.round(audio.duration),
+                    
+                    // Technical Specs
+                    fileSize: this.formatFileSize(file.size),
+                    fileSizeBytes: file.size,
+                    format: fileExt,
+                    mimeType: file.type,
+                    estimatedBitrate: bitrate,
+                    qualityLevel: quality,
+                    
+                    // Inferred Properties (for AI context)
+                    estimatedBPM: this.estimateBPM(fileName),
+                    suggestedGenre: this.inferGenre(fileName),
+                    energyLevel: this.inferEnergyLevel(fileName, audio.duration),
+                    
+                    // Metadata for licensing
+                    createdDate: new Date().toISOString(),
+                    uploadTimestamp: Date.now()
                 };
+                
                 URL.revokeObjectURL(url);
                 resolve(metadata);
             });
             
             audio.src = url;
         });
+    }
+
+    estimateBitrate(fileSize, duration) {
+        if (!duration || duration === 0) return 'Unknown';
+        const bitrate = Math.round((fileSize * 8) / (duration * 1000));
+        return `${bitrate} kbps`;
+    }
+
+    getQualityLevel(bitrate, format) {
+        const rate = parseInt(bitrate);
+        if (format === 'FLAC' || format === 'WAV') return 'Lossless';
+        if (rate >= 320) return 'High (320+ kbps)';
+        if (rate >= 192) return 'Medium (192-319 kbps)';
+        if (rate >= 128) return 'Standard (128-191 kbps)';
+        return 'Low (<128 kbps)';
+    }
+
+    estimateBPM(fileName) {
+        const bpmMatch = fileName.match(/(\d{2,3})\s*bpm/i);
+        if (bpmMatch) return `${bpmMatch[1]} BPM`;
+        
+        // Infer from common terms
+        const name = fileName.toLowerCase();
+        if (name.includes('slow') || name.includes('chill')) return '70-90 BPM (Slow)';
+        if (name.includes('trap') || name.includes('hip')) return '140-180 BPM (Trap/Hip-Hop)';
+        if (name.includes('house') || name.includes('dance')) return '120-130 BPM (House/Dance)';
+        if (name.includes('drum') || name.includes('bass')) return '160-180 BPM (DnB)';
+        return '120-140 BPM (Estimated)';
+    }
+
+    inferGenre(fileName) {
+        const name = fileName.toLowerCase();
+        if (name.includes('trap')) return 'Trap';
+        if (name.includes('house')) return 'House';
+        if (name.includes('techno')) return 'Techno';
+        if (name.includes('hip') || name.includes('rap')) return 'Hip-Hop';
+        if (name.includes('drum') || name.includes('bass')) return 'Drum & Bass';
+        if (name.includes('chill') || name.includes('lo')) return 'Chill/Lo-Fi';
+        if (name.includes('pop')) return 'Pop';
+        if (name.includes('rock')) return 'Rock';
+        return 'Electronic/Instrumental';
+    }
+
+    inferEnergyLevel(fileName, duration) {
+        const name = fileName.toLowerCase();
+        if (name.includes('chill') || name.includes('ambient')) return 'Low Energy';
+        if (name.includes('hard') || name.includes('aggressive')) return 'High Energy';
+        if (duration > 300) return 'Medium Energy (Extended)';
+        if (duration < 120) return 'High Energy (Short)';
+        return 'Medium Energy';
     }
 
     async generateLicense() {
@@ -205,7 +287,7 @@ class BeatsChainApp {
             // Try Chrome AI first
             if (window.ai && window.ai.languageModel) {
                 const session = await window.ai.languageModel.create();
-                const prompt = `Generate professional music licensing terms for:\nTitle: ${this.beatMetadata.title}\nGenre: ${this.beatMetadata.genre}\nDuration: ${this.beatMetadata.duration}\nArtist: ${this.beatMetadata.artist}\n\nCreate clear, enforceable licensing terms including usage rights, attribution requirements, and commercial permissions.`;
+                const prompt = `Generate professional music licensing agreement using these LICENSING DEFINITIONS:\n\nLICENSING TERMINOLOGY:\n- EXCLUSIVE: Only licensee can use, creator cannot license to others\n- NON-EXCLUSIVE: Multiple parties can license same track\n- COMMERCIAL USE: For profit, advertising, business purposes\n- NON-COMMERCIAL: Personal, educational, non-profit use only\n- SYNCHRONIZATION: Use with video/visual media\n- MECHANICAL: Physical/digital reproduction rights\n- PERFORMANCE: Live/broadcast performance rights\n- DERIVATIVE WORKS: Remixes, samples, modifications allowed/prohibited\n- TERRITORY: Geographic usage restrictions (Worldwide/Regional)\n- PERPETUAL: License never expires\n- TERM LIMITED: License expires after specified period\n- ROYALTY-FREE: One-time payment, no ongoing fees\n- ROYALTY-BEARING: Percentage of revenue to creator\n\nTRACK DETAILS:\n- Title: ${this.beatMetadata.title}\n- Duration: ${this.beatMetadata.duration} (${this.beatMetadata.durationSeconds} seconds)\n- Genre: ${this.beatMetadata.suggestedGenre}\n- BPM: ${this.beatMetadata.estimatedBPM}\n- Energy: ${this.beatMetadata.energyLevel}\n- Quality: ${this.beatMetadata.qualityLevel}\n- Format: ${this.beatMetadata.format}\n\nCREATE COMPREHENSIVE LICENSE WITH:\n1. License Type (Exclusive/Non-Exclusive)\n2. Usage Rights (Commercial/Non-Commercial/Both)\n3. Included Rights (Sync, Mechanical, Performance)\n4. Territory (Worldwide recommended)\n5. Duration (Perpetual recommended for NFTs)\n6. Attribution Requirements\n7. Derivative Works Policy\n8. Royalty Structure\n9. Technical Specifications\n10. Blockchain Verification Clause\n\nUse proper legal terminology and make it NFT-appropriate.`;
                 this.licenseTerms = await session.prompt(prompt);
             } else {
                 // Fallback to template
@@ -229,21 +311,36 @@ class BeatsChainApp {
     getFallbackLicense(metadata) {
         return `MUSIC LICENSING AGREEMENT
 
-Track: ${metadata.title}
-Artist: ${metadata.artist}
-Duration: ${metadata.duration}
+TRACK IDENTIFICATION:
+- Title: ${metadata.title}
+- Duration: ${metadata.duration} (${metadata.durationSeconds}s)
+- Genre: ${metadata.suggestedGenre}
+- BPM: ${metadata.estimatedBPM}
+- Quality: ${metadata.qualityLevel}
+- Format: ${metadata.format}
+- Energy Level: ${metadata.energyLevel}
+
+TECHNICAL SPECIFICATIONS:
+- File Size: ${metadata.fileSize}
+- Bitrate: ${metadata.estimatedBitrate}
+- Original Format: ${metadata.mimeType}
 
 USAGE RIGHTS:
 - Non-exclusive license for personal and commercial use
-- Attribution required: "${metadata.artist} - ${metadata.title}"
+- Attribution required: "${metadata.title} - BeatsChain NFT"
 - No resale or redistribution of original audio file
 - Derivative works permitted with attribution
+- Streaming and broadcasting rights included
 
-TERMS:
-- License valid indefinitely
-- No warranty provided
-- Governed by blockchain smart contract
-- Generated by BeatsChain AI on ${new Date().toLocaleDateString()}`;
+LICENSE TERMS:
+- Territory: Worldwide
+- Duration: Perpetual
+- Royalty: 2.5% on commercial use
+- Quality maintained as specified above
+- Blockchain verification required
+
+Generated by BeatsChain AI on ${new Date().toLocaleDateString()}
+NFT Contract: BeatsChain Music NFTs`;
     }
 
     approveLicense() {
@@ -311,9 +408,13 @@ TERMS:
                 title: this.beatMetadata.title,
                 txHash: result.transactionHash,
                 tokenId: result.tokenId,
-                license: this.licenseTerms
+                license: this.licenseTerms,
+                metadata: this.beatMetadata
             }
         });
+        
+        // Generate downloadable package
+        setTimeout(() => this.generateDownloadPackage(result), 1000);
     }
 
     viewNFT() {
@@ -342,6 +443,9 @@ TERMS:
         
         const imagePreview = document.getElementById('image-preview');
         if (imagePreview) imagePreview.style.display = 'none';
+        
+        const metadataDisplay = document.getElementById('metadata-display');
+        if (metadataDisplay) metadataDisplay.style.display = 'none';
         
         // Reset upload area text
         const uploadContent = document.querySelector('.upload-content p');
@@ -442,6 +546,20 @@ TERMS:
         audio.style.width = '100%';
         audio.src = URL.createObjectURL(file);
         previewContainer.appendChild(audio);
+    }
+
+    displayMetadata(metadata) {
+        const metadataDisplay = document.getElementById('metadata-display');
+        if (!metadataDisplay) return;
+
+        document.getElementById('meta-duration').textContent = metadata.duration;
+        document.getElementById('meta-quality').textContent = metadata.qualityLevel;
+        document.getElementById('meta-bpm').textContent = metadata.estimatedBPM;
+        document.getElementById('meta-genre').textContent = metadata.suggestedGenre;
+        document.getElementById('meta-energy').textContent = metadata.energyLevel;
+        document.getElementById('meta-size').textContent = metadata.fileSize;
+
+        metadataDisplay.style.display = 'block';
     }
     
     async handleImageUpload(e) {
@@ -742,6 +860,101 @@ TERMS:
         const seoOutput = document.getElementById('seo-output');
         seoOutput.innerHTML = seoHTML;
         seoOutput.style.display = 'block';
+    }
+
+    async generateDownloadPackage(result) {
+        try {
+            const JSZip = await this.loadJSZip();
+            const zip = new JSZip();
+            
+            // 1. Original Audio File
+            if (this.beatFile) {
+                zip.file(`audio/${this.beatMetadata.originalFileName}`, this.beatFile);
+            }
+            
+            // 2. License Agreement (TXT)
+            const licenseContent = `${this.licenseTerms}\n\n--- BLOCKCHAIN VERIFICATION ---\nTransaction Hash: ${result.transactionHash}\nToken ID: ${result.tokenId}\nContract: 0x8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B\nNetwork: Polygon Mumbai\nMinted: ${new Date().toISOString()}`;
+            zip.file('LICENSE.txt', licenseContent);
+            
+            // 3. NFT Metadata (JSON)
+            const nftMetadata = {
+                name: this.beatMetadata.title,
+                description: `Music NFT: ${this.beatMetadata.title} - ${this.beatMetadata.suggestedGenre}`,
+                image: "ipfs://QmYourImageHash",
+                external_url: `https://polygonscan.com/tx/${result.transactionHash}`,
+                attributes: [
+                    { trait_type: "Genre", value: this.beatMetadata.suggestedGenre },
+                    { trait_type: "BPM", value: this.beatMetadata.estimatedBPM },
+                    { trait_type: "Duration", value: this.beatMetadata.duration },
+                    { trait_type: "Quality", value: this.beatMetadata.qualityLevel },
+                    { trait_type: "Energy Level", value: this.beatMetadata.energyLevel },
+                    { trait_type: "Format", value: this.beatMetadata.format }
+                ],
+                blockchain: {
+                    contract: "0x8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B",
+                    tokenId: result.tokenId,
+                    transactionHash: result.transactionHash,
+                    network: "Polygon Mumbai"
+                }
+            };
+            zip.file('metadata.json', JSON.stringify(nftMetadata, null, 2));
+            
+            // 4. Certificate of Authenticity
+            const certificate = `BEATSCHAIN NFT CERTIFICATE OF AUTHENTICITY\n\n` +
+                `Track: ${this.beatMetadata.title}\n` +
+                `Token ID: ${result.tokenId}\n` +
+                `Transaction: ${result.transactionHash}\n` +
+                `Minted: ${new Date().toLocaleString()}\n\n` +
+                `This certificate verifies the authenticity of the above NFT\n` +
+                `minted on the BeatsChain platform using blockchain technology.\n\n` +
+                `Verify at: https://polygonscan.com/tx/${result.transactionHash}`;
+            zip.file('CERTIFICATE.txt', certificate);
+            
+            // 5. Cover Image (if uploaded)
+            if (this.beatMetadata.coverImage) {
+                zip.file(`cover/cover.${this.beatMetadata.coverImage.name.split('.').pop()}`, this.beatMetadata.coverImage);
+            }
+            
+            // 6. README with instructions
+            const readme = `BEATSCHAIN NFT PACKAGE\n=====================\n\nThis package contains:\n\n1. audio/ - Original audio file\n2. LICENSE.txt - Complete licensing agreement\n3. metadata.json - NFT metadata (OpenSea compatible)\n4. CERTIFICATE.txt - Certificate of authenticity\n5. cover/ - Cover artwork (if provided)\n\nBLOCKCHAIN VERIFICATION:\n- Contract: 0x8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B\n- Network: Polygon Mumbai\n- Transaction: ${result.transactionHash}\n\nFor support: https://beatschain.app`;
+            zip.file('README.txt', readme);
+            
+            // Generate and download ZIP
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(zipBlob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `BeatsChain-${this.beatMetadata.title.replace(/[^a-zA-Z0-9]/g, '_')}-NFT-Package.zip`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            
+            // Update button text
+            const downloadBtn = document.getElementById('download-package');
+            if (downloadBtn) {
+                const originalText = downloadBtn.textContent;
+                downloadBtn.textContent = '✅ Downloaded!';
+                setTimeout(() => downloadBtn.textContent = originalText, 3000);
+            }
+            
+        } catch (error) {
+            console.error('Package generation failed:', error);
+            alert('Failed to generate download package');
+        }
+    }
+
+    async loadJSZip() {
+        if (window.JSZip) return window.JSZip;
+        
+        // Load JSZip dynamically
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+            script.onload = () => resolve(window.JSZip);
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
     }
 }
 

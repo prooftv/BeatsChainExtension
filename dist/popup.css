@@ -166,13 +166,14 @@ textarea:focus {
 
 /* Buttons */
 .btn {
-    padding: 12px 24px;
+    padding: 10px 16px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 14px;
+    font-size: 13px;
+    line-height: 1.2;
 }
 
 .btn-primary {
@@ -282,11 +283,23 @@ textarea:focus {
 
 .action-buttons {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .action-buttons .btn {
     flex: 1;
+    min-width: 0;
+    padding: 8px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.action-buttons .btn-small {
+    padding: 6px 10px;
+    font-size: 11px;
 }
 
 /* Wallet Panel */
