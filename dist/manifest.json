@@ -5,13 +5,20 @@
   "description": "Mint your beats as NFTs with AI-generated licensing",
   "permissions": [
     "storage",
-    "identity",
-    "activeTab"
+    "activeTab",
+    "alarms"
   ],
   "host_permissions": [
-    "https://*.thirdweb.com/*",
     "https://*.ipfs.io/*",
-    "https://*.polygon.technology/*"
+    "https://api.pinata.cloud/*",
+    "https://rpc-mumbai.maticvigil.com/*",
+    "https://polygonscan.com/*",
+    "https://twitter.com/*",
+    "https://www.facebook.com/*",
+    "https://www.linkedin.com/*",
+    "https://reddit.com/*",
+    "https://chart.googleapis.com/*",
+    "https://cdnjs.cloudflare.com/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js"
@@ -31,8 +38,5 @@
     "32": "assets/icons/icon32.png",
     "48": "assets/icons/icon48.png",
     "128": "assets/icons/icon128.png"
-  },
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }

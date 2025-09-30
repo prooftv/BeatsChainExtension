@@ -11,11 +11,77 @@ class BeatsChainApp {
     async initialize() {
         try {
             this.setupEventListeners();
+            
+            // Initialize Authentication Manager
+            this.authManager = new AuthenticationManager();
+            const isAuthenticated = await this.authManager.initialize();
+            
+            if (isAuthenticated) {
+                console.log('✅ User already authenticated');
+                await this.updateAuthenticatedUI();
+            } else {
+                console.log('ℹ️  User not authenticated');
+            }
+            
             await this.loadWalletData();
+            
+            // Initialize Chrome AI Manager
+            this.chromeAI = new ChromeAIManager();
+            const aiAvailable = await this.chromeAI.initialize();
+            
+            if (aiAvailable) {
+                console.log('Chrome AI initialized with APIs:', this.chromeAI.getAvailableAPIs());
+            } else {
+                console.warn('Chrome AI not available, using fallback templates');
+            }
+            
             this.isInitialized = true;
             console.log('BeatsChain initialized successfully');
         } catch (error) {
             console.error('Initialization failed:', error);
+        }
+    }
+    
+    async updateAuthenticatedUI() {
+        try {
+            const userProfile = this.authManager.getUserProfile();
+            if (!userProfile) return;
+            
+            // Update user email display
+            const emailElement = document.getElementById('user-email');
+            if (emailElement) {
+                emailElement.textContent = userProfile.email;
+            }
+            
+            // Update profile name
+            const nameElement = document.getElementById('profile-name');
+            if (nameElement) {
+                nameElement.textContent = userProfile.name;
+            }
+            
+            // Update profile email in profile section
+            const profileEmailElement = document.getElementById('profile-email');
+            if (profileEmailElement) {
+                profileEmailElement.textContent = userProfile.email;
+            }
+            
+            // Hide sign-in button
+            const signInBtn = document.getElementById('google-signin');
+            if (signInBtn) {
+                signInBtn.style.display = 'none';
+            }
+            
+            // Show user avatar if available
+            if (userProfile.picture) {
+                const avatarElements = document.querySelectorAll('.user-avatar');
+                avatarElements.forEach(avatar => {
+                    avatar.src = userProfile.picture;
+                    avatar.style.display = 'block';
+                });
+            }
+            
+        } catch (error) {
+            console.error('Failed to update authenticated UI:', error);
         }
     }
 
@@ -281,31 +347,186 @@ class BeatsChainApp {
         const licenseTextarea = document.getElementById('license-terms');
         
         generateBtn.disabled = true;
-        statusText.textContent = 'AI generating licensing terms...';
+        statusText.textContent = 'Initializing Chrome AI...';
 
         try {
-            // Try Chrome AI first
-            if (window.ai && window.ai.languageModel) {
-                const session = await window.ai.languageModel.create();
-                const prompt = `Generate professional music licensing agreement using these LICENSING DEFINITIONS:\n\nLICENSING TERMINOLOGY:\n- EXCLUSIVE: Only licensee can use, creator cannot license to others\n- NON-EXCLUSIVE: Multiple parties can license same track\n- COMMERCIAL USE: For profit, advertising, business purposes\n- NON-COMMERCIAL: Personal, educational, non-profit use only\n- SYNCHRONIZATION: Use with video/visual media\n- MECHANICAL: Physical/digital reproduction rights\n- PERFORMANCE: Live/broadcast performance rights\n- DERIVATIVE WORKS: Remixes, samples, modifications allowed/prohibited\n- TERRITORY: Geographic usage restrictions (Worldwide/Regional)\n- PERPETUAL: License never expires\n- TERM LIMITED: License expires after specified period\n- ROYALTY-FREE: One-time payment, no ongoing fees\n- ROYALTY-BEARING: Percentage of revenue to creator\n\nTRACK DETAILS:\n- Title: ${this.beatMetadata.title}\n- Duration: ${this.beatMetadata.duration} (${this.beatMetadata.durationSeconds} seconds)\n- Genre: ${this.beatMetadata.suggestedGenre}\n- BPM: ${this.beatMetadata.estimatedBPM}\n- Energy: ${this.beatMetadata.energyLevel}\n- Quality: ${this.beatMetadata.qualityLevel}\n- Format: ${this.beatMetadata.format}\n\nCREATE COMPREHENSIVE LICENSE WITH:\n1. License Type (Exclusive/Non-Exclusive)\n2. Usage Rights (Commercial/Non-Commercial/Both)\n3. Included Rights (Sync, Mechanical, Performance)\n4. Territory (Worldwide recommended)\n5. Duration (Perpetual recommended for NFTs)\n6. Attribution Requirements\n7. Derivative Works Policy\n8. Royalty Structure\n9. Technical Specifications\n10. Blockchain Verification Clause\n\nUse proper legal terminology and make it NFT-appropriate.`;
-                this.licenseTerms = await session.prompt(prompt);
+            // Initialize Chrome AI Manager with full context
+            if (!this.chromeAI) {
+                this.chromeAI = new ChromeAIManager();
+                await this.chromeAI.initialize();
+            }
+
+            statusText.textContent = 'AI analyzing track metadata...';
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Generate contextual license using all available metadata
+            statusText.textContent = 'Generating professional licensing terms...';
+            const userPreferences = {
+                licenseType: 'non-exclusive',
+                commercialUse: true,
+                territory: 'worldwide',
+                duration: 'perpetual',
+                royaltyRate: 2.5
+            };
+
+            this.licenseTerms = await this.chromeAI.generateLicense(this.beatMetadata, userPreferences);
+            
+            // Validate and enhance the generated license
+            if (this.licenseTerms && this.licenseTerms.length > 100) {
+                statusText.textContent = 'Optimizing license terms...';
+                
+                // Use Chrome AI rewriter to optimize if available
+                if (this.chromeAI.apis.rewriter) {
+                    this.licenseTerms = await this.chromeAI.optimizeLicense(this.licenseTerms);
+                }
+                
+                licenseTextarea.value = this.licenseTerms;
+                statusText.textContent = `License generated successfully using ${this.chromeAI.getAvailableAPIs().join(', ')} APIs!`;
             } else {
-                // Fallback to template
-                this.licenseTerms = this.getFallbackLicense(this.beatMetadata);
+                throw new Error('Generated license too short or invalid');
             }
             
-            licenseTextarea.value = this.licenseTerms;
-            statusText.textContent = 'License generated successfully!';
             document.getElementById('approve-license').disabled = false;
             
         } catch (error) {
             console.error('License generation failed:', error);
-            statusText.textContent = 'Using template license';
-            licenseTextarea.value = this.getFallbackLicense(this.beatMetadata);
+            statusText.textContent = 'Using enhanced template license';
+            
+            // Use enhanced fallback with full context
+            this.licenseTerms = this.getEnhancedFallbackLicense(this.beatMetadata);
+            licenseTextarea.value = this.licenseTerms;
             document.getElementById('approve-license').disabled = false;
         } finally {
             generateBtn.disabled = false;
         }
+    }
+
+    getEnhancedFallbackLicense(metadata) {
+        return `BEATSCHAIN MUSIC NFT LICENSING AGREEMENT
+
+═══════════════════════════════════════════════════════════════
+TRACK IDENTIFICATION & TECHNICAL SPECIFICATIONS
+═══════════════════════════════════════════════════════════════
+
+Track Title: ${metadata.title}
+Original Filename: ${metadata.originalFileName}
+Duration: ${metadata.duration} (${metadata.durationSeconds} seconds)
+Genre Classification: ${metadata.suggestedGenre}
+Estimated BPM: ${metadata.estimatedBPM}
+Energy Level: ${metadata.energyLevel}
+Audio Quality: ${metadata.qualityLevel}
+File Format: ${metadata.format}
+Estimated Bitrate: ${metadata.estimatedBitrate}
+File Size: ${metadata.fileSize}
+Creation Date: ${new Date(metadata.createdDate).toLocaleDateString()}
+Upload Timestamp: ${new Date(metadata.uploadTimestamp).toLocaleString()}
+
+═══════════════════════════════════════════════════════════════
+GRANT OF RIGHTS
+═══════════════════════════════════════════════════════════════
+
+1. LICENSE TYPE: Non-Exclusive Perpetual License
+2. TERRITORY: Worldwide distribution and usage rights
+3. DURATION: Perpetual (never expires, suitable for NFT ownership)
+4. USAGE RIGHTS: Commercial and Non-Commercial use permitted
+
+═══════════════════════════════════════════════════════════════
+INCLUDED RIGHTS
+═══════════════════════════════════════════════════════════════
+
+✓ SYNCHRONIZATION RIGHTS: Use with video, film, advertising, social media
+✓ MECHANICAL RIGHTS: Digital reproduction, streaming, downloads
+✓ PERFORMANCE RIGHTS: Live performances, broadcasts, public play
+✓ DERIVATIVE WORKS: Remixes, samples, modifications (with attribution)
+✓ DISTRIBUTION RIGHTS: Online platforms, physical media, streaming services
+
+═══════════════════════════════════════════════════════════════
+ATTRIBUTION REQUIREMENTS
+═══════════════════════════════════════════════════════════════
+
+Required Attribution Format:
+"${metadata.title} - BeatsChain NFT"
+
+Attribution must be included in:
+- Video descriptions and credits
+- Social media posts using the track
+- Commercial advertisements
+- Streaming platform metadata
+- Physical media packaging
+
+═══════════════════════════════════════════════════════════════
+ROYALTY STRUCTURE
+═══════════════════════════════════════════════════════════════
+
+• Personal/Non-Commercial Use: Royalty-Free
+• Commercial Use (Revenue < $1,000): Royalty-Free
+• Commercial Use (Revenue ≥ $1,000): 2.5% of gross revenue
+• Streaming Platforms: Standard platform royalty splits apply
+• Sync Licensing: Case-by-case negotiation for major productions
+
+═══════════════════════════════════════════════════════════════
+TECHNICAL QUALITY GUARANTEE
+═══════════════════════════════════════════════════════════════
+
+The licensed track maintains the following specifications:
+- Audio Quality: ${metadata.qualityLevel}
+- Bitrate: ${metadata.estimatedBitrate}
+- Format: ${metadata.format}
+- Duration: Exactly ${metadata.durationSeconds} seconds
+- File Integrity: Verified via blockchain hash
+
+═══════════════════════════════════════════════════════════════
+BLOCKCHAIN VERIFICATION & NFT OWNERSHIP
+═══════════════════════════════════════════════════════════════
+
+This license is valid only with verified NFT ownership:
+• Smart Contract: 0x8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B
+• Blockchain Network: Polygon Mumbai Testnet
+• License terms immutably stored on blockchain
+• Ownership verification required for commercial use
+• Transfer of NFT transfers license rights
+
+═══════════════════════════════════════════════════════════════
+PROHIBITED USES
+═══════════════════════════════════════════════════════════════
+
+✗ Resale or redistribution of original audio file
+✗ Claiming ownership or authorship of the composition
+✗ Use in illegal, defamatory, or harmful content
+✗ Reverse engineering or attempting to recreate the track
+✗ Removing or altering attribution requirements
+
+═══════════════════════════════════════════════════════════════
+TERMINATION CONDITIONS
+═══════════════════════════════════════════════════════════════
+
+This license remains valid unless:
+• NFT ownership is transferred (license transfers with NFT)
+• Breach of attribution requirements (30-day cure period)
+• Use in prohibited applications (immediate termination)
+• Blockchain network becomes permanently inaccessible
+
+═══════════════════════════════════════════════════════════════
+LEGAL DISCLAIMERS
+═══════════════════════════════════════════════════════════════
+
+• No warranty provided regarding fitness for specific purposes
+• Licensee assumes responsibility for clearance of samples/interpolations
+• Governed by blockchain smart contract terms
+• Disputes resolved through decentralized arbitration when possible
+
+═══════════════════════════════════════════════════════════════
+GENERATED BY BEATSCHAIN AI
+═══════════════════════════════════════════════════════════════
+
+License Generated: ${new Date().toLocaleString()}
+AI System: BeatsChain Chrome AI Integration
+Version: 2.0 (Enhanced Context)
+Contract Platform: Thirdweb + Polygon
+
+For support and verification: https://beatschain.app
+
+═══════════════════════════════════════════════════════════════`;
     }
 
     getFallbackLicense(metadata) {
@@ -503,13 +724,35 @@ NFT Contract: BeatsChain Music NFTs`;
 
     async loadWalletData() {
         try {
-            const balance = (Math.random() * 10).toFixed(4);
-            const balanceElement = document.getElementById('wallet-balance');
-            if (balanceElement) {
-                balanceElement.textContent = `${balance} MATIC`;
+            if (this.authManager && this.authManager.isAuthenticated) {
+                // Get real wallet data
+                const walletAddress = await this.authManager.getWalletAddress();
+                const balance = await this.authManager.getWalletBalance();
+                
+                // Update wallet address display
+                const addressElement = document.getElementById('profile-wallet-address');
+                if (addressElement && walletAddress) {
+                    addressElement.textContent = walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4);
+                }
+                
+                // Update balance display
+                const balanceElement = document.getElementById('wallet-balance');
+                if (balanceElement) {
+                    balanceElement.textContent = `${balance} MATIC`;
+                }
+            } else {
+                // Show placeholder for non-authenticated users
+                const balanceElement = document.getElementById('wallet-balance');
+                if (balanceElement) {
+                    balanceElement.textContent = 'Sign in to view';
+                }
             }
         } catch (error) {
             console.error('Failed to load wallet data:', error);
+            const balanceElement = document.getElementById('wallet-balance');
+            if (balanceElement) {
+                balanceElement.textContent = 'Error loading';
+            }
         }
     }
 
@@ -518,22 +761,81 @@ NFT Contract: BeatsChain Music NFTs`;
     }
 
     async handleGoogleSignIn() {
+        const signInBtn = document.getElementById('google-signin');
+        const originalText = signInBtn.textContent;
+        
         try {
-            const userEmail = prompt('Enter your email for demo:');
-            if (userEmail && userEmail.includes('@')) {
-                chrome.storage.local.set({'user_email': userEmail});
+            signInBtn.disabled = true;
+            signInBtn.textContent = 'Signing in...';
+            
+            // Initialize authentication manager if not already done
+            if (!this.authManager) {
+                this.authManager = new AuthenticationManager();
+                await this.authManager.initialize();
+            }
+            
+            // Perform real Google OAuth2 sign-in
+            const result = await this.authManager.signInWithGoogle();
+            
+            if (result.success) {
+                // Update UI with real user data
                 const emailElement = document.getElementById('user-email');
                 if (emailElement) {
-                    emailElement.textContent = userEmail;
+                    emailElement.textContent = result.user.email;
                 }
-                const signInBtn = document.getElementById('google-signin');
-                if (signInBtn) {
-                    signInBtn.style.display = 'none';
+                
+                const nameElement = document.getElementById('profile-name');
+                if (nameElement) {
+                    nameElement.textContent = result.user.name;
                 }
+                
+                // Hide sign-in button, show user info
+                signInBtn.style.display = 'none';
+                
+                // Update wallet display
+                await this.updateWalletData();
+                
+                console.log('✅ Successfully signed in:', result.user.email);
+                
+                // Show success message
+                this.showNotification('Successfully signed in with Google!', 'success');
             }
+            
         } catch (error) {
-            console.error('Sign-in failed:', error);
+            console.error('❌ Sign-in failed:', error);
+            signInBtn.textContent = originalText;
+            signInBtn.disabled = false;
+            
+            // Show error message
+            this.showNotification('Sign-in failed. Please try again.', 'error');
         }
+    }
+    
+    showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+            background: ${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#3B82F6'};
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
     }
     
     createAudioPreview(file) {

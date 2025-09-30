@@ -11,9 +11,65 @@
         <header class="header">
             <h1>🎵 BeatsChain</h1>
             <p>Mint your beats as NFTs</p>
+            
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-section="mint">🎵 Mint</button>
+                <button class="nav-tab" data-section="profile">👤 Profile</button>
+                <button class="nav-tab" data-section="history">📜 History</button>
+                <button class="nav-tab" data-section="share">📱 Share</button>
+            </nav>
         </header>
 
         <main class="main">
+            <!-- Profile Section -->
+            <section id="profile-section" class="section">
+                <h2>Artist Profile</h2>
+                <div class="profile-content">
+                    <div class="profile-info">
+                        <div class="profile-avatar">🎤</div>
+                        <div class="profile-details">
+                            <h3 id="profile-name">Artist Name</h3>
+                            <p id="profile-email">artist@example.com</p>
+                            <p id="profile-wallet">Wallet: <span id="profile-wallet-address">Not connected</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" id="total-nfts">0</span>
+                            <span class="stat-label">NFTs Minted</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="total-earnings">0</span>
+                            <span class="stat-label">MATIC Earned</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button id="edit-profile" class="btn btn-secondary">Edit Profile</button>
+                        <button id="export-wallet" class="btn btn-secondary">Export Wallet</button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- History Section -->
+            <section id="history-section" class="section">
+                <h2>Transaction History</h2>
+                <div class="history-content">
+                    <div class="history-filters">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="minted">Minted</button>
+                        <button class="filter-btn" data-filter="sold">Sold</button>
+                    </div>
+                    
+                    <div id="history-list" class="history-list">
+                        <div class="empty-state">
+                            <p>📜 No transactions yet</p>
+                            <small>Your minting history will appear here</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
             <!-- Upload Section -->
             <section id="upload-section" class="section active">
                 <h2>Upload Beat</h2>
@@ -36,6 +92,38 @@
                 <!-- Audio Preview -->
                 <div id="audio-preview" class="audio-preview"></div>
                 
+                <!-- Audio Metadata Display -->
+                <div id="metadata-display" class="metadata-display" style="display: none;">
+                    <h4>📊 Audio Analysis</h4>
+                    <div class="metadata-grid">
+                        <div class="meta-row">
+                            <span class="meta-label">Duration:</span>
+                            <span id="meta-duration">-</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Quality:</span>
+                            <span id="meta-quality">-</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Estimated BPM:</span>
+                            <span id="meta-bpm">-</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Suggested Genre:</span>
+                            <span id="meta-genre">-</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Energy Level:</span>
+                            <span id="meta-energy">-</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">File Size:</span>
+                            <span id="meta-size">-</span>
+                        </div>
+                    </div>
+                    <small class="meta-note">💡 This analysis will be used to generate professional licensing terms</small>
+                </div>
+                
                 <!-- Cover Image Upload -->
                 <div class="image-upload">
                     <label for="cover-image">Cover Image (optional):</label>
@@ -46,6 +134,8 @@
                 <div class="progress-bar" id="progress-bar" style="display: none;">
                     <div class="progress-fill"></div>
                 </div>
+                
+                <button id="proceed-to-licensing" class="btn btn-primary" style="display: none; margin-top: 15px;">Proceed to Licensing</button>
             </section>
 
             <!-- AI Licensing Section -->
@@ -87,9 +177,73 @@
                         <p><strong>Transaction Hash:</strong></p>
                         <code id="tx-hash"></code>
                         <div class="action-buttons">
-                            <button id="view-nft" class="btn btn-primary btn-small">🔗 View</button>
-                            <button id="mint-another" class="btn btn-secondary btn-small">🔄 New</button>
+                            <button id="view-nft" class="btn btn-primary">View Transaction</button>
+                            <button id="download-package" class="btn btn-secondary">📦 Download Package</button>
+                            <button id="mint-another" class="btn btn-secondary">Mint Another</button>
                         </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- SEO/Social Sharing Section -->
+            <section id="share-section" class="section">
+                <h2>Social Sharing & SEO</h2>
+                <div class="share-content">
+                    <div class="nft-selector">
+                        <label for="share-nft-select">Select NFT to Share:</label>
+                        <select id="share-nft-select" class="nft-select">
+                            <option value="">Choose an NFT...</option>
+                        </select>
+                    </div>
+                    
+                    <div id="share-preview" class="share-preview" style="display: none;">
+                        <h3>Preview</h3>
+                        <div class="social-card">
+                            <div class="card-image" id="share-card-image">🎵</div>
+                            <div class="card-content">
+                                <h4 id="share-card-title">NFT Title</h4>
+                                <p id="share-card-description">Description</p>
+                                <div class="card-meta">
+                                    <span id="share-card-artist">Artist</span>
+                                    <span id="share-card-price">Price</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="seo-metadata">
+                            <h4>SEO Metadata</h4>
+                            <div class="meta-item">
+                                <label>Title:</label>
+                                <input type="text" id="seo-title" class="meta-input">
+                            </div>
+                            <div class="meta-item">
+                                <label>Description:</label>
+                                <textarea id="seo-description" class="meta-input" rows="3"></textarea>
+                            </div>
+                            <div class="meta-item">
+                                <label>Keywords:</label>
+                                <input type="text" id="seo-keywords" class="meta-input" placeholder="music, nft, beats, blockchain">
+                            </div>
+                        </div>
+                        
+                        <div class="share-actions">
+                            <h4>Share On</h4>
+                            <div class="social-buttons">
+                                <button class="social-btn twitter" id="share-twitter">🐦 Twitter</button>
+                                <button class="social-btn facebook" id="share-facebook">🔵 Facebook</button>
+                                <button class="social-btn linkedin" id="share-linkedin">🔗 LinkedIn</button>
+                                <button class="social-btn reddit" id="share-reddit">🔴 Reddit</button>
+                            </div>
+                            
+                            <div class="share-tools">
+                                <button class="btn btn-secondary" id="copy-link">🔗 Copy Link</button>
+                                <button class="btn btn-secondary" id="generate-qr">📱 QR Code</button>
+                                <button class="btn btn-primary" id="generate-seo">🌐 Generate SEO</button>
+                            </div>
+                        </div>
+                        
+                        <div id="qr-code" class="qr-code" style="display: none;"></div>
+                        <div id="seo-output" class="seo-output" style="display: none;"></div>
                     </div>
                 </div>
             </section>
