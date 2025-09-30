@@ -21,6 +21,8 @@
 14. **Build with future-proofing in mind (modular, replaceable APIs)**
 15. **Dashboards must always remain real-time, minimal, and user-friendly**
 16. **Every change must ADD value, NEVER remove functionality**
+17. **🚨 CRITICAL: NEVER modify or remove existing environment variables**
+18. **Environment files are PROTECTED - only ADD new variables when required**
 
 ### 🚫 **ABSOLUTE PROHIBITIONS**
 - **NO DOWNGRADES**: Never reduce functionality or quality
@@ -31,6 +33,8 @@
 - **NO PERFORMANCE DEGRADATION**: Optimize for speed and efficiency
 - **NO INCONSISTENT STYLING**: Maintain design system integrity
 - **NO UNDOCUMENTED FEATURES**: Every feature must be documented
+- **NO ENV FILE MODIFICATIONS**: Never remove or change existing environment variables
+- **NO CREDENTIAL CHANGES**: Existing API keys and secrets are protected
 
 ### ✅ **REQUIRED PRACTICES**
 - **PROGRESSIVE ENHANCEMENT**: Build incrementally, never replace wholesale
