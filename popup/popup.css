@@ -844,11 +844,11 @@ textarea:focus {
 }
 
 .form-input {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 6px;
     padding: 8px 12px;
-    color: white;
+    color: #333;
     font-size: 14px;
     transition: all 0.2s ease;
 }
@@ -856,11 +856,16 @@ textarea:focus {
 .form-input:focus {
     outline: none;
     border-color: #4CAF50;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.95);
 }
 
 .form-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.form-input option {
+    background: white;
+    color: #333;
 }
 
 .metadata-display h4 {
