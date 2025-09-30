@@ -6,7 +6,8 @@
   "permissions": [
     "storage",
     "activeTab",
-    "alarms"
+    "alarms",
+    "identity"
   ],
   "host_permissions": [
     "https://*.ipfs.io/*",
@@ -18,10 +19,15 @@
     "https://www.linkedin.com/*",
     "https://reddit.com/*",
     "https://chart.googleapis.com/*",
-    "https://cdnjs.cloudflare.com/*"
+    "https://cdnjs.cloudflare.com/*",
+    "https://www.googleapis.com/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js"
+  },
+  "oauth2": {
+    "client_id": "your_google_client_id.apps.googleusercontent.com",
+    "scopes": ["openid", "email", "profile"]
   },
   "action": {
     "default_popup": "popup/index.html",

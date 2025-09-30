@@ -35,6 +35,10 @@ class BeatsChainApp {
                 console.warn('Chrome AI not available, using fallback templates');
             }
             
+            // Initialize Thirdweb Manager
+            this.thirdweb = new ThirdwebManager();
+            console.log('Thirdweb manager initialized');
+            
             this.isInitialized = true;
             console.log('BeatsChain initialized successfully');
         } catch (error) {
@@ -592,19 +596,39 @@ NFT Contract: BeatsChain Music NFTs`;
         statusDiv.textContent = 'Preparing to mint NFT...';
 
         try {
+            // Get wallet address
+            const walletAddress = await this.authManager.getWalletAddress();
+            if (!walletAddress) {
+                throw new Error('No wallet found. Please sign in first.');
+            }
+            
             statusDiv.textContent = 'Uploading to IPFS...';
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Upload to IPFS using real Thirdweb integration
+            const uploadResult = await this.thirdweb.uploadToIPFS(this.beatFile, {
+                ...this.beatMetadata,
+                licenseTerms: this.licenseTerms,
+                description: `${this.beatMetadata.title} - AI-generated music NFT with blockchain licensing`
+            });
             
             statusDiv.textContent = 'Minting NFT on blockchain...';
-            await new Promise(resolve => setTimeout(resolve, 3000));
             
-            // Generate real transaction hash using Web Crypto API
-            const randomBytes = new Uint8Array(32);
-            crypto.getRandomValues(randomBytes);
-            const txHash = '0x' + Array.from(randomBytes, byte => byte.toString(16).padStart(2, '0')).join('');
-            const tokenId = Date.now().toString();
+            // Initialize Thirdweb with wallet private key
+            const walletData = await window.StorageManager.getWalletData();
+            if (!walletData.privateKey) {
+                throw new Error('Wallet private key not found');
+            }
             
-            this.showMintSuccess({transactionHash: txHash, tokenId: tokenId});
+            await this.thirdweb.initialize(walletData.privateKey);
+            
+            // Mint NFT on blockchain
+            const mintResult = await this.thirdweb.mintNFT(walletAddress, uploadResult.metadataUri);
+            
+            this.showMintSuccess({
+                transactionHash: mintResult.transactionHash,
+                tokenId: mintResult.tokenId,
+                ipfsHash: uploadResult.metadataUri
+            });
             
         } catch (error) {
             console.error('Minting failed:', error);
