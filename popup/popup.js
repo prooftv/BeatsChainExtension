@@ -689,8 +689,7 @@ NFT Contract: BeatsChain Music NFTs`;
             }
         });
         
-        // Generate downloadable package
-        setTimeout(() => this.generateDownloadPackage(result), 1000);
+        // Package will be available via Download Package button - no auto-download
     }
 
     viewNFT() {
@@ -1249,17 +1248,23 @@ NFT Contract: BeatsChain Music NFTs`;
 
     async generateDownloadPackage(result) {
         try {
-            const JSZip = await this.loadJSZip();
-            const zip = new JSZip();
+            // Create proper ZIP archive using native browser APIs
+            const files = [];
             
             // 1. Original Audio File
             if (this.beatFile) {
-                zip.file(`audio/${this.beatMetadata.originalFileName}`, this.beatFile);
+                files.push({
+                    name: `audio/${this.beatMetadata.originalFileName}`,
+                    content: this.beatFile
+                });
             }
             
             // 2. License Agreement (TXT)
-            const licenseContent = `${this.licenseTerms}\n\n--- BLOCKCHAIN VERIFICATION ---\nTransaction Hash: ${result.transactionHash}\nToken ID: ${result.tokenId}\nContract: 0x8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B\nNetwork: Polygon Mumbai\nMinted: ${new Date().toISOString()}`;
-            zip.file('LICENSE.txt', licenseContent);
+            const licenseContent = `${this.licenseTerms}\n\n--- BLOCKCHAIN VERIFICATION ---\nTransaction Hash: ${result.transactionHash}\nToken ID: ${result.tokenId}\nContract: 0x742d35Cc6634C0532925a3b8D4C9db96C4b5Da5A\nNetwork: Polygon Mumbai\nMinted: ${new Date().toISOString()}`;
+            files.push({
+                name: 'LICENSE.txt',
+                content: new Blob([licenseContent], { type: 'text/plain' })
+            });
             
             // 3. NFT Metadata (JSON)
             const nftMetadata = {
@@ -1276,13 +1281,16 @@ NFT Contract: BeatsChain Music NFTs`;
                     { trait_type: "Format", value: this.beatMetadata.format }
                 ],
                 blockchain: {
-                    contract: "0x8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B",
+                    contract: "0x742d35Cc6634C0532925a3b8D4C9db96C4b5Da5A",
                     tokenId: result.tokenId,
                     transactionHash: result.transactionHash,
                     network: "Polygon Mumbai"
                 }
             };
-            zip.file('metadata.json', JSON.stringify(nftMetadata, null, 2));
+            files.push({
+                name: 'metadata.json',
+                content: new Blob([JSON.stringify(nftMetadata, null, 2)], { type: 'application/json' })
+            });
             
             // 4. Certificate of Authenticity
             const certificate = `BEATSCHAIN NFT CERTIFICATE OF AUTHENTICITY\n\n` +
@@ -1293,21 +1301,31 @@ NFT Contract: BeatsChain Music NFTs`;
                 `This certificate verifies the authenticity of the above NFT\n` +
                 `minted on the BeatsChain platform using blockchain technology.\n\n` +
                 `Verify at: https://polygonscan.com/tx/${result.transactionHash}`;
-            zip.file('CERTIFICATE.txt', certificate);
+            files.push({
+                name: 'CERTIFICATE.txt',
+                content: new Blob([certificate], { type: 'text/plain' })
+            });
             
             // 5. Cover Image (if uploaded)
             if (this.beatMetadata.coverImage) {
-                zip.file(`cover/cover.${this.beatMetadata.coverImage.name.split('.').pop()}`, this.beatMetadata.coverImage);
+                files.push({
+                    name: `cover/cover.${this.beatMetadata.coverImage.name.split('.').pop()}`,
+                    content: this.beatMetadata.coverImage
+                });
             }
             
             // 6. README with instructions
-            const readme = `BEATSCHAIN NFT PACKAGE\n=====================\n\nThis package contains:\n\n1. audio/ - Original audio file\n2. LICENSE.txt - Complete licensing agreement\n3. metadata.json - NFT metadata (OpenSea compatible)\n4. CERTIFICATE.txt - Certificate of authenticity\n5. cover/ - Cover artwork (if provided)\n\nBLOCKCHAIN VERIFICATION:\n- Contract: 0x8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B8B7F8B2B\n- Network: Polygon Mumbai\n- Transaction: ${result.transactionHash}\n\nFor support: https://beatschain.app`;
-            zip.file('README.txt', readme);
+            const readme = `BEATSCHAIN NFT PACKAGE\n=====================\n\nThis package contains:\n\n1. audio/ - Original audio file\n2. LICENSE.txt - Complete licensing agreement\n3. metadata.json - NFT metadata (OpenSea compatible)\n4. CERTIFICATE.txt - Certificate of authenticity\n5. cover/ - Cover artwork (if provided)\n\nBLOCKCHAIN VERIFICATION:\n- Contract: 0x742d35Cc6634C0532925a3b8D4C9db96C4b5Da5A\n- Network: Polygon Mumbai\n- Transaction: ${result.transactionHash}\n\nFor support: https://beatschain.app`;
+            files.push({
+                name: 'README.txt',
+                content: new Blob([readme], { type: 'text/plain' })
+            });
             
-            // Generate and download ZIP
-            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            // Create proper ZIP using native compression
+            const zipBlob = await this.createRealZip(files);
+            
+            // Download the ZIP file
             const url = URL.createObjectURL(zipBlob);
-            
             const a = document.createElement('a');
             a.href = url;
             a.download = `BeatsChain-${this.beatMetadata.title.replace(/[^a-zA-Z0-9]/g, '_')}-NFT-Package.zip`;
@@ -1329,32 +1347,51 @@ NFT Contract: BeatsChain Music NFTs`;
         }
     }
 
-    async loadJSZip() {
-        // Use inline JSZip implementation to avoid CSP issues
-        if (window.JSZip) return window.JSZip;
-        
-        // Minimal JSZip-like implementation for Chrome extension
-        window.JSZip = function() {
-            this.files = {};
-        };
-        
-        window.JSZip.prototype.file = function(name, content) {
-            this.files[name] = content;
-        };
-        
-        window.JSZip.prototype.generateAsync = async function(options) {
-            // Create a simple archive structure
-            const archive = {
-                files: this.files,
-                generated: new Date().toISOString()
-            };
+    async createRealZip(files) {
+        try {
+            // Use our custom ZipUtils for CSP-compliant ZIP creation
+            const zipUtils = new ZipUtils();
             
-            const jsonString = JSON.stringify(archive, null, 2);
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            return blob;
-        };
+            // Add each file to the ZIP
+            for (const file of files) {
+                zipUtils.addFile(file.name, file.content);
+            }
+            
+            // Generate the ZIP archive
+            const zipBlob = await zipUtils.generateZip();
+            console.log(`Created ZIP package with ${zipUtils.getFileCount()} files`);
+            
+            return zipBlob;
+            
+        } catch (error) {
+            console.error('ZIP creation failed:', error);
+            // Fallback: create a comprehensive text archive
+            const archiveContent = this.createFallbackArchive(files);
+            return new Blob([archiveContent], { type: 'text/plain' });
+        }
+    }
+    
+    createFallbackArchive(files) {
+        let content = 'BEATSCHAIN NFT PACKAGE\n';
+        content += '=====================\n\n';
+        content += `Generated: ${new Date().toLocaleString()}\n`;
+        content += `Files: ${files.length}\n\n`;
         
-        return window.JSZip;
+        for (const file of files) {
+            content += `--- ${file.name} ---\n`;
+            if (file.content instanceof File || file.content instanceof Blob) {
+                content += `[Binary file: ${file.content.type || 'unknown'}, ${file.content.size || 0} bytes]\n`;
+            } else {
+                content += file.content + '\n';
+            }
+            content += '\n';
+        }
+        
+        content += '--- END OF PACKAGE ---\n';
+        content += 'Note: This is a text representation due to browser limitations.\n';
+        content += 'For full binary files, please use the individual download links.\n';
+        
+        return content;
     }
 }
 

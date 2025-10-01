@@ -662,11 +662,12 @@ textarea:focus {
 
 .action-buttons {
     display: flex;
+    flex-direction: column;
     gap: 10px;
 }
 
 .action-buttons .btn {
-    flex: 1;
+    width: 100%;
 }
 
 /* Wallet Panel */
