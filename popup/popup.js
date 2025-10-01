@@ -1290,7 +1290,7 @@ NFT Contract: BeatsChain Music NFTs`;
             const licenseContent = `${this.licenseTerms}\n\n--- BLOCKCHAIN VERIFICATION ---\nTransaction Hash: ${result.transactionHash}\nToken ID: ${result.tokenId}\nContract: 0x742d35Cc6634C0532925a3b8D4C9db96C4b5Da5A\nNetwork: Polygon Mumbai\nMinted: ${new Date().toISOString()}`;
             files.push({
                 name: 'LICENSE.txt',
-                content: new Blob([licenseContent], { type: 'text/plain' })
+                content: licenseContent
             });
             
             // 3. NFT Metadata (JSON)
@@ -1316,7 +1316,7 @@ NFT Contract: BeatsChain Music NFTs`;
             };
             files.push({
                 name: 'metadata.json',
-                content: new Blob([JSON.stringify(nftMetadata, null, 2)], { type: 'application/json' })
+                content: JSON.stringify(nftMetadata, null, 2)
             });
             
             // 4. Certificate of Authenticity
@@ -1330,7 +1330,7 @@ NFT Contract: BeatsChain Music NFTs`;
                 `Verify at: https://polygonscan.com/tx/${result.transactionHash}`;
             files.push({
                 name: 'CERTIFICATE.txt',
-                content: new Blob([certificate], { type: 'text/plain' })
+                content: certificate
             });
             
             // 5. Cover Image (if uploaded)
@@ -1345,7 +1345,7 @@ NFT Contract: BeatsChain Music NFTs`;
             const readme = `BEATSCHAIN NFT PACKAGE\n=====================\n\nThis package contains:\n\n1. audio/ - Original audio file\n2. LICENSE.txt - Complete licensing agreement\n3. metadata.json - NFT metadata (OpenSea compatible)\n4. CERTIFICATE.txt - Certificate of authenticity\n5. cover/ - Cover artwork (if provided)\n\nBLOCKCHAIN VERIFICATION:\n- Contract: 0x742d35Cc6634C0532925a3b8D4C9db96C4b5Da5A\n- Network: Polygon Mumbai\n- Transaction: ${result.transactionHash}\n\nFor support: https://beatschain.app`;
             files.push({
                 name: 'README.txt',
-                content: new Blob([readme], { type: 'text/plain' })
+                content: readme
             });
             
             // Create proper ZIP using native compression
