@@ -30,9 +30,9 @@ class BeatsChainApp {
             const aiAvailable = await this.chromeAI.initialize();
             
             if (aiAvailable) {
-                console.log('Chrome AI initialized with APIs:', this.chromeAI.getAvailableAPIs());
+                console.log('✅ Chrome AI ready with APIs:', this.chromeAI.getAvailableAPIs());
             } else {
-                console.warn('Chrome AI not available, using fallback templates');
+                console.log('ℹ️ Chrome AI unavailable - using professional fallback templates (fully functional)');
             }
             
             // Initialize Thirdweb Manager
@@ -374,14 +374,15 @@ class BeatsChainApp {
                 genre: artistInputs.genre
             };
             
+            // Get license options from UI
+            const licenseOptions = this.getLicenseOptions();
+            
             // Generate contextual license using all available metadata
             statusText.textContent = 'Generating professional licensing terms...';
             const userPreferences = {
-                licenseType: 'non-exclusive',
-                commercialUse: true,
+                ...licenseOptions,
                 territory: 'worldwide',
-                duration: 'perpetual',
-                royaltyRate: 2.5
+                duration: 'perpetual'
             };
 
             this.licenseTerms = await this.chromeAI.generateLicense(enhancedMetadata, userPreferences);
@@ -416,7 +417,7 @@ class BeatsChainApp {
                 title: artistInputs.beatTitle,
                 genre: artistInputs.genre
             };
-            this.licenseTerms = this.getEnhancedFallbackLicense(enhancedMetadata);
+            this.licenseTerms = this.getEnhancedFallbackLicense(enhancedMetadata, this.getLicenseOptions());
             licenseTextarea.value = this.licenseTerms;
             document.getElementById('approve-license').disabled = false;
         } finally {
@@ -424,7 +425,12 @@ class BeatsChainApp {
         }
     }
 
-    getEnhancedFallbackLicense(metadata) {
+    getEnhancedFallbackLicense(metadata, options = {}) {
+        const artistDisplay = metadata.stageName ? `${metadata.artist} (${metadata.stageName})` : metadata.artist;
+        const licenseTypeText = options.licenseType === 'exclusive' ? 'EXCLUSIVE' : 'NON-EXCLUSIVE';
+        const commercialText = this.getCommercialUseText(options.commercialUse);
+        const availabilityText = this.getAvailabilityText(options.forSale);
+        const royaltyText = this.getRoyaltyText(options);
         return `BEATSCHAIN MUSIC NFT LICENSING AGREEMENT
 
 ═══════════════════════════════════════════════════════════════
@@ -448,10 +454,12 @@ Upload Timestamp: ${new Date(metadata.uploadTimestamp).toLocaleString()}
 GRANT OF RIGHTS
 ═══════════════════════════════════════════════════════════════
 
-1. LICENSE TYPE: Non-Exclusive Perpetual License
-2. TERRITORY: Worldwide distribution and usage rights
+1. LICENSE TYPE: ${licenseTypeText} Perpetual License
+2. TERRITORY: Worldwide distribution and usage rights  
 3. DURATION: Perpetual (never expires, suitable for NFT ownership)
-4. USAGE RIGHTS: Commercial and Non-Commercial use permitted
+4. USAGE RIGHTS: ${commercialText}
+5. AVAILABILITY: ${availabilityText}
+6. ARTIST: ${artistDisplay}
 
 ═══════════════════════════════════════════════════════════════
 INCLUDED RIGHTS
@@ -468,7 +476,7 @@ ATTRIBUTION REQUIREMENTS
 ═══════════════════════════════════════════════════════════════
 
 Required Attribution Format:
-"${metadata.title} - BeatsChain NFT"
+"${metadata.title} by ${artistDisplay} - BeatsChain NFT"
 
 Attribution must be included in:
 - Video descriptions and credits
@@ -481,11 +489,7 @@ Attribution must be included in:
 ROYALTY STRUCTURE
 ═══════════════════════════════════════════════════════════════
 
-• Personal/Non-Commercial Use: Royalty-Free
-• Commercial Use (Revenue < $1,000): Royalty-Free
-• Commercial Use (Revenue ≥ $1,000): 2.5% of gross revenue
-• Streaming Platforms: Standard platform royalty splits apply
-• Sync Licensing: Case-by-case negotiation for major productions
+${royaltyText}
 
 ═══════════════════════════════════════════════════════════════
 TECHNICAL QUALITY GUARANTEE
@@ -552,13 +556,17 @@ For support and verification: https://beatschain.app
 ═══════════════════════════════════════════════════════════════`;
     }
 
-    getFallbackLicense(metadata) {
+    getFallbackLicense(metadata, options = {}) {
+        const artistDisplay = metadata.stageName ? `${metadata.artist} (${metadata.stageName})` : (metadata.artist || 'Unknown Artist');
+        const licenseType = options.licenseType === 'exclusive' ? 'Exclusive' : 'Non-exclusive';
+        const commercialUse = options.commercialUse === 'non-commercial' ? 'Non-commercial use only' : 'Personal and commercial use';
+        const royaltyRate = options.royaltyRate || 2.5;
+        
         return `MUSIC LICENSING AGREEMENT
 
 TRACK IDENTIFICATION:
 - Title: ${metadata.title}
-- Artist: ${metadata.artist || 'Unknown Artist'}
-- Stage Name: ${metadata.stageName || 'N/A'}
+- Artist: ${artistDisplay}
 - Duration: ${metadata.duration} (${metadata.durationSeconds}s)
 - Genre: ${metadata.genre || metadata.suggestedGenre}
 - BPM: ${metadata.estimatedBPM}
@@ -572,8 +580,8 @@ TECHNICAL SPECIFICATIONS:
 - Original Format: ${metadata.mimeType}
 
 USAGE RIGHTS:
-- Non-exclusive license for personal and commercial use
-- Attribution required: "${metadata.title} - BeatsChain NFT"
+- ${licenseType} license for ${commercialUse}
+- Attribution required: "${metadata.title} by ${artistDisplay} - BeatsChain NFT"
 - No resale or redistribution of original audio file
 - Derivative works permitted with attribution
 - Streaming and broadcasting rights included
@@ -581,7 +589,7 @@ USAGE RIGHTS:
 LICENSE TERMS:
 - Territory: Worldwide
 - Duration: Perpetual
-- Royalty: 2.5% on commercial use
+- Royalty: ${royaltyRate}% on commercial use
 - Quality maintained as specified above
 - Blockchain verification required
 
@@ -944,6 +952,25 @@ NFT Contract: BeatsChain Music NFTs`;
             beatTitle: document.getElementById('beat-title')?.value || this.beatMetadata.title,
             genre: document.getElementById('genre-select')?.value || this.beatMetadata.suggestedGenre
         };
+    }
+    
+    getLicenseOptions() {
+        return {
+            licenseType: document.getElementById('license-type')?.value || 'non-exclusive',
+            commercialUse: document.getElementById('commercial-use')?.value || 'allowed',
+            forSale: document.getElementById('for-sale')?.value || 'for-sale',
+            royaltyRate: this.calculateRoyaltyRate()
+        };
+    }
+    
+    calculateRoyaltyRate() {
+        const licenseType = document.getElementById('license-type')?.value;
+        const commercialUse = document.getElementById('commercial-use')?.value;
+        
+        if (commercialUse === 'non-commercial') return 0;
+        if (licenseType === 'exclusive') return 5.0;
+        if (commercialUse === 'limited') return 1.5;
+        return 2.5; // Default for non-exclusive commercial
     }
     
     async handleImageUpload(e) {
@@ -1392,6 +1419,65 @@ NFT Contract: BeatsChain Music NFTs`;
         content += 'For full binary files, please use the individual download links.\n';
         
         return content;
+    }
+    
+    getCommercialUseText(commercialUse) {
+        switch (commercialUse) {
+            case 'non-commercial':
+                return 'Non-Commercial use only (personal, educational, non-profit)';
+            case 'limited':
+                return 'Limited Commercial use (small businesses, content creators)';
+            case 'allowed':
+            default:
+                return 'Full Commercial and Non-Commercial use permitted';
+        }
+    }
+    
+    getAvailabilityText(forSale) {
+        switch (forSale) {
+            case 'not-for-sale':
+                return 'Private Collection (Not for public sale)';
+            case 'limited-edition':
+                return 'Limited Edition (Restricted availability)';
+            case 'for-sale':
+            default:
+                return 'Publicly Available for Purchase';
+        }
+    }
+    
+    getRoyaltyText(options) {
+        const { commercialUse, licenseType, royaltyRate } = options;
+        
+        if (commercialUse === 'non-commercial') {
+            return `• Non-Commercial Use: Royalty-Free (personal, educational, non-profit)
+• Commercial Use: NOT PERMITTED under this license
+• Streaming Platforms: Personal playlists only
+• Monetization: Prohibited`;
+        }
+        
+        if (licenseType === 'exclusive') {
+            return `• EXCLUSIVE LICENSE: Single buyer/licensee only
+• All Commercial Use: ${royaltyRate}% of gross revenue
+• Non-Commercial Use: Included with exclusive rights
+• Streaming Platforms: Full monetization rights
+• Sync Licensing: Included in exclusive package
+• Resale Rights: Transfer with NFT ownership`;
+        }
+        
+        if (commercialUse === 'limited') {
+            return `• Personal/Non-Commercial Use: Royalty-Free
+• Small Commercial Use (Revenue < $5,000): ${royaltyRate}% of gross revenue
+• Large Commercial Use (Revenue ≥ $5,000): Requires separate negotiation
+• Streaming Platforms: Limited to personal/small creator accounts
+• Sync Licensing: Small productions only`;
+        }
+        
+        // Default: full commercial
+        return `• Personal/Non-Commercial Use: Royalty-Free
+• Commercial Use (Revenue < $1,000): Royalty-Free
+• Commercial Use (Revenue ≥ $1,000): ${royaltyRate}% of gross revenue
+• Streaming Platforms: Standard platform royalty splits apply
+• Sync Licensing: Case-by-case negotiation for major productions`;
     }
 }
 

@@ -908,3 +908,17 @@ textarea:focus {
     display: block;
     margin-top: 8px;
 }
+
+.license-options {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.license-options h4 {
+    color: white;
+    margin-bottom: 12px;
+    font-size: 14px;
+}

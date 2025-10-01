@@ -176,6 +176,37 @@
             <!-- AI Licensing Section -->
             <section id="licensing-section" class="section">
                 <h2>AI-Generated Licensing</h2>
+                
+                <!-- License Options -->
+                <div class="license-options">
+                    <h4>📋 License Configuration</h4>
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <label for="license-type">License Type:</label>
+                            <select id="license-type" class="form-input">
+                                <option value="non-exclusive">Non-Exclusive (Multiple buyers)</option>
+                                <option value="exclusive">Exclusive (Single buyer only)</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label for="commercial-use">Commercial Use:</label>
+                            <select id="commercial-use" class="form-input">
+                                <option value="allowed">Commercial Use Allowed</option>
+                                <option value="non-commercial">Non-Commercial Only</option>
+                                <option value="limited">Limited Commercial Use</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label for="for-sale">Availability:</label>
+                            <select id="for-sale" class="form-input">
+                                <option value="for-sale">For Sale (Public)</option>
+                                <option value="not-for-sale">Not For Sale (Private)</option>
+                                <option value="limited-edition">Limited Edition</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="ai-status">
                     <span class="ai-icon">🤖</span>
                     <span id="ai-status-text">Ready to generate licensing terms</span>
