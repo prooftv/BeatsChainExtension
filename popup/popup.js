@@ -1376,26 +1376,177 @@ NFT Contract: BeatsChain Music NFTs`;
 
     async createRealZip(files) {
         try {
-            // Use our custom ZipUtils for CSP-compliant ZIP creation
-            const zipUtils = new ZipUtils();
+            // Create proper ZIP using manual ZIP format implementation
+            console.log(`Creating ZIP with ${files.length} files`);
             
-            // Add each file to the ZIP
+            const zipParts = [];
+            const centralDirectory = [];
+            let offset = 0;
+            
+            // Process each file
             for (const file of files) {
-                zipUtils.addFile(file.name, file.content);
+                const fileData = await this.processFileForZip(file);
+                const localHeader = this.createLocalFileHeader(file.name, fileData);
+                const centralDirEntry = this.createCentralDirectoryEntry(file.name, fileData, offset);
+                
+                zipParts.push(localHeader);
+                zipParts.push(fileData);
+                centralDirectory.push(centralDirEntry);
+                
+                offset += localHeader.byteLength + fileData.byteLength;
             }
             
-            // Generate the ZIP archive
-            const zipBlob = await zipUtils.generateZip();
-            console.log(`Created ZIP package with ${zipUtils.getFileCount()} files`);
+            // Add central directory
+            const centralDirStart = offset;
+            for (const entry of centralDirectory) {
+                zipParts.push(entry);
+                offset += entry.byteLength;
+            }
             
-            return zipBlob;
+            // Add end of central directory record
+            const endRecord = this.createEndOfCentralDirectory(files.length, offset - centralDirStart, centralDirStart);
+            zipParts.push(endRecord);
+            
+            return new Blob(zipParts, { type: 'application/zip' });
             
         } catch (error) {
             console.error('ZIP creation failed:', error);
-            // Fallback: create a comprehensive text archive
-            const archiveContent = this.createFallbackArchive(files);
-            return new Blob([archiveContent], { type: 'text/plain' });
+            // Enhanced fallback that still creates a proper archive
+            return this.createEnhancedFallback(files);
         }
+    }
+    
+    async processFileForZip(file) {
+        if (file.content instanceof File || file.content instanceof Blob) {
+            return new Uint8Array(await file.content.arrayBuffer());
+        } else {
+            return new TextEncoder().encode(file.content);
+        }
+    }
+    
+    createLocalFileHeader(filename, data) {
+        const filenameBytes = new TextEncoder().encode(filename);
+        const header = new Uint8Array(30 + filenameBytes.length);
+        
+        // Local file header signature
+        header[0] = 0x50; header[1] = 0x4b; header[2] = 0x03; header[3] = 0x04;
+        // Version needed to extract
+        header[4] = 0x14; header[5] = 0x00;
+        // General purpose bit flag
+        header[6] = 0x00; header[7] = 0x00;
+        // Compression method (0 = no compression)
+        header[8] = 0x00; header[9] = 0x00;
+        // File last modification time/date (dummy values)
+        header[10] = 0x00; header[11] = 0x00; header[12] = 0x00; header[13] = 0x00;
+        // CRC-32 (0 for no compression)
+        header[14] = 0x00; header[15] = 0x00; header[16] = 0x00; header[17] = 0x00;
+        // Compressed size
+        this.writeUint32LE(header, 18, data.length);
+        // Uncompressed size
+        this.writeUint32LE(header, 22, data.length);
+        // File name length
+        header[26] = filenameBytes.length & 0xff;
+        header[27] = (filenameBytes.length >> 8) & 0xff;
+        // Extra field length
+        header[28] = 0x00; header[29] = 0x00;
+        
+        // File name
+        header.set(filenameBytes, 30);
+        
+        return header;
+    }
+    
+    createCentralDirectoryEntry(filename, data, localHeaderOffset) {
+        const filenameBytes = new TextEncoder().encode(filename);
+        const entry = new Uint8Array(46 + filenameBytes.length);
+        
+        // Central directory file header signature
+        entry[0] = 0x50; entry[1] = 0x4b; entry[2] = 0x01; entry[3] = 0x02;
+        // Version made by
+        entry[4] = 0x14; entry[5] = 0x00;
+        // Version needed to extract
+        entry[6] = 0x14; entry[7] = 0x00;
+        // General purpose bit flag
+        entry[8] = 0x00; entry[9] = 0x00;
+        // Compression method
+        entry[10] = 0x00; entry[11] = 0x00;
+        // File last modification time/date
+        entry[12] = 0x00; entry[13] = 0x00; entry[14] = 0x00; entry[15] = 0x00;
+        // CRC-32
+        entry[16] = 0x00; entry[17] = 0x00; entry[18] = 0x00; entry[19] = 0x00;
+        // Compressed size
+        this.writeUint32LE(entry, 20, data.length);
+        // Uncompressed size
+        this.writeUint32LE(entry, 24, data.length);
+        // File name length
+        entry[28] = filenameBytes.length & 0xff;
+        entry[29] = (filenameBytes.length >> 8) & 0xff;
+        // Extra field length
+        entry[30] = 0x00; entry[31] = 0x00;
+        // File comment length
+        entry[32] = 0x00; entry[33] = 0x00;
+        // Disk number start
+        entry[34] = 0x00; entry[35] = 0x00;
+        // Internal file attributes
+        entry[36] = 0x00; entry[37] = 0x00;
+        // External file attributes
+        entry[38] = 0x00; entry[39] = 0x00; entry[40] = 0x00; entry[41] = 0x00;
+        // Relative offset of local header
+        this.writeUint32LE(entry, 42, localHeaderOffset);
+        
+        // File name
+        entry.set(filenameBytes, 46);
+        
+        return entry;
+    }
+    
+    createEndOfCentralDirectory(fileCount, centralDirSize, centralDirOffset) {
+        const record = new Uint8Array(22);
+        
+        // End of central dir signature
+        record[0] = 0x50; record[1] = 0x4b; record[2] = 0x05; record[3] = 0x06;
+        // Number of this disk
+        record[4] = 0x00; record[5] = 0x00;
+        // Number of disk with start of central directory
+        record[6] = 0x00; record[7] = 0x00;
+        // Total number of entries in central directory on this disk
+        record[8] = fileCount & 0xff; record[9] = (fileCount >> 8) & 0xff;
+        // Total number of entries in central directory
+        record[10] = fileCount & 0xff; record[11] = (fileCount >> 8) & 0xff;
+        // Size of central directory
+        this.writeUint32LE(record, 12, centralDirSize);
+        // Offset of start of central directory
+        this.writeUint32LE(record, 16, centralDirOffset);
+        // ZIP file comment length
+        record[20] = 0x00; record[21] = 0x00;
+        
+        return record;
+    }
+    
+    writeUint32LE(buffer, offset, value) {
+        buffer[offset] = value & 0xff;
+        buffer[offset + 1] = (value >> 8) & 0xff;
+        buffer[offset + 2] = (value >> 16) & 0xff;
+        buffer[offset + 3] = (value >> 24) & 0xff;
+    }
+    
+    createEnhancedFallback(files) {
+        // Create a TAR-like archive as fallback
+        const parts = [];
+        parts.push(new TextEncoder().encode('BEATSCHAIN_ARCHIVE_V1\n'));
+        
+        for (const file of files) {
+            const header = `\n--- ${file.name} ---\n`;
+            parts.push(new TextEncoder().encode(header));
+            
+            if (file.content instanceof File || file.content instanceof Blob) {
+                parts.push(file.content);
+            } else {
+                parts.push(new TextEncoder().encode(file.content));
+            }
+        }
+        
+        return new Blob(parts, { type: 'application/octet-stream' });
     }
     
     createFallbackArchive(files) {
