@@ -924,3 +924,61 @@ textarea:focus {
     margin-bottom: 12px;
     font-size: 14px;
 }
+
+.radio-validation {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.validation-summary h5 {
+    color: white;
+    margin-bottom: 10px;
+}
+
+.validation-item {
+    padding: 5px 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+}
+
+.split-sheets {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.split-sheets h4 {
+    color: white;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.contributor-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 80px 1.5fr 40px;
+    gap: 8px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.percentage-total {
+    text-align: right;
+    margin-top: 10px;
+    font-weight: bold;
+    color: white;
+}
+
+.radio-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.radio-actions .btn {
+    flex: 1;
+}

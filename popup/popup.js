@@ -195,6 +195,22 @@ class BeatsChainApp {
             const btn = document.getElementById(id);
             if (btn) btn.addEventListener('click', handler);
         });
+        
+        // Radio submission events
+        const validateRadioBtn = document.getElementById('validate-radio');
+        if (validateRadioBtn) {
+            validateRadioBtn.addEventListener('click', this.validateForRadio.bind(this));
+        }
+        
+        const generateRadioBtn = document.getElementById('generate-radio-package');
+        if (generateRadioBtn) {
+            generateRadioBtn.addEventListener('click', this.generateRadioPackage.bind(this));
+        }
+        
+        const addContributorBtn = document.getElementById('add-contributor');
+        if (addContributorBtn) {
+            addContributorBtn.addEventListener('click', this.addContributor.bind(this));
+        }
     }
 
     handleDragOver(e) {
@@ -1008,6 +1024,9 @@ NFT Contract: BeatsChain Music NFTs`;
         } else if (section === 'share') {
             this.showSection('share-section');
             this.loadShareSection();
+        } else if (section === 'radio') {
+            this.showSection('radio-section');
+            this.loadRadioSubmission();
         }
     }
 
@@ -1629,6 +1648,270 @@ NFT Contract: BeatsChain Music NFTs`;
 • Commercial Use (Revenue ≥ $1,000): ${royaltyRate}% of gross revenue
 • Streaming Platforms: Standard platform royalty splits apply
 • Sync Licensing: Case-by-case negotiation for major productions`;
+    }
+}
+
+    // RADIO SUBMISSION METHODS - REUSE EXISTING SYSTEMS
+    async loadRadioSubmission() {
+        if (this.beatMetadata && Object.keys(this.beatMetadata).length > 0) {
+            this.radioValidator = new RadioValidator(this.chromeAI);
+            this.splitSheetsManager = new SplitSheetsManager();
+            
+            document.getElementById('radio-validation').style.display = 'block';
+            
+            const artistInputs = this.getArtistInputs();
+            if (artistInputs.artistName !== 'Unknown Artist') {
+                this.splitSheetsManager.addContributor(artistInputs.artistName, 'artist', 100);
+                this.updateContributorsUI();
+            }
+        } else {
+            alert('Please upload and analyze an audio file first');
+            this.switchTab('mint');
+        }
+    }
+    
+    async validateForRadio() {
+        if (!this.beatMetadata || Object.keys(this.beatMetadata).length === 0) {
+            alert('Please upload an audio file first');
+            return;
+        }
+        
+        const validateBtn = document.getElementById('validate-radio');
+        validateBtn.disabled = true;
+        validateBtn.textContent = 'Validating...';
+        
+        try {
+            const validation = await this.radioValidator.validateForRadio(this.beatMetadata);
+            const overallScore = this.radioValidator.calculateOverallScore(validation);
+            
+            this.displayRadioValidation(validation, overallScore);
+            
+            const generateBtn = document.getElementById('generate-radio-package');
+            generateBtn.disabled = overallScore < 60;
+            
+        } catch (error) {
+            console.error('Radio validation failed:', error);
+            alert('Validation failed. Please try again.');
+        } finally {
+            validateBtn.disabled = false;
+            validateBtn.textContent = '🔍 Validate for Radio';
+        }
+    }
+    
+    displayRadioValidation(validation, overallScore) {
+        const resultsDiv = document.getElementById('radio-results');
+        
+        const getStatusIcon = (status) => {
+            switch (status) {
+                case 'optimal': return '✅';
+                case 'good': return '✅';
+                case 'acceptable': return '⚠️';
+                case 'warning': return '❌';
+                default: return '❓';
+            }
+        };
+        
+        const getScoreColor = (score) => {
+            if (score >= 80) return '#4CAF50';
+            if (score >= 60) return '#FF9800';
+            return '#F44336';
+        };
+        
+        resultsDiv.innerHTML = `
+            <div class="validation-summary">
+                <h5>Overall Score: <span style="color: ${getScoreColor(overallScore)}">${overallScore}/100</span></h5>
+            </div>
+            <div class="validation-items">
+                <div class="validation-item">
+                    ${getStatusIcon(validation.duration.status)} <strong>Duration:</strong> ${validation.duration.message}
+                </div>
+                <div class="validation-item">
+                    ${getStatusIcon(validation.quality.status)} <strong>Quality:</strong> ${validation.quality.message}
+                </div>
+                <div class="validation-item">
+                    ${getStatusIcon(validation.format.status)} <strong>Format:</strong> ${validation.format.message}
+                </div>
+                <div class="validation-item">
+                    ${getStatusIcon(validation.profanity.status)} <strong>Content:</strong> ${validation.profanity.message}
+                </div>
+            </div>
+        `;
+    }
+    
+    addContributor() {
+        const contributorsList = document.querySelector('.contributors-list');
+        const newContributor = document.createElement('div');
+        newContributor.className = 'contributor-item';
+        newContributor.innerHTML = `
+            <input type="text" placeholder="Contributor Name" class="form-input contributor-name">
+            <select class="form-input contributor-role">
+                <option value="artist">Artist</option>
+                <option value="producer">Producer</option>
+                <option value="songwriter">Songwriter</option>
+                <option value="vocalist">Vocalist</option>
+            </select>
+            <input type="number" placeholder="%" class="form-input contributor-percentage" min="0" max="100">
+            <input type="text" placeholder="SAMRO Number (optional)" class="form-input samro-number">
+            <button class="btn-small remove-contributor">❌</button>
+        `;
+        
+        newContributor.querySelector('.remove-contributor').addEventListener('click', () => {
+            newContributor.remove();
+            this.updateSplitSheets();
+        });
+        
+        newContributor.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('change', this.updateSplitSheets.bind(this));
+        });
+        
+        contributorsList.appendChild(newContributor);
+    }
+    
+    updateSplitSheets() {
+        this.splitSheetsManager.clear();
+        
+        document.querySelectorAll('.contributor-item').forEach(item => {
+            const name = item.querySelector('.contributor-name').value;
+            const role = item.querySelector('.contributor-role').value;
+            const percentage = item.querySelector('.contributor-percentage').value;
+            const samroNumber = item.querySelector('.samro-number').value;
+            
+            if (name && percentage) {
+                this.splitSheetsManager.addContributor(name, role, percentage, samroNumber);
+            }
+        });
+        
+        const total = this.splitSheetsManager.getTotalPercentage();
+        document.getElementById('total-percentage').textContent = total;
+        
+        const totalElement = document.getElementById('total-percentage');
+        if (total === 100) {
+            totalElement.style.color = '#4CAF50';
+        } else if (total > 100) {
+            totalElement.style.color = '#F44336';
+        } else {
+            totalElement.style.color = '#FF9800';
+        }
+    }
+    
+    updateContributorsUI() {
+        const contributorsList = document.querySelector('.contributors-list');
+        contributorsList.innerHTML = '';
+        
+        this.splitSheetsManager.contributors.forEach((contributor, index) => {
+            const contributorDiv = document.createElement('div');
+            contributorDiv.className = 'contributor-item';
+            contributorDiv.innerHTML = `
+                <input type="text" value="${contributor.name}" class="form-input contributor-name">
+                <select class="form-input contributor-role">
+                    <option value="artist" ${contributor.role === 'artist' ? 'selected' : ''}>Artist</option>
+                    <option value="producer" ${contributor.role === 'producer' ? 'selected' : ''}>Producer</option>
+                    <option value="songwriter" ${contributor.role === 'songwriter' ? 'selected' : ''}>Songwriter</option>
+                    <option value="vocalist" ${contributor.role === 'vocalist' ? 'selected' : ''}>Vocalist</option>
+                </select>
+                <input type="number" value="${contributor.percentage}" class="form-input contributor-percentage" min="0" max="100">
+                <input type="text" value="${contributor.samroNumber}" placeholder="SAMRO Number (optional)" class="form-input samro-number">
+                <button class="btn-small remove-contributor">❌</button>
+            `;
+            
+            contributorDiv.querySelector('.remove-contributor').addEventListener('click', () => {
+                contributorDiv.remove();
+                this.updateSplitSheets();
+            });
+            
+            contributorDiv.querySelectorAll('input, select').forEach(input => {
+                input.addEventListener('change', this.updateSplitSheets.bind(this));
+            });
+            
+            contributorsList.appendChild(contributorDiv);
+        });
+        
+        this.updateSplitSheets();
+    }
+    
+    async generateRadioPackage() {
+        if (!this.splitSheetsManager.isValid()) {
+            alert('Please ensure split sheets total 100% before generating package');
+            return;
+        }
+        
+        const generateBtn = document.getElementById('generate-radio-package');
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Generating...';
+        
+        try {
+            const files = [];
+            
+            if (this.beatFile) {
+                files.push({
+                    name: `audio/${this.sanitizeFilename(this.beatMetadata.title)}.${this.beatMetadata.format.toLowerCase()}`,
+                    content: this.beatFile
+                });
+            }
+            
+            const artistInputs = this.getArtistInputs();
+            const radioMetadata = {
+                title: artistInputs.beatTitle,
+                artist: artistInputs.artistName,
+                stageName: artistInputs.stageName,
+                genre: artistInputs.genre,
+                duration: this.beatMetadata.duration,
+                format: this.beatMetadata.format,
+                bitrate: this.beatMetadata.estimatedBitrate,
+                quality: this.beatMetadata.qualityLevel,
+                bpm: this.beatMetadata.estimatedBPM,
+                radioReady: true,
+                submissionDate: new Date().toISOString()
+            };
+            
+            files.push({
+                name: 'track_metadata.json',
+                content: JSON.stringify(radioMetadata, null, 2)
+            });
+            
+            const splitSheet = this.splitSheetsManager.generateSplitSheet(radioMetadata);
+            files.push({
+                name: 'split_sheet.json',
+                content: JSON.stringify(splitSheet, null, 2)
+            });
+            
+            files.push({
+                name: 'SAMRO_Split_Sheet.txt',
+                content: this.splitSheetsManager.generateSamroReport()
+            });
+            
+            const artistBio = `ARTIST BIOGRAPHY\n\nArtist: ${artistInputs.artistName}\nStage Name: ${artistInputs.stageName || 'N/A'}\nGenre: ${artistInputs.genre}\n\nGenerated by BeatsChain Extension`;
+            files.push({
+                name: 'artist_bio.txt',
+                content: artistBio
+            });
+            
+            const zipBlob = await this.createRealZip(files);
+            
+            const url = URL.createObjectURL(zipBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${this.sanitizeFilename(radioMetadata.title)}_Radio_Submission.zip`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            
+            generateBtn.textContent = '✅ Package Generated!';
+            setTimeout(() => {
+                generateBtn.textContent = '📦 Generate Radio Package';
+                generateBtn.disabled = false;
+            }, 3000);
+            
+        } catch (error) {
+            console.error('Radio package generation failed:', error);
+            alert('Failed to generate radio package');
+            generateBtn.disabled = false;
+            generateBtn.textContent = '📦 Generate Radio Package';
+        }
+    }
+    
+    sanitizeFilename(filename) {
+        return filename.replace(/[^a-zA-Z0-9_-]/g, '_');
     }
 }
 
