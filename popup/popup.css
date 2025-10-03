@@ -954,31 +954,142 @@ textarea:focus {
 
 .split-sheets h4 {
     color: white;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
     font-size: 14px;
+}
+
+.contributors-list {
+    margin-bottom: 15px;
 }
 
 .contributor-item {
     display: grid;
-    grid-template-columns: 2fr 1fr 80px 1.5fr 40px;
+    grid-template-columns: 1fr 1fr 80px 1fr 40px;
     gap: 8px;
-    margin-bottom: 10px;
     align-items: center;
+    margin-bottom: 15px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 400px) {
+    .contributor-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+}
+
+.contributor-item .form-input {
+    margin-bottom: 0;
+}
+
+.contributor-item .remove-contributor {
+    background: #f44336;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    padding: 6px;
+    font-size: 12px;
+    transition: background 0.2s ease;
+}
+
+.contributor-item .remove-contributor:hover {
+    background: #d32f2f;
 }
 
 .percentage-total {
     text-align: right;
-    margin-top: 10px;
+    margin: 15px 0;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
     font-weight: bold;
     color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .radio-actions {
     display: flex;
+    flex-direction: column;
     gap: 10px;
     margin-top: 20px;
 }
 
 .radio-actions .btn {
-    flex: 1;
+    width: 100%;
+}
+
+/* Radio Submission Specific Styles */
+.radio-info {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(76, 175, 80, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.radio-info p {
+    color: white;
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.radio-info small {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+}
+
+.radio-upload-section {
+    margin-bottom: 20px;
+}
+
+.radio-upload-section h4 {
+    color: white;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.radio-upload-area {
+    border: 2px dashed rgba(76, 175, 80, 0.5);
+    background: rgba(76, 175, 80, 0.05);
+}
+
+.radio-upload-area:hover {
+    border-color: rgba(76, 175, 80, 0.7);
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.radio-upload-area.dragover {
+    border-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.2);
+}
+
+.validation-results {
+    margin-top: 15px;
+}
+
+.validation-summary {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(76, 175, 80, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.validation-items {
+    display: grid;
+    gap: 8px;
+}
+
+.validation-item {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    border-left: 3px solid #4CAF50;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
 }

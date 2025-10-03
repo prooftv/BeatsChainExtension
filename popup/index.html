@@ -319,35 +319,38 @@
             <section id="radio-section" class="section">
                 <h2>📻 Radio Submission</h2>
                 <div class="radio-content">
-                    <div id="radio-validation" class="radio-validation" style="display: none;">
-                        <h4>🔍 Radio Compliance Check</h4>
-                        <div id="radio-results" class="validation-results"></div>
+                    <div class="radio-info">
+                        <p>🎵 <strong>Independent Radio Submission System</strong></p>
+                        <small>Upload audio files specifically for radio submission - separate from NFT minting</small>
+                    </div>
+                    
+                    <div id="radio-validation" class="radio-validation">
+                        <!-- Dynamic content loaded by JavaScript -->
                     </div>
                     
                     <div id="split-sheets" class="split-sheets">
                         <h4>📄 Split Sheets (SAMRO Compliant)</h4>
                         <div class="contributors-list">
                             <div class="contributor-item">
-                                <input type="text" placeholder="Contributor Name" class="form-input contributor-name">
+                                <input type="text" placeholder="Primary Artist/Producer Name" class="form-input contributor-name">
                                 <select class="form-input contributor-role">
                                     <option value="artist">Artist</option>
                                     <option value="producer">Producer</option>
                                     <option value="songwriter">Songwriter</option>
                                     <option value="vocalist">Vocalist</option>
                                 </select>
-                                <input type="number" placeholder="%" class="form-input contributor-percentage" min="0" max="100">
+                                <input type="number" placeholder="%" class="form-input contributor-percentage" min="0" max="100" value="100">
                                 <input type="text" placeholder="SAMRO Number (optional)" class="form-input samro-number">
                             </div>
                         </div>
                         <button id="add-contributor" class="btn btn-secondary">➕ Add Contributor</button>
                         <div class="percentage-total">
-                            <span>Total: <span id="total-percentage">0</span>%</span>
+                            <span>Total: <span id="total-percentage">100</span>%</span>
                         </div>
                     </div>
                     
                     <div class="radio-actions">
-                        <button id="validate-radio" class="btn btn-secondary">🔍 Validate for Radio</button>
-                        <button id="generate-radio-package" class="btn btn-primary" disabled>📦 Generate Radio Package</button>
+                        <button id="generate-radio-package" class="btn btn-primary">📦 Generate Radio Package</button>
                     </div>
                 </div>
             </section>
@@ -372,17 +375,23 @@
         </aside>
     </div>
 
+    <!-- Core Libraries -->
+    <script src="../lib/env-loader.js"></script>
+    <script src="../lib/config.js" type="module"></script>
+    <script src="../init-production.js" type="module"></script>
+    <script src="../lib/audio-manager.js"></script>
     <script src="../lib/crypto-utils.js"></script>
     <script src="../lib/storage.js"></script>
     <script src="../lib/wallet.js"></script>
     <script src="../lib/chrome-ai.js"></script>
     <script src="../lib/auth.js"></script>
     <script src="../lib/ipfs.js"></script>
-    <script src="../lib/thirdweb.js"></script>
+    <script src="../lib/thirdweb.js" type="module"></script>
     <script src="../lib/zip-utils.js"></script>
     <script src="../lib/download-manager.js"></script>
     <script src="../lib/radio-validator.js"></script>
     <script src="../lib/split-sheets.js"></script>
-    <script src="popup.js"></script>
+    <!-- Main Application -->
+    <script src="popup.js" type="module"></script>
 </body>
 </html>
