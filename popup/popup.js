@@ -553,13 +553,41 @@ Platform: https://beatschain.app`;
         }
     }
     
+    sanitizeInput(input) {
+        if (!input) return '';
+        return String(input)
+            .replace(/[<>"'&]/g, (match) => {
+                const map = { '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;', '&': '&amp;' };
+                return map[match];
+            })
+            .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+            .trim()
+            .substring(0, 200);
+    }
+    
+    validateInput(input, type = 'text') {
+        if (!input || typeof input !== 'string') return false;
+        
+        switch (type) {
+            case 'name':
+                return /^[a-zA-Z0-9\s\-_]{1,50}$/.test(input.trim());
+            case 'title':
+                return /^[a-zA-Z0-9\s\-_.,!?]{1,100}$/.test(input.trim());
+            case 'percentage':
+                const num = parseFloat(input);
+                return !isNaN(num) && num >= 0 && num <= 100;
+            default:
+                return input.trim().length > 0 && input.length <= 200;
+        }
+    }
+    
     getArtistInputs() {
-        return {
-            artistName: document.getElementById('artist-name')?.value || 'Unknown Artist',
-            stageName: document.getElementById('stage-name')?.value || '',
-            beatTitle: document.getElementById('beat-title')?.value || this.beatMetadata.title,
-            genre: document.getElementById('genre-select')?.value || this.beatMetadata.suggestedGenre
-        };
+        const artistName = this.sanitizeInput(document.getElementById('artist-name')?.value) || 'Unknown Artist';
+        const stageName = this.sanitizeInput(document.getElementById('stage-name')?.value) || '';
+        const beatTitle = this.sanitizeInput(document.getElementById('beat-title')?.value) || this.beatMetadata.title;
+        const genre = this.sanitizeInput(document.getElementById('genre-select')?.value) || this.beatMetadata.suggestedGenre;
+        
+        return { artistName, stageName, beatTitle, genre };
     }
     
     getLicenseOptions() {
@@ -623,41 +651,54 @@ Platform: https://beatschain.app`;
 
     async generateDownloadPackage(result) {
         try {
-            // Create proper ZIP archive using native browser APIs
+            if (!result || !result.transactionHash) {
+                throw new Error('Invalid transaction data');
+            }
+            
             const files = [];
             
             // 1. Original Audio File
             if (this.beatFile) {
+                const sanitizedFilename = this.sanitizeInput(this.beatMetadata.originalFileName || 'audio');
                 files.push({
-                    name: `audio/${this.beatMetadata.originalFileName}`,
+                    name: `audio/${sanitizedFilename}`,
                     content: this.beatFile
                 });
             }
             
-            // 2. License Agreement (TXT)
-            const licenseContent = `${this.licenseTerms}\n\n--- BLOCKCHAIN VERIFICATION ---\nTransaction Hash: ${result.transactionHash}\nToken ID: ${result.tokenId}\nContract: 0x742d35Cc6634C0532925a3b8D4C9db96C4b5Da5A\nNetwork: Polygon Mumbai\nMinted: ${new Date().toISOString()}`;
+            // 2. Cover Image (if exists)
+            if (this.beatMetadata.coverImage) {
+                const sanitizedTitle = this.sanitizeInput(this.beatMetadata.title || 'cover');
+                files.push({
+                    name: `images/${sanitizedTitle}-cover.jpg`,
+                    content: this.beatMetadata.coverImage
+                });
+            }
+            
+            // 3. License Agreement (TXT)
+            const licenseContent = `${this.licenseTerms}\n\n--- BLOCKCHAIN VERIFICATION ---\nTransaction Hash: ${this.sanitizeInput(result.transactionHash)}\nToken ID: ${this.sanitizeInput(result.tokenId)}\nContract: 0x742d35Cc6634C0532925a3b8D4C9db96C4b5Da5A\nNetwork: Polygon Mumbai\nMinted: ${new Date().toISOString()}`;
             files.push({
                 name: 'LICENSE.txt',
                 content: licenseContent
             });
             
-            // 3. NFT Metadata (JSON)
+            // 4. NFT Metadata (JSON)
             const nftMetadata = {
-                name: this.beatMetadata.title,
-                description: `Music NFT: ${this.beatMetadata.title} - ${this.beatMetadata.suggestedGenre}`,
-                external_url: `https://polygonscan.com/tx/${result.transactionHash}`,
+                name: this.sanitizeInput(this.beatMetadata.title),
+                description: `Music NFT: ${this.sanitizeInput(this.beatMetadata.title)} - ${this.sanitizeInput(this.beatMetadata.suggestedGenre)}`,
+                external_url: `https://polygonscan.com/tx/${this.sanitizeInput(result.transactionHash)}`,
                 attributes: [
-                    { trait_type: "Genre", value: this.beatMetadata.suggestedGenre },
-                    { trait_type: "BPM", value: this.beatMetadata.estimatedBPM },
-                    { trait_type: "Duration", value: this.beatMetadata.duration },
-                    { trait_type: "Quality", value: this.beatMetadata.qualityLevel },
-                    { trait_type: "Energy Level", value: this.beatMetadata.energyLevel },
-                    { trait_type: "Format", value: this.beatMetadata.format }
+                    { trait_type: "Genre", value: this.sanitizeInput(this.beatMetadata.suggestedGenre) },
+                    { trait_type: "BPM", value: this.sanitizeInput(this.beatMetadata.estimatedBPM) },
+                    { trait_type: "Duration", value: this.sanitizeInput(this.beatMetadata.duration) },
+                    { trait_type: "Quality", value: this.sanitizeInput(this.beatMetadata.qualityLevel) },
+                    { trait_type: "Energy Level", value: this.sanitizeInput(this.beatMetadata.energyLevel) },
+                    { trait_type: "Format", value: this.sanitizeInput(this.beatMetadata.format) }
                 ],
                 blockchain: {
                     contract: "0x742d35Cc6634C0532925a3b8D4C9db96C4b5Da5A",
-                    tokenId: result.tokenId,
-                    transactionHash: result.transactionHash,
+                    tokenId: this.sanitizeInput(result.tokenId),
+                    transactionHash: this.sanitizeInput(result.transactionHash),
                     network: "Polygon Mumbai"
                 }
             };
@@ -666,21 +707,20 @@ Platform: https://beatschain.app`;
                 content: JSON.stringify(nftMetadata, null, 2)
             });
             
-            // Create ZIP using existing createRealZip method
             const zipBlob = await this.createRealZip(files);
             
-            // Download the ZIP file
             const url = URL.createObjectURL(zipBlob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `BeatsChain-${this.beatMetadata.title.replace(/[^a-zA-Z0-9]/g, '_')}-NFT-Package.zip`;
+            const sanitizedTitle = this.sanitizeInput(this.beatMetadata.title || 'BeatsChain');
+            a.download = `BeatsChain-${sanitizedTitle.replace(/[^a-zA-Z0-9]/g, '_')}-NFT-Package.zip`;
             a.click();
             
             URL.revokeObjectURL(url);
             
         } catch (error) {
             console.error('Package generation failed:', error);
-            alert('Failed to generate download package');
+            alert(`Failed to generate download package: ${error.message}`);
         }
     }
 
@@ -909,14 +949,27 @@ Platform: https://beatschain.app`;
         
         try {
             this.radioMetadata = await this.extractAudioMetadata(file, 'radio');
+            
+            // Create audio preview FIRST
             this.createRadioAudioPreview(file);
             this.displayRadioMetadata(this.radioMetadata);
             
-            // Show validation section after successful upload (secure HTML)
+            // Show validation section after successful upload
             const radioValidation = document.getElementById('radio-validation');
-            radioValidation.innerHTML = '';
+            
+            // Keep existing audio preview and metadata, add validation section
+            const existingPreview = document.getElementById('radio-audio-preview');
+            const existingMetadata = document.getElementById('radio-metadata-display');
+            
+            // Clear only validation content, keep preview
+            const existingValidation = radioValidation.querySelector('.validation-section');
+            if (existingValidation) {
+                existingValidation.remove();
+            }
             
             const validationSection = document.createElement('div');
+            validationSection.className = 'validation-section';
+            
             const title = document.createElement('h4');
             title.textContent = '🔍 Radio Compliance Check';
             
@@ -1120,8 +1173,29 @@ Platform: https://beatschain.app`;
             return;
         }
         
-        if (!this.splitSheetsManager || !this.splitSheetsManager.isValid()) {
-            alert('Please ensure split sheets total 100% before generating package');
+        // Validate split sheets
+        const percentageInputs = document.querySelectorAll('.contributor-percentage');
+        let total = 0;
+        percentageInputs.forEach(input => {
+            total += parseFloat(input.value) || 0;
+        });
+        
+        if (Math.abs(total - 100) > 0.01) {
+            alert(`Split sheets must total exactly 100%. Current total: ${total.toFixed(2)}%`);
+            return;
+        }
+        
+        // Validate contributor names
+        const contributorNames = document.querySelectorAll('.contributor-name');
+        let hasValidNames = false;
+        contributorNames.forEach(input => {
+            if (input.value && input.value.trim().length > 0) {
+                hasValidNames = true;
+            }
+        });
+        
+        if (!hasValidNames) {
+            alert('Please provide at least one contributor name');
             return;
         }
         
@@ -1132,25 +1206,27 @@ Platform: https://beatschain.app`;
         try {
             const files = [];
             
-            // Use radio-specific audio file and metadata
+            // Audio file with sanitized name
             if (this.radioAudioFile) {
+                const sanitizedTitle = this.sanitizeInput(this.radioMetadata.title || 'audio');
+                const sanitizedFormat = this.sanitizeInput(this.radioMetadata.format || 'mp3').toLowerCase();
                 files.push({
-                    name: `audio/${this.radioMetadata.title.replace(/[^a-zA-Z0-9]/g, '_')}.${this.radioMetadata.format.toLowerCase()}`,
+                    name: `audio/${sanitizedTitle.replace(/[^a-zA-Z0-9]/g, '_')}.${sanitizedFormat}`,
                     content: this.radioAudioFile
                 });
             }
             
-            // Get radio-specific inputs (independent from Web3 minting)
+            // Get validated radio inputs
             const radioInputs = this.getRadioInputs();
             const radioMetadata = {
-                title: radioInputs.title || this.radioMetadata.title,
-                artist: radioInputs.artist || 'Unknown Artist',
-                genre: radioInputs.genre || this.radioMetadata.suggestedGenre,
-                duration: this.radioMetadata.duration,
-                format: this.radioMetadata.format,
-                bitrate: this.radioMetadata.estimatedBitrate,
-                quality: this.radioMetadata.qualityLevel,
-                bpm: this.radioMetadata.estimatedBPM,
+                title: this.sanitizeInput(radioInputs.title || this.radioMetadata.title),
+                artist: this.sanitizeInput(radioInputs.artist || 'Unknown Artist'),
+                genre: this.sanitizeInput(radioInputs.genre || this.radioMetadata.suggestedGenre),
+                duration: this.sanitizeInput(this.radioMetadata.duration),
+                format: this.sanitizeInput(this.radioMetadata.format),
+                bitrate: this.sanitizeInput(this.radioMetadata.estimatedBitrate),
+                quality: this.sanitizeInput(this.radioMetadata.qualityLevel),
+                bpm: this.sanitizeInput(this.radioMetadata.estimatedBPM),
                 radioReady: true,
                 submissionDate: new Date().toISOString(),
                 submissionType: 'radio_only'
@@ -1161,6 +1237,7 @@ Platform: https://beatschain.app`;
                 content: JSON.stringify(radioMetadata, null, 2)
             });
             
+            // Generate split sheet with current contributors
             const splitSheet = this.splitSheetsManager.generateSplitSheet(radioMetadata);
             files.push({
                 name: 'split_sheet.json',
@@ -1169,7 +1246,7 @@ Platform: https://beatschain.app`;
             
             files.push({
                 name: 'SAMRO_Split_Sheet.txt',
-                content: this.splitSheetsManager.generateSamroReport()
+                content: this.splitSheetsManager.generateSamroReport(radioMetadata)
             });
             
             const zipBlob = await this.createRealZip(files);
@@ -1177,7 +1254,8 @@ Platform: https://beatschain.app`;
             const url = URL.createObjectURL(zipBlob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${radioMetadata.title.replace(/[^a-zA-Z0-9]/g, '_')}_Radio_Submission.zip`;
+            const sanitizedTitle = this.sanitizeInput(radioMetadata.title || 'Radio_Submission');
+            a.download = `${sanitizedTitle.replace(/[^a-zA-Z0-9]/g, '_')}_Radio_Submission.zip`;
             a.click();
             
             URL.revokeObjectURL(url);
@@ -1190,7 +1268,7 @@ Platform: https://beatschain.app`;
             
         } catch (error) {
             console.error('Radio package generation failed:', error);
-            alert('Failed to generate radio package');
+            alert(`Failed to generate radio package: ${error.message}`);
             generateBtn.disabled = false;
             generateBtn.textContent = '📦 Generate Radio Package';
         }
@@ -1223,21 +1301,43 @@ Platform: https://beatschain.app`;
     updatePercentageTotal() {
         const percentageInputs = document.querySelectorAll('.contributor-percentage');
         let total = 0;
+        let hasValidContributors = false;
         
         percentageInputs.forEach(input => {
             const value = parseFloat(input.value) || 0;
-            total += value;
+            if (this.validateInput(input.value, 'percentage')) {
+                total += value;
+                hasValidContributors = true;
+            }
         });
         
         const totalDisplay = document.getElementById('total-percentage');
         if (totalDisplay) {
-            totalDisplay.textContent = total;
-            totalDisplay.style.color = total === 100 ? '#4CAF50' : '#FFC107';
+            totalDisplay.textContent = Math.round(total * 100) / 100; // Round to 2 decimals
+            totalDisplay.style.color = total === 100 ? '#4CAF50' : (total > 100 ? '#F44336' : '#FFC107');
         }
+        
+        // Validate contributor names
+        const contributorNames = document.querySelectorAll('.contributor-name');
+        let hasValidNames = false;
+        contributorNames.forEach(input => {
+            if (this.validateInput(input.value, 'name') && input.value.trim().length > 0) {
+                hasValidNames = true;
+            }
+        });
+        
+        const isValid = total === 100 && hasValidContributors && hasValidNames;
         
         // Update split sheets manager validity
         if (this.splitSheetsManager) {
-            this.splitSheetsManager.setValid(total === 100);
+            this.splitSheetsManager.setValid(isValid);
+        }
+        
+        // Update generate button state
+        const generateBtn = document.getElementById('generate-radio-package');
+        if (generateBtn) {
+            generateBtn.disabled = !isValid;
+            generateBtn.title = isValid ? 'Generate radio package' : 'Complete split sheets (100%) with valid names first';
         }
     }
 }
