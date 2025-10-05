@@ -61,6 +61,7 @@ class BeatsChainApp {
             await this.initializeRadioFeatures();
             
             await this.loadWalletData();
+            await this.loadProfile();
             this.isInitialized = true;
             console.log('BeatsChain initialized successfully');
         } catch (error) {
@@ -155,6 +156,12 @@ class BeatsChainApp {
         
         // Setup percentage calculator
         this.setupPercentageCalculator();
+        
+        // Profile save button
+        const saveProfileBtn = document.getElementById('save-profile');
+        if (saveProfileBtn) {
+            saveProfileBtn.addEventListener('click', this.saveProfile.bind(this));
+        }
     }
 
     handleDragOver(e) {
@@ -1329,28 +1336,29 @@ Verification: Check Chrome extension storage for transaction details`;
             return;
         }
         
-        // Validate split sheets
-        const percentageInputs = document.querySelectorAll('.contributor-percentage');
-        let total = 0;
-        percentageInputs.forEach(input => {
-            total += parseFloat(input.value) || 0;
+        // Collect contributors from UI
+        this.splitSheetsManager.contributors = [];
+        const contributorItems = document.querySelectorAll('.contributor-item');
+        
+        contributorItems.forEach(item => {
+            const name = item.querySelector('.contributor-name')?.value?.trim();
+            const role = item.querySelector('.contributor-role')?.value;
+            const percentage = parseFloat(item.querySelector('.contributor-percentage')?.value) || 0;
+            const samroNumber = item.querySelector('.samro-number')?.value?.trim() || '';
+            
+            if (name && percentage > 0) {
+                this.splitSheetsManager.addContributor(name, role, percentage, samroNumber);
+            }
         });
         
+        // Validate split sheets
+        const total = this.splitSheetsManager.getTotalPercentage();
         if (Math.abs(total - 100) > 0.01) {
             alert(`Split sheets must total exactly 100%. Current total: ${total.toFixed(2)}%`);
             return;
         }
         
-        // Validate contributor names
-        const contributorNames = document.querySelectorAll('.contributor-name');
-        let hasValidNames = false;
-        contributorNames.forEach(input => {
-            if (input.value && input.value.trim().length > 0) {
-                hasValidNames = true;
-            }
-        });
-        
-        if (!hasValidNames) {
+        if (this.splitSheetsManager.contributors.length === 0) {
             alert('Please provide at least one contributor name');
             return;
         }
@@ -1376,13 +1384,25 @@ Verification: Check Chrome extension storage for transaction details`;
             const radioInputs = this.getRadioInputs();
             const radioMetadata = {
                 title: this.sanitizeInput(radioInputs.title || this.radioMetadata.title),
-                artist: this.sanitizeInput(radioInputs.artist || 'Unknown Artist'),
+                artist: this.sanitizeInput(radioInputs.artistName || 'Unknown Artist'),
+                stageName: this.sanitizeInput(radioInputs.stageName || ''),
                 genre: this.sanitizeInput(radioInputs.genre || this.radioMetadata.suggestedGenre),
+                language: this.sanitizeInput(radioInputs.language || 'English'),
+                recordLabel: this.sanitizeInput(radioInputs.recordLabel || 'Independent'),
+                isrc: this.sanitizeInput(radioInputs.isrc || ''),
+                contentRating: this.sanitizeInput(radioInputs.contentRating || 'clean'),
                 duration: this.sanitizeInput(this.radioMetadata.duration),
                 format: this.sanitizeInput(this.radioMetadata.format),
                 bitrate: this.sanitizeInput(this.radioMetadata.estimatedBitrate),
                 quality: this.sanitizeInput(this.radioMetadata.qualityLevel),
                 bpm: this.sanitizeInput(this.radioMetadata.estimatedBPM),
+                // Artist biography and press kit
+                biography: this.sanitizeInput(radioInputs.biography || ''),
+                influences: this.sanitizeInput(radioInputs.influences || ''),
+                social: {
+                    instagram: this.sanitizeInput(radioInputs.social?.instagram || ''),
+                    twitter: this.sanitizeInput(radioInputs.social?.twitter || '')
+                },
                 radioReady: true,
                 submissionDate: new Date().toISOString(),
                 submissionType: 'radio_only'
@@ -1392,6 +1412,17 @@ Verification: Check Chrome extension storage for transaction details`;
                 name: 'track_metadata.json',
                 content: JSON.stringify(radioMetadata, null, 2)
             });
+            
+            // Add cover image if uploaded
+            const coverImageInput = document.getElementById('radio-cover-image');
+            if (coverImageInput && coverImageInput.files[0]) {
+                const coverFile = coverImageInput.files[0];
+                const extension = coverFile.name.split('.').pop().toLowerCase();
+                files.push({
+                    name: `images/cover_art.${extension}`,
+                    content: coverFile
+                });
+            }
             
             // Generate split sheet with current contributors
             const splitSheet = this.splitSheetsManager.generateSplitSheet(radioMetadata);
@@ -1403,6 +1434,44 @@ Verification: Check Chrome extension storage for transaction details`;
             files.push({
                 name: 'SAMRO_Split_Sheet.txt',
                 content: this.splitSheetsManager.generateSamroReport(radioMetadata)
+            });
+            
+            // Add artist biography file if provided
+            if (radioMetadata.biography && radioMetadata.biography.trim()) {
+                const bioText = `ARTIST BIOGRAPHY\n\nArtist: ${radioMetadata.artist}\nStage Name: ${radioMetadata.stageName || 'N/A'}\n\n${radioMetadata.biography}\n\nMusical Influences: ${radioMetadata.influences || 'Not specified'}\n\nSocial Media:\n${radioMetadata.social.instagram ? `Instagram: ${radioMetadata.social.instagram}\n` : ''}${radioMetadata.social.twitter ? `Twitter: ${radioMetadata.social.twitter}\n` : ''}\n\nGenerated: ${new Date().toLocaleString()}`;
+                
+                files.push({
+                    name: 'artist_biography.txt',
+                    content: bioText
+                });
+            }
+            
+            // Add press kit JSON with all artist info
+            const pressKit = {
+                artist: {
+                    name: radioMetadata.artist,
+                    stageName: radioMetadata.stageName,
+                    biography: radioMetadata.biography,
+                    influences: radioMetadata.influences,
+                    social: radioMetadata.social
+                },
+                track: {
+                    title: radioMetadata.title,
+                    genre: radioMetadata.genre,
+                    language: radioMetadata.language,
+                    duration: radioMetadata.duration,
+                    isrc: radioMetadata.isrc
+                },
+                submission: {
+                    date: radioMetadata.submissionDate,
+                    type: 'radio_submission',
+                    radioReady: true
+                }
+            };
+            
+            files.push({
+                name: 'press_kit.json',
+                content: JSON.stringify(pressKit, null, 2)
             });
             
             const zipBlob = await this.createRealZip(files);
@@ -1436,22 +1505,103 @@ Verification: Check Chrome extension storage for transaction details`;
         // USER INPUT PRIORITY: Get inputs from radio metadata manager with user priority
         if (this.radioMetadataManager) {
             const metadata = this.radioMetadataManager.getTrackMetadata();
+            // Get profile biography data
+            const profileBio = this.getProfileBiography();
+            
             // Ensure user inputs override AI suggestions
             return {
                 ...metadata,
                 // Final check: user inputs take priority over everything
                 title: this.userInputManager.getValue('radio-title', metadata.title, this.radioMetadata?.title || 'Untitled Track'),
                 genre: this.userInputManager.getValue('radio-genre', metadata.genre, this.radioMetadata?.suggestedGenre || 'Electronic'),
-                artistName: this.userInputManager.getValue('radio-artist', metadata.artistName, 'Unknown Artist')
+                artistName: this.userInputManager.getValue('radio-artist', metadata.artistName, 'Unknown Artist'),
+                // Use profile biography if available, otherwise radio form
+                biography: profileBio.biography || metadata.biography || '',
+                influences: profileBio.influences || metadata.influences || '',
+                social: {
+                    instagram: profileBio.social.instagram || metadata.social?.instagram || '',
+                    twitter: profileBio.social.twitter || metadata.social?.twitter || ''
+                }
             };
         }
         
-        // Fallback with user priority
+        // Fallback with profile data
+        const profileBio = this.getProfileBiography();
         return {
             title: this.userInputManager.getValue('radio-title', null, this.radioMetadata?.title || 'Untitled Track'),
             artistName: this.userInputManager.getValue('radio-artist', null, 'Unknown Artist'),
-            genre: this.userInputManager.getValue('radio-genre', null, this.radioMetadata?.suggestedGenre || 'Electronic')
+            genre: this.userInputManager.getValue('radio-genre', null, this.radioMetadata?.suggestedGenre || 'Electronic'),
+            biography: profileBio.biography || '',
+            influences: profileBio.influences || '',
+            social: profileBio.social || {}
         };
+    }
+    
+    getProfileBiography() {
+        return {
+            biography: document.getElementById('profile-artist-bio')?.value?.trim() || '',
+            influences: document.getElementById('profile-influences')?.value?.trim() || '',
+            social: {
+                instagram: document.getElementById('profile-instagram')?.value?.trim() || '',
+                twitter: document.getElementById('profile-twitter')?.value?.trim() || ''
+            }
+        };
+    }
+    
+    async saveProfile() {
+        try {
+            const profileData = this.getProfileBiography();
+            
+            // Store in browser storage
+            if (window.StorageManager) {
+                await window.StorageManager.setItem('artistProfile', profileData);
+            } else {
+                localStorage.setItem('artistProfile', JSON.stringify(profileData));
+            }
+            
+            // Show success message
+            const saveBtn = document.getElementById('save-profile');
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = '✅ Saved!';
+            saveBtn.disabled = true;
+            
+            setTimeout(() => {
+                saveBtn.textContent = originalText;
+                saveBtn.disabled = false;
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Failed to save profile:', error);
+            alert('Failed to save profile. Please try again.');
+        }
+    }
+    
+    async loadProfile() {
+        try {
+            let profileData;
+            
+            if (window.StorageManager) {
+                profileData = await window.StorageManager.getItem('artistProfile');
+            } else {
+                const stored = localStorage.getItem('artistProfile');
+                profileData = stored ? JSON.parse(stored) : null;
+            }
+            
+            if (profileData) {
+                const bioField = document.getElementById('profile-artist-bio');
+                const influencesField = document.getElementById('profile-influences');
+                const instagramField = document.getElementById('profile-instagram');
+                const twitterField = document.getElementById('profile-twitter');
+                
+                if (bioField) bioField.value = profileData.biography || '';
+                if (influencesField) influencesField.value = profileData.influences || '';
+                if (instagramField) instagramField.value = profileData.social?.instagram || '';
+                if (twitterField) twitterField.value = profileData.social?.twitter || '';
+            }
+            
+        } catch (error) {
+            console.error('Failed to load profile:', error);
+        }
     }
     
     setupPercentageCalculator() {
