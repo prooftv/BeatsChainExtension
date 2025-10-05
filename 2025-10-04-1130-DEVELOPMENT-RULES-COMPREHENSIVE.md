@@ -25,6 +25,12 @@
 - **Strategy**: Maintain backward compatibility
 - **Documentation**: Track all enhancements with changelog
 
+### **3.1. FILE VERIFICATION MANDATORY**
+- **Rule**: ALWAYS verify existing files before creating new ones
+- **Implementation**: Use listDirectory and fsRead to check current state
+- **Prevention**: Avoid duplicates, conflicts, and overwrites
+- **Validation**: Confirm file structure before any modifications
+
 ### **4. USER AS SOURCE OF TRUTH** ⚠️ **CRITICAL**
 - **Rule**: User inputs ALWAYS take priority over AI analysis
 - **Implementation**: `userInput || aiSuggestion` never `aiSuggestion || userInput`

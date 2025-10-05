@@ -15,6 +15,10 @@ class BeatsChainApp {
         this.splitSheetsManager = null;
         // Centralized Audio Manager
         this.audioManager = new AudioManager();
+        // User Input Manager - Ensures user inputs override AI analysis
+        this.userInputManager = new UserInputManager();
+        // Radio Features
+        this.radioIPFSManager = null;
         this.isInitialized = false;
     }
 
@@ -52,6 +56,9 @@ class BeatsChainApp {
             } catch (error) {
                 console.log('Thirdweb manager unavailable');
             }
+            
+            // Initialize radio features
+            await this.initializeRadioFeatures();
             
             await this.loadWalletData();
             this.isInitialized = true;
@@ -172,15 +179,16 @@ class BeatsChainApp {
     }
 
     async processFile(file) {
-        if (!this.validateAudioFile(file)) {
-            alert('Invalid file type. Please upload MP3, WAV, or FLAC files.');
-            return;
-        }
-
-        this.beatFile = file;
         this.showProgress(true);
-
+        
         try {
+            // Enhanced security validation
+            const isValid = await this.validateAudioFile(file);
+            if (!isValid) {
+                throw new Error('File validation failed');
+            }
+
+            this.beatFile = file;
             this.beatMetadata = await this.extractAudioMetadata(file, 'web3');
             this.updateUploadStatus(`Uploaded: ${file.name} (${this.audioManager.formatFileSize(file.size)})`);
             this.showProgress(false);
@@ -192,13 +200,13 @@ class BeatsChainApp {
             if (proceedBtn) proceedBtn.style.display = 'block';
         } catch (error) {
             console.error('File processing failed:', error);
-            alert('Failed to process audio file');
+            alert(`File upload failed: ${error.message}`);
             this.showProgress(false);
         }
     }
 
-    validateAudioFile(file) {
-        return this.audioManager.validateAudioFile(file);
+    async validateAudioFile(file) {
+        return await this.audioManager.validateAudioFile(file);
     }
 
     async extractAudioMetadata(file, systemId = 'web3') {
@@ -236,13 +244,8 @@ class BeatsChainApp {
 
         try {
             const artistInputs = this.getArtistInputs();
-            const enhancedMetadata = {
-                ...this.beatMetadata,
-                artist: artistInputs.artistName,
-                stageName: artistInputs.stageName,
-                title: artistInputs.beatTitle,
-                genre: artistInputs.genre
-            };
+            // USER INPUT PRIORITY: User selections override AI analysis
+            const enhancedMetadata = this.userInputManager.mergeWithUserInputs(this.beatMetadata, artistInputs);
             
             const licenseOptions = this.getLicenseOptions();
             
@@ -291,7 +294,7 @@ TRACK IDENTIFICATION & TECHNICAL SPECIFICATIONS
 Track Title: ${metadata.title}
 Original Filename: ${metadata.originalFileName}
 Duration: ${metadata.duration} (${metadata.durationSeconds} seconds)
-Genre Classification: ${metadata.suggestedGenre}
+Genre Classification: ${metadata.genre || metadata.suggestedGenre} (USER SELECTED)
 Estimated BPM: ${metadata.estimatedBPM}
 Energy Level: ${metadata.energyLevel}
 Audio Quality: ${metadata.qualityLevel}
@@ -389,6 +392,8 @@ Verification: Check Chrome extension storage for transaction details`;
             
             // Mint NFT on blockchain
             const mintResult = await this.thirdweb.mintNFT(walletAddress, uploadResult.metadataUri);
+            
+            // NFT minting disabled in this version
             
             this.showMintSuccess({
                 transactionHash: mintResult.transactionHash,
@@ -583,12 +588,33 @@ Verification: Check Chrome extension storage for transaction details`;
     }
     
     getArtistInputs() {
-        const artistName = this.sanitizeInput(document.getElementById('artist-name')?.value) || 'Unknown Artist';
-        const stageName = this.sanitizeInput(document.getElementById('stage-name')?.value) || '';
-        const beatTitle = this.sanitizeInput(document.getElementById('beat-title')?.value) || this.beatMetadata.title;
-        const genre = this.sanitizeInput(document.getElementById('genre-select')?.value) || this.beatMetadata.suggestedGenre;
+        // Get raw inputs
+        const artistNameInput = document.getElementById('artist-name')?.value;
+        const stageNameInput = document.getElementById('stage-name')?.value;
+        const beatTitleInput = document.getElementById('beat-title')?.value;
+        const genreInput = document.getElementById('genre-select')?.value;
         
-        return { artistName, stageName, beatTitle, genre };
+        // Store user inputs with priority tracking
+        if (artistNameInput && artistNameInput.trim()) {
+            this.userInputManager.setUserInput('artist', artistNameInput, true);
+        }
+        if (stageNameInput && stageNameInput.trim()) {
+            this.userInputManager.setUserInput('stageName', stageNameInput, true);
+        }
+        if (beatTitleInput && beatTitleInput.trim()) {
+            this.userInputManager.setUserInput('title', beatTitleInput, true);
+        }
+        if (genreInput && genreInput.trim()) {
+            this.userInputManager.setUserInput('genre', genreInput, true);
+        }
+        
+        // Return with user priority
+        return {
+            artistName: this.userInputManager.getValue('artist', null, 'Unknown Artist'),
+            stageName: this.userInputManager.getValue('stageName', null, ''),
+            beatTitle: this.userInputManager.getValue('title', this.beatMetadata.title, 'Untitled Beat'),
+            genre: this.userInputManager.getValue('genre', this.beatMetadata.suggestedGenre, 'Electronic')
+        };
     }
     
     getLicenseOptions() {
@@ -602,18 +628,30 @@ Verification: Check Chrome extension storage for transaction details`;
 
     async handleImageUpload(e) {
         const file = e.target.files[0];
-        if (!file || !file.type.startsWith('image/')) return;
+        if (!file) return;
         
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const preview = document.getElementById('image-preview');
-            if (preview) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
+        try {
+            // Enhanced security validation for images
+            const isValid = await this.audioManager.validateImageFile(file);
+            if (!isValid) {
+                throw new Error('Image validation failed');
             }
-        };
-        reader.readAsDataURL(file);
-        this.beatMetadata.coverImage = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const preview = document.getElementById('image-preview');
+                if (preview) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+            };
+            reader.readAsDataURL(file);
+            this.beatMetadata.coverImage = file;
+        } catch (error) {
+            console.error('Image upload failed:', error);
+            alert(`Image upload failed: ${error.message}`);
+            e.target.value = ''; // Clear the input
+        }
     }
 
     async handleGoogleSignIn() {
@@ -642,12 +680,104 @@ Verification: Check Chrome extension storage for transaction details`;
         }
     }
 
-    async updateAuthenticatedUI() {
-        // Stub implementation
+    async updateAuthenticatedUI(authResult = null) {
+        try {
+            const userProfile = this.authManager.getUserProfile();
+            if (!userProfile) return;
+            
+            // Update profile display
+            const profileName = document.getElementById('profile-name');
+            const profileEmail = document.getElementById('profile-email');
+            const profileWallet = document.getElementById('profile-wallet-address');
+            
+            if (profileName) profileName.textContent = userProfile.name || 'Artist';
+            if (profileEmail) profileEmail.textContent = userProfile.email || '';
+            
+            // Update wallet info
+            const walletAddress = await this.authManager.getWalletAddress();
+            if (profileWallet && walletAddress) {
+                profileWallet.textContent = `${walletAddress.substring(0, 6)}...${walletAddress.substring(-4)}`;
+            }
+            
+            // Show role-based features
+            if (authResult && authResult.role) {
+                this.updateRoleBasedUI(authResult.role);
+            }
+            
+            // Update security indicators
+            if (authResult && authResult.securityLevel) {
+                this.updateSecurityIndicators(authResult.securityLevel);
+            }
+            
+        } catch (error) {
+            console.error('Failed to update authenticated UI:', error);
+        }
+    }
+    
+    updateRoleBasedUI(role) {
+        // Show/hide features based on user role
+        const adminFeatures = document.querySelectorAll('.admin-only');
+        const producerFeatures = document.querySelectorAll('.producer-only');
+        
+        adminFeatures.forEach(el => {
+            el.style.display = role === 'admin' ? 'block' : 'none';
+        });
+        
+        producerFeatures.forEach(el => {
+            el.style.display = ['admin', 'producer'].includes(role) ? 'block' : 'none';
+        });
+    }
+    
+    updateSecurityIndicators(securityLevel) {
+        // Add security level indicator to UI
+        const securityBadge = document.createElement('div');
+        securityBadge.className = `security-badge ${securityLevel}`;
+        securityBadge.textContent = `🛡️ ${securityLevel.toUpperCase()}`;
+        
+        const header = document.querySelector('.header');
+        if (header && !header.querySelector('.security-badge')) {
+            header.appendChild(securityBadge);
+        }
+    }
+    
+    showSecurityStatus(authResult) {
+        console.log('Security Status:', {
+            role: authResult.role,
+            securityLevel: authResult.securityLevel,
+            mfaRequired: authResult.mfaRequired
+        });
     }
 
     async loadWalletData() {
-        // Stub implementation
+        try {
+            if (!this.authManager) return;
+            
+            const walletAddress = await this.authManager.getWalletAddress();
+            const walletBalance = await this.authManager.getWalletBalance();
+            
+            // Update wallet display
+            const balanceElement = document.getElementById('wallet-balance');
+            if (balanceElement && walletBalance) {
+                balanceElement.textContent = `${walletBalance} MATIC`;
+            }
+            
+            console.log('Wallet loaded:', walletAddress);
+        } catch (error) {
+            console.error('Failed to load wallet data:', error);
+        }
+    }
+    
+    async initializeRadioFeatures() {
+        try {
+            // Initialize Radio IPFS Manager
+            if (window.RadioIPFSManager) {
+                this.radioIPFSManager = new RadioIPFSManager();
+                console.log('✅ Radio IPFS manager initialized');
+            }
+            
+        } catch (error) {
+            console.log('Radio features initialization failed:', error);
+        }
     }
 
     async generateDownloadPackage(result) {
@@ -957,14 +1087,14 @@ Verification: Check Chrome extension storage for transaction details`;
     }
     
     async processRadioFile(file) {
-        if (!this.validateAudioFile(file)) {
-            alert('Invalid file type. Please upload MP3, WAV, or FLAC files.');
-            return;
-        }
-        
-        this.radioAudioFile = file;
-        
         try {
+            // Enhanced security validation for radio files
+            const isValid = await this.validateAudioFile(file);
+            if (!isValid) {
+                throw new Error('File validation failed');
+            }
+            
+            this.radioAudioFile = file;
             this.radioMetadata = await this.extractAudioMetadata(file, 'radio');
             
             // Create audio preview FIRST
@@ -982,22 +1112,24 @@ Verification: Check Chrome extension storage for transaction details`;
             
         } catch (error) {
             console.error('Radio file processing failed:', error);
-            alert('Failed to process audio file for radio submission');
+            alert(`Radio file upload failed: ${error.message}`);
         }
     }
     
     populateTrackInfoFromMetadata() {
         if (!this.radioMetadata) return;
         
-        // Pre-populate track title
+        // USER INPUT PRIORITY: Only suggest if user hasn't entered anything
         const titleInput = document.getElementById('radio-track-title');
-        if (titleInput && this.radioMetadata.title) {
+        if (titleInput && !titleInput.value && this.radioMetadata.title) {
             titleInput.value = this.radioMetadata.title;
+            // Store as AI suggestion, not user input
+            this.userInputManager.setUserInput('radio-title', this.radioMetadata.title, false);
         }
         
-        // Pre-populate genre if detected
+        // Pre-populate genre if detected but don't override user selection
         const genreSelect = document.getElementById('radio-genre');
-        if (genreSelect && this.radioMetadata.suggestedGenre) {
+        if (genreSelect && !genreSelect.value && this.radioMetadata.suggestedGenre) {
             // Map detected genre to radio genres
             const genreMapping = {
                 'Hip-Hop': 'Hip-Hop',
@@ -1005,12 +1137,15 @@ Verification: Check Chrome extension storage for transaction details`;
                 'Electronic': 'Electronic',
                 'Pop': 'Pop',
                 'Rock': 'Rock',
-                'Jazz': 'Jazz'
+                'Jazz': 'Jazz',
+                'Trap': 'Hip-Hop'
             };
             
             const mappedGenre = genreMapping[this.radioMetadata.suggestedGenre];
             if (mappedGenre) {
                 genreSelect.value = mappedGenre;
+                // Store as AI suggestion, not user input
+                this.userInputManager.setUserInput('radio-genre', mappedGenre, false);
             }
         }
     }
@@ -1281,6 +1416,8 @@ Verification: Check Chrome extension storage for transaction details`;
             
             URL.revokeObjectURL(url);
             
+            // Radio package generated successfully
+            
             generateBtn.textContent = '✅ Package Generated!';
             setTimeout(() => {
                 generateBtn.textContent = '📦 Generate Radio Package';
@@ -1296,16 +1433,24 @@ Verification: Check Chrome extension storage for transaction details`;
     }
     
     getRadioInputs() {
-        // Get inputs from radio metadata manager (separate from split sheets)
+        // USER INPUT PRIORITY: Get inputs from radio metadata manager with user priority
         if (this.radioMetadataManager) {
-            return this.radioMetadataManager.getTrackMetadata();
+            const metadata = this.radioMetadataManager.getTrackMetadata();
+            // Ensure user inputs override AI suggestions
+            return {
+                ...metadata,
+                // Final check: user inputs take priority over everything
+                title: this.userInputManager.getValue('radio-title', metadata.title, this.radioMetadata?.title || 'Untitled Track'),
+                genre: this.userInputManager.getValue('radio-genre', metadata.genre, this.radioMetadata?.suggestedGenre || 'Electronic'),
+                artistName: this.userInputManager.getValue('radio-artist', metadata.artistName, 'Unknown Artist')
+            };
         }
         
-        // Fallback to basic metadata
+        // Fallback with user priority
         return {
-            title: this.radioMetadata?.title || 'Untitled Track',
-            artistName: 'Unknown Artist',
-            genre: 'Electronic'
+            title: this.userInputManager.getValue('radio-title', null, this.radioMetadata?.title || 'Untitled Track'),
+            artistName: this.userInputManager.getValue('radio-artist', null, 'Unknown Artist'),
+            genre: this.userInputManager.getValue('radio-genre', null, this.radioMetadata?.suggestedGenre || 'Electronic')
         };
     }
     
