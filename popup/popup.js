@@ -190,6 +190,10 @@ class BeatsChainApp {
         
         try {
             // Enhanced security validation
+            if (!this.audioManager) {
+                throw new Error('Audio manager not initialized');
+            }
+            
             const isValid = await this.validateAudioFile(file);
             if (!isValid) {
                 throw new Error('File validation failed');
@@ -1096,6 +1100,10 @@ Verification: Check Chrome extension storage for transaction details`;
     async processRadioFile(file) {
         try {
             // Enhanced security validation for radio files
+            if (!this.audioManager) {
+                throw new Error('Audio manager not initialized');
+            }
+            
             const isValid = await this.validateAudioFile(file);
             if (!isValid) {
                 throw new Error('File validation failed');
@@ -1554,7 +1562,7 @@ Verification: Check Chrome extension storage for transaction details`;
             
             // Store in browser storage
             if (window.StorageManager) {
-                await window.StorageManager.setItem('artistProfile', profileData);
+                await window.StorageManager.set('artistProfile', profileData);
             } else {
                 localStorage.setItem('artistProfile', JSON.stringify(profileData));
             }
@@ -1581,7 +1589,7 @@ Verification: Check Chrome extension storage for transaction details`;
             let profileData;
             
             if (window.StorageManager) {
-                profileData = await window.StorageManager.getItem('artistProfile');
+                profileData = await window.StorageManager.get('artistProfile');
             } else {
                 const stored = localStorage.getItem('artistProfile');
                 profileData = stored ? JSON.parse(stored) : null;
