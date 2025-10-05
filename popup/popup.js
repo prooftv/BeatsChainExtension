@@ -430,7 +430,7 @@ Verification: Check Chrome extension storage for transaction details`;
 
     viewNFT() {
         if (this.currentTxHash) {
-            const url = `https://polygonscan.com/tx/${encodeURIComponent(this.currentTxHash)}`;
+            const url = `https://mumbai.polygonscan.com/tx/${encodeURIComponent(this.currentTxHash)}`;
             try {
                 chrome.tabs.create({ url });
             } catch (error) {
@@ -901,11 +901,23 @@ Verification: Check Chrome extension storage for transaction details`;
             metadataDisplay.className = 'metadata-display';
             metadataDisplay.style.display = 'none';
             
+            const nextButton = document.createElement('button');
+            nextButton.id = 'radio-step-1-next';
+            nextButton.className = 'btn btn-primary';
+            nextButton.textContent = 'Next: Track Information';
+            nextButton.style.display = 'none';
+            nextButton.addEventListener('click', () => {
+                if (window.showRadioStep) {
+                    window.showRadioStep(2);
+                }
+            });
+            
             uploadSection.appendChild(title);
             uploadSection.appendChild(uploadArea);
             uploadSection.appendChild(fileInput);
             uploadSection.appendChild(audioPreview);
             uploadSection.appendChild(metadataDisplay);
+            uploadSection.appendChild(nextButton);
             
             radioValidation.appendChild(uploadSection);
             
@@ -959,45 +971,47 @@ Verification: Check Chrome extension storage for transaction details`;
             this.createRadioAudioPreview(file);
             this.displayRadioMetadata(this.radioMetadata);
             
-            // Show metadata form
-            if (this.radioMetadataManager) {
-                this.radioMetadataManager.showForm();
-                this.radioMetadataManager.populateFromAudioMetadata(this.radioMetadata);
+            // Show next button for step progression
+            const nextButton = document.getElementById('radio-step-1-next');
+            if (nextButton) {
+                nextButton.style.display = 'block';
             }
             
-            // Show validation section after successful upload
-            const radioValidation = document.getElementById('radio-validation');
-            
-            // Clear only validation content, keep preview
-            const existingValidation = radioValidation.querySelector('.validation-section');
-            if (existingValidation) {
-                existingValidation.remove();
-            }
-            
-            const validationSection = document.createElement('div');
-            validationSection.className = 'validation-section';
-            
-            const title = document.createElement('h4');
-            title.textContent = '🔍 Radio Compliance Check';
-            
-            const resultsDiv = document.createElement('div');
-            resultsDiv.id = 'radio-results';
-            resultsDiv.className = 'validation-results';
-            
-            const validateBtn = document.createElement('button');
-            validateBtn.id = 'validate-radio';
-            validateBtn.className = 'btn btn-secondary';
-            validateBtn.textContent = '🔍 Validate for Radio';
-            validateBtn.addEventListener('click', this.validateForRadio.bind(this));
-            
-            validationSection.appendChild(title);
-            validationSection.appendChild(resultsDiv);
-            validationSection.appendChild(validateBtn);
-            radioValidation.appendChild(validationSection);
+            // Pre-populate track information in step 2
+            this.populateTrackInfoFromMetadata();
             
         } catch (error) {
             console.error('Radio file processing failed:', error);
             alert('Failed to process audio file for radio submission');
+        }
+    }
+    
+    populateTrackInfoFromMetadata() {
+        if (!this.radioMetadata) return;
+        
+        // Pre-populate track title
+        const titleInput = document.getElementById('radio-track-title');
+        if (titleInput && this.radioMetadata.title) {
+            titleInput.value = this.radioMetadata.title;
+        }
+        
+        // Pre-populate genre if detected
+        const genreSelect = document.getElementById('radio-genre');
+        if (genreSelect && this.radioMetadata.suggestedGenre) {
+            // Map detected genre to radio genres
+            const genreMapping = {
+                'Hip-Hop': 'Hip-Hop',
+                'House': 'House',
+                'Electronic': 'Electronic',
+                'Pop': 'Pop',
+                'Rock': 'Rock',
+                'Jazz': 'Jazz'
+            };
+            
+            const mappedGenre = genreMapping[this.radioMetadata.suggestedGenre];
+            if (mappedGenre) {
+                genreSelect.value = mappedGenre;
+            }
         }
     }
     
@@ -1310,43 +1324,54 @@ Verification: Check Chrome extension storage for transaction details`;
     updatePercentageTotal() {
         const percentageInputs = document.querySelectorAll('.contributor-percentage');
         let total = 0;
-        let hasValidContributors = false;
+        let validContributorCount = 0;
         
         percentageInputs.forEach(input => {
             const value = parseFloat(input.value) || 0;
-            if (this.validateInput(input.value, 'percentage')) {
+            if (value > 0) {
                 total += value;
-                hasValidContributors = true;
+                validContributorCount++;
             }
         });
         
         const totalDisplay = document.getElementById('total-percentage');
         if (totalDisplay) {
-            totalDisplay.textContent = Math.round(total * 100) / 100; // Round to 2 decimals
-            totalDisplay.style.color = total === 100 ? '#4CAF50' : (total > 100 ? '#F44336' : '#FFC107');
+            totalDisplay.textContent = Math.round(total * 100) / 100;
+            totalDisplay.style.color = Math.abs(total - 100) < 0.01 ? '#4CAF50' : (total > 100 ? '#F44336' : '#FFC107');
         }
         
-        // Validate contributor names
+        // Validate contributor names (only for contributors with percentages > 0)
         const contributorNames = document.querySelectorAll('.contributor-name');
-        let hasValidNames = false;
-        contributorNames.forEach(input => {
-            if (this.validateInput(input.value, 'name') && input.value.trim().length > 0) {
-                hasValidNames = true;
+        let validNameCount = 0;
+        
+        contributorNames.forEach((input, index) => {
+            const percentageInput = percentageInputs[index];
+            const percentage = parseFloat(percentageInput?.value) || 0;
+            
+            if (percentage > 0 && input.value && input.value.trim().length > 0) {
+                validNameCount++;
             }
         });
         
-        const isValid = total === 100 && hasValidContributors && hasValidNames;
+        // Valid if: total is 100% AND all contributors with percentages have names
+        const isValid = Math.abs(total - 100) < 0.01 && validContributorCount > 0 && validNameCount === validContributorCount;
         
         // Update split sheets manager validity
         if (this.splitSheetsManager) {
             this.splitSheetsManager.setValid(isValid);
         }
         
+        // Update step 5 next button
+        const step5NextBtn = document.getElementById('radio-step-5-next');
+        if (step5NextBtn) {
+            step5NextBtn.disabled = !isValid;
+        }
+        
         // Update generate button state
         const generateBtn = document.getElementById('generate-radio-package');
         if (generateBtn) {
             generateBtn.disabled = !isValid;
-            generateBtn.title = isValid ? 'Generate radio package' : 'Complete split sheets (100%) with valid names first';
+            generateBtn.title = isValid ? 'Generate radio package' : `Need: 100% total (${total.toFixed(1)}%) + valid names for all contributors`;
         }
     }
 }

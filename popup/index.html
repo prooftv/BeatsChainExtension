@@ -324,33 +324,227 @@
                         <small>Upload audio files specifically for radio submission - separate from NFT minting</small>
                     </div>
                     
-                    <div id="radio-validation" class="radio-validation">
-                        <!-- Dynamic content loaded by JavaScript -->
-                    </div>
-                    
-                    <div id="split-sheets" class="split-sheets">
-                        <h4>📄 Split Sheets (SAMRO Compliant)</h4>
-                        <div class="contributors-list">
-                            <div class="contributor-item">
-                                <input type="text" placeholder="Primary Artist/Producer Name" class="form-input contributor-name">
-                                <select class="form-input contributor-role">
-                                    <option value="artist">Artist</option>
-                                    <option value="producer">Producer</option>
-                                    <option value="songwriter">Songwriter</option>
-                                    <option value="vocalist">Vocalist</option>
-                                </select>
-                                <input type="number" placeholder="%" class="form-input contributor-percentage" min="0" max="100" value="100">
-                                <input type="text" placeholder="SAMRO Number (optional)" class="form-input samro-number">
+                    <!-- Step Progress Indicator -->
+                    <div class="radio-steps">
+                        <div class="step-indicator">
+                            <div class="step active" data-step="1">
+                                <span class="step-number">1</span>
+                                <span class="step-label">Audio Upload</span>
+                            </div>
+                            <div class="step" data-step="2">
+                                <span class="step-number">2</span>
+                                <span class="step-label">Track Info</span>
+                            </div>
+                            <div class="step" data-step="3">
+                                <span class="step-number">3</span>
+                                <span class="step-label">Cover Image</span>
+                            </div>
+                            <div class="step" data-step="4">
+                                <span class="step-number">4</span>
+                                <span class="step-label">Validation</span>
+                            </div>
+                            <div class="step" data-step="5">
+                                <span class="step-number">5</span>
+                                <span class="step-label">Split Sheets</span>
+                            </div>
+                            <div class="step" data-step="6">
+                                <span class="step-number">6</span>
+                                <span class="step-label">Package</span>
                             </div>
                         </div>
-                        <button id="add-contributor" class="btn btn-secondary">➕ Add Contributor</button>
-                        <div class="percentage-total">
-                            <span>Total: <span id="total-percentage">100</span>%</span>
+                    </div>
+                    
+                    <!-- Step 1: Audio Upload -->
+                    <div id="radio-step-1" class="radio-step active">
+                        <div id="radio-validation" class="radio-validation">
+                            <!-- Dynamic content loaded by JavaScript -->
                         </div>
                     </div>
                     
-                    <div class="radio-actions">
-                        <button id="generate-radio-package" class="btn btn-primary">📦 Generate Radio Package</button>
+                    <!-- Step 2: Track Information -->
+                    <div id="radio-step-2" class="radio-step">
+                        <h4>🎵 Track Information</h4>
+                        <div class="track-info-form">
+                            <div class="form-grid">
+                                <div class="form-row">
+                                    <label for="radio-track-title">Track Title *</label>
+                                    <input type="text" id="radio-track-title" class="form-input" placeholder="Enter track title" required>
+                                </div>
+                                <div class="form-row">
+                                    <label for="radio-artist-name">Primary Artist *</label>
+                                    <input type="text" id="radio-artist-name" class="form-input" placeholder="Artist/Band name" required>
+                                </div>
+                                <div class="form-row">
+                                    <label for="radio-stage-name">Stage/Performance Name</label>
+                                    <input type="text" id="radio-stage-name" class="form-input" placeholder="Stage name (optional)">
+                                </div>
+                                <div class="form-row">
+                                    <label for="radio-genre">Genre *</label>
+                                    <select id="radio-genre" class="form-input" required>
+                                        <option value="">Select Genre</option>
+                                        <option value="Afrikaans">Afrikaans</option>
+                                        <option value="Gospel">Gospel</option>
+                                        <option value="Jazz">Jazz</option>
+                                        <option value="Kwaito">Kwaito</option>
+                                        <option value="House">House</option>
+                                        <option value="Hip-Hop">Hip-Hop</option>
+                                        <option value="Rock">Rock</option>
+                                        <option value="Pop">Pop</option>
+                                        <option value="Traditional">Traditional</option>
+                                        <option value="Electronic">Electronic</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <label for="radio-language">Language *</label>
+                                    <select id="radio-language" class="form-input" required>
+                                        <option value="">Select Language</option>
+                                        <option value="English">English</option>
+                                        <option value="Afrikaans">Afrikaans</option>
+                                        <option value="Zulu">Zulu</option>
+                                        <option value="Xhosa">Xhosa</option>
+                                        <option value="Sotho">Sotho</option>
+                                        <option value="Tswana">Tswana</option>
+                                        <option value="Pedi">Pedi</option>
+                                        <option value="Venda">Venda</option>
+                                        <option value="Tsonga">Tsonga</option>
+                                        <option value="Ndebele">Ndebele</option>
+                                        <option value="Swati">Swati</option>
+                                        <option value="Mixed">Mixed Languages</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <label for="radio-record-label">Record Label</label>
+                                    <input type="text" id="radio-record-label" class="form-input" placeholder="Record label (optional)">
+                                </div>
+                                <div class="form-row">
+                                    <label for="radio-isrc">ISRC Code</label>
+                                    <input type="text" id="radio-isrc" class="form-input" placeholder="ZA-XXX-XX-XXXXX (optional)" pattern="ZA-[A-Z0-9]{3}-[0-9]{2}-[0-9]{5}">
+                                </div>
+                                <div class="form-row">
+                                    <label for="radio-content-rating">Content Rating *</label>
+                                    <select id="radio-content-rating" class="form-input" required>
+                                        <option value="">Select Rating</option>
+                                        <option value="Clean">Clean (No explicit content)</option>
+                                        <option value="Advisory">Parental Advisory (Explicit lyrics)</option>
+                                        <option value="Instrumental">Instrumental (No vocals)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="step-actions">
+                                <button id="radio-step-2-next" class="btn btn-primary">Next: Cover Image</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Cover Image Upload -->
+                    <div id="radio-step-3" class="radio-step">
+                        <h4>🖼️ Cover Image Upload</h4>
+                        <div class="cover-upload-section">
+                            <p class="requirement-note">📻 <strong>Required for Radio Submission</strong> - Radio stations need cover art for display</p>
+                            
+                            <div class="cover-upload-area" id="radio-cover-upload">
+                                <input type="file" id="radio-cover-image" accept="image/*" hidden required>
+                                <div class="upload-content">
+                                    <span class="upload-icon">🖼️</span>
+                                    <p>Upload cover image</p>
+                                    <small>JPG, PNG (min 500x500px, max 5MB)</small>
+                                </div>
+                            </div>
+                            
+                            <div id="radio-cover-preview" class="cover-preview" style="display: none;">
+                                <img id="radio-cover-img" class="cover-image">
+                                <div class="cover-info">
+                                    <p id="radio-cover-filename"></p>
+                                    <p id="radio-cover-dimensions"></p>
+                                    <p id="radio-cover-size"></p>
+                                </div>
+                            </div>
+                            
+                            <div class="cover-requirements">
+                                <h5>📋 Image Requirements:</h5>
+                                <ul>
+                                    <li>✅ Minimum 500x500 pixels (recommended 1400x1400)</li>
+                                    <li>✅ Square aspect ratio (1:1)</li>
+                                    <li>✅ JPG or PNG format</li>
+                                    <li>✅ Maximum 5MB file size</li>
+                                    <li>✅ High quality, clear artwork</li>
+                                    <li>❌ No explicit content in artwork</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="step-actions">
+                                <button id="radio-step-3-back" class="btn btn-secondary">Back: Track Info</button>
+                                <button id="radio-step-3-next" class="btn btn-primary" disabled>Next: Validation</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4: Radio Validation -->
+                    <div id="radio-step-4" class="radio-step">
+                        <h4>🔍 Radio Compliance Check</h4>
+                        <div id="radio-validation-results" class="validation-results">
+                            <!-- Validation results will be populated here -->
+                        </div>
+                        <div class="step-actions">
+                            <button id="radio-step-4-back" class="btn btn-secondary">Back: Cover Image</button>
+                            <button id="validate-radio" class="btn btn-secondary">🔍 Validate for Radio</button>
+                            <button id="radio-step-4-next" class="btn btn-primary" disabled>Next: Split Sheets</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 5: Split Sheets -->
+                    <div id="radio-step-5" class="radio-step">
+                        <div id="split-sheets" class="split-sheets">
+                            <h4>📄 Split Sheets (SAMRO Compliant)</h4>
+                            <p class="samro-info">🏛️ Required for South African Music Rights Organisation (SAMRO) registration</p>
+                            
+                            <div class="contributors-list">
+                                <div class="contributor-item">
+                                    <input type="text" placeholder="Primary Artist/Producer Name" class="form-input contributor-name">
+                                    <select class="form-input contributor-role">
+                                        <option value="artist">Artist</option>
+                                        <option value="producer">Producer</option>
+                                        <option value="songwriter">Songwriter</option>
+                                        <option value="vocalist">Vocalist</option>
+                                    </select>
+                                    <input type="number" placeholder="%" class="form-input contributor-percentage" min="0" max="100" value="100">
+                                    <input type="text" placeholder="SAMRO Number (optional)" class="form-input samro-number">
+                                </div>
+                            </div>
+                            <button id="add-contributor" class="btn btn-secondary">➕ Add Contributor</button>
+                            <div class="percentage-total">
+                                <span>Total: <span id="total-percentage">100</span>%</span>
+                                <small class="percentage-note">Must equal exactly 100%</small>
+                            </div>
+                            
+                            <div class="step-actions">
+                                <button id="radio-step-5-back" class="btn btn-secondary">Back: Validation</button>
+                                <button id="radio-step-5-next" class="btn btn-primary" disabled>Next: Generate Package</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 6: Package Generation -->
+                    <div id="radio-step-6" class="radio-step">
+                        <h4>📦 Radio Submission Package</h4>
+                        <div class="package-summary">
+                            <h5>📋 Package Contents:</h5>
+                            <ul id="package-contents">
+                                <li>🎵 Audio file (radio-ready format)</li>
+                                <li>🖼️ Cover image (station display)</li>
+                                <li>📄 Track metadata (JSON format)</li>
+                                <li>📊 Split sheets (SAMRO compliant)</li>
+                                <li>📋 Compliance report</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="radio-actions">
+                            <button id="radio-step-6-back" class="btn btn-secondary">Back: Split Sheets</button>
+                            <button id="generate-radio-package" class="btn btn-primary">📦 Generate Radio Package</button>
+                        </div>
+                        
+                        <div id="package-status" class="package-status" style="display: none;"></div>
                     </div>
                 </div>
             </section>
@@ -393,6 +587,7 @@
     <script src="../lib/radio-metadata.js"></script>
     <script src="../lib/blockchain-verifier.js"></script>
     <script src="../lib/split-sheets.js"></script>
+    <script src="radio-navigation.js"></script>
     <!-- Main Application -->
     <script src="popup.js" type="module"></script>
 </body>

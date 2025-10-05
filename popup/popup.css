@@ -1093,3 +1093,277 @@ textarea:focus {
     color: rgba(255, 255, 255, 0.9);
     font-size: 13px;
 }
+
+/* Radio Step Navigation Styles */
+.radio-steps {
+    margin-bottom: 30px;
+}
+
+.step-indicator {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+}
+
+.step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: -50%;
+    width: 100%;
+    height: 2px;
+    background: #ddd;
+    z-index: 1;
+}
+
+.step.completed::after {
+    background: #4CAF50;
+}
+
+.step-number {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #ddd;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    position: relative;
+    z-index: 2;
+}
+
+.step.active .step-number {
+    background: #2196F3;
+    color: white;
+}
+
+.step.completed .step-number {
+    background: #4CAF50;
+    color: white;
+}
+
+.step-label {
+    font-size: 10px;
+    margin-top: 5px;
+    text-align: center;
+    color: #666;
+}
+
+.step.active .step-label {
+    color: #2196F3;
+    font-weight: bold;
+}
+
+.radio-step {
+    display: none;
+}
+
+.radio-step.active {
+    display: block;
+}
+
+.track-info-form {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 8px;
+    margin: 15px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cover-upload-area {
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    margin: 20px 0;
+    transition: border-color 0.3s;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.cover-upload-area:hover {
+    border-color: #2196F3;
+    background: rgba(33, 150, 243, 0.1);
+}
+
+.cover-preview {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    margin: 15px 0;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.cover-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.cover-info p {
+    margin: 2px 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.cover-requirements {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cover-requirements h5 {
+    margin: 0 0 10px 0;
+    color: white;
+}
+
+.cover-requirements ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.cover-requirements li {
+    font-size: 12px;
+    margin: 3px 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.step-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.requirement-note {
+    background: rgba(33, 150, 243, 0.1);
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.samro-info {
+    background: rgba(156, 39, 176, 0.1);
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(156, 39, 176, 0.3);
+}
+
+.percentage-note {
+    display: block;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 2px;
+}
+
+.package-summary {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.package-summary h5 {
+    margin: 0 0 10px 0;
+    color: white;
+}
+
+.package-summary ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.package-summary li {
+    margin: 5px 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.form-input.error {
+    border-color: #f44336;
+    background-color: rgba(244, 67, 54, 0.1);
+}
+
+.package-status {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.package-status.success {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.package-status.error {
+    background: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.validation-section {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.validation-section h4 {
+    color: white;
+    margin-bottom: 15px;
+}
+
+/* Enhanced radio upload area */
+.radio-upload-area.dragover {
+    border-color: #4CAF50;
+    background-color: rgba(76, 175, 80, 0.1);
+}
+
+/* Responsive adjustments for radio steps */
+@media (max-width: 400px) {
+    .step-indicator {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .step {
+        min-width: 60px;
+    }
+    
+    .step-label {
+        font-size: 9px;
+    }
+    
+    .step-actions {
+        flex-direction: column;
+    }
+}
