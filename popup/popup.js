@@ -572,14 +572,19 @@ Verification: Check Chrome extension storage for transaction details`;
     
     sanitizeInput(input) {
         if (!input) return '';
-        return String(input)
-            .replace(/[<>"'&]/g, (match) => {
-                const map = { '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;', '&': '&amp;' };
-                return map[match];
-            })
-            .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
-            .trim()
-            .substring(0, 200);
+        try {
+            return String(input)
+                .replace(/[<>"'&]/g, function(match) {
+                    const map = { '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;', '&': '&amp;' };
+                    return map[match] || match;
+                })
+                .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+                .trim()
+                .substring(0, 200);
+        } catch (error) {
+            console.error('Sanitization error:', error);
+            return String(input).substring(0, 200);
+        }
     }
     
     validateInput(input, type = 'text') {
