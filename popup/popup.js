@@ -829,13 +829,19 @@ Verification: Check Chrome extension storage for transaction details`;
                 content: licenseContent
             });
             
-            // 4. NFT Metadata (JSON)
+            // 4. NFT Metadata (JSON) - Use user inputs, not AI suggestions
+            const artistInputs = this.getArtistInputs();
+            const userGenre = artistInputs.genre || this.beatMetadata.suggestedGenre;
+            const userTitle = artistInputs.beatTitle || this.beatMetadata.title;
+            const artistName = artistInputs.artistName || 'Unknown Artist';
+            
             const nftMetadata = {
-                name: this.sanitizeInput(this.beatMetadata.title),
-                description: `Music NFT: ${this.sanitizeInput(this.beatMetadata.title)} - ${this.sanitizeInput(this.beatMetadata.suggestedGenre)}`,
-                external_url: `https://polygonscan.com/tx/${this.sanitizeInput(result.transactionHash)}`,
+                name: this.sanitizeInput(userTitle),
+                description: `Music NFT by ${this.sanitizeInput(artistName)}: ${this.sanitizeInput(userTitle)} - ${this.sanitizeInput(userGenre)}`,
+                external_url: `https://mumbai.polygonscan.com/tx/${this.sanitizeInput(result.transactionHash)}`,
                 attributes: [
-                    { trait_type: "Genre", value: this.sanitizeInput(this.beatMetadata.suggestedGenre) },
+                    { trait_type: "Artist", value: this.sanitizeInput(artistName) },
+                    { trait_type: "Genre", value: this.sanitizeInput(userGenre) },
                     { trait_type: "BPM", value: this.sanitizeInput(this.beatMetadata.estimatedBPM) },
                     { trait_type: "Duration", value: this.sanitizeInput(this.beatMetadata.duration) },
                     { trait_type: "Quality", value: this.sanitizeInput(this.beatMetadata.qualityLevel) },
@@ -853,6 +859,40 @@ Verification: Check Chrome extension storage for transaction details`;
                 name: 'metadata.json',
                 content: JSON.stringify(nftMetadata, null, 2)
             });
+            
+            // 5. Press Kit (separate from core metadata)
+            const profileBio = this.getProfileBiography();
+            if (profileBio.biography || profileBio.influences || profileBio.social.instagram || profileBio.social.twitter) {
+                const pressKit = {
+                    artist: {
+                        name: artistInputs.artistName,
+                        stageName: artistInputs.stageName,
+                        biography: profileBio.biography,
+                        influences: profileBio.influences,
+                        social: profileBio.social
+                    },
+                    track: {
+                        title: userTitle,
+                        genre: userGenre
+                    },
+                    generated: new Date().toISOString()
+                };
+                
+                files.push({
+                    name: 'press_kit.json',
+                    content: JSON.stringify(pressKit, null, 2)
+                });
+                
+                // Artist biography text file
+                if (profileBio.biography) {
+                    const bioText = `ARTIST PRESS KIT\n\nArtist: ${artistInputs.artistName}\nStage Name: ${artistInputs.stageName || 'N/A'}\n\n${profileBio.biography}\n\nMusical Influences: ${profileBio.influences || 'Not specified'}\n\nSocial Media:\n${profileBio.social.instagram ? `Instagram: ${profileBio.social.instagram}\n` : ''}${profileBio.social.twitter ? `Twitter: ${profileBio.social.twitter}\n` : ''}\n\nGenerated: ${new Date().toLocaleString()}`;
+                    
+                    files.push({
+                        name: 'artist_press_kit.txt',
+                        content: bioText
+                    });
+                }
+            }
             
             const zipBlob = await this.createRealZip(files);
             
