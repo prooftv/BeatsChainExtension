@@ -19,6 +19,9 @@ class BeatsChainApp {
         this.userInputManager = new UserInputManager();
         // Radio Features
         this.radioIPFSManager = null;
+        // Content Enhancement AI
+        this.contentAI = null;
+        this.radioFormats = null;
         this.isInitialized = false;
     }
 
@@ -59,6 +62,9 @@ class BeatsChainApp {
             
             // Initialize radio features
             await this.initializeRadioFeatures();
+            
+            // Initialize Content Enhancement AI
+            await this.initializeContentAI();
             
             await this.loadWalletData();
             await this.loadProfile();
@@ -795,6 +801,196 @@ Verification: Check Chrome extension storage for transaction details`;
             console.log('Radio features initialization failed:', error);
         }
     }
+    
+    async initializeContentAI() {
+        try {
+            // Initialize Content Enhancement AI
+            if (window.ContentAI && this.chromeAI) {
+                this.contentAI = new ContentAI(this.chromeAI);
+                const aiReady = await this.contentAI.initialize();
+                if (aiReady) {
+                    console.log('✅ Content Enhancement AI ready');
+                    this.setupContentEnhancementUI();
+                } else {
+                    console.log('ℹ️ Content AI using fallback templates');
+                }
+            }
+            
+            // Initialize Professional Radio Formats
+            if (window.RadioFormats) {
+                this.radioFormats = new RadioFormats();
+                console.log('✅ Professional radio formats ready');
+            }
+            
+        } catch (error) {
+            console.log('Content AI initialization failed:', error);
+        }
+    }
+    
+    setupContentEnhancementUI() {
+        // Add enhancement buttons to biography fields
+        this.addEnhancementButton('profile-artist-bio', 'biography');
+        this.addEnhancementButton('artist-bio', 'biography');
+        
+        // Add enhancement buttons to track descriptions
+        const trackDescFields = document.querySelectorAll('[id*="description"], [id*="bio"]');
+        trackDescFields.forEach(field => {
+            if (field.id && !field.querySelector('.enhancement-controls')) {
+                this.addEnhancementButton(field.id, 'description');
+            }
+        });
+    }
+    
+    addEnhancementButton(fieldId, type) {
+        const field = document.getElementById(fieldId);
+        if (!field || field.querySelector('.enhancement-controls')) return;
+        
+        const container = document.createElement('div');
+        container.className = 'enhancement-controls';
+        container.style.cssText = 'margin-top: 8px; display: flex; gap: 8px; align-items: center;';
+        
+        const enhanceBtn = document.createElement('button');
+        enhanceBtn.type = 'button';
+        enhanceBtn.className = 'btn btn-secondary btn-sm';
+        enhanceBtn.textContent = '✨ Enhance with AI';
+        enhanceBtn.style.cssText = 'font-size: 12px; padding: 4px 8px;';
+        
+        const statusSpan = document.createElement('span');
+        statusSpan.className = 'enhancement-status';
+        statusSpan.style.cssText = 'font-size: 12px; color: #666;';
+        
+        enhanceBtn.addEventListener('click', async () => {
+            await this.enhanceFieldContent(fieldId, type, enhanceBtn, statusSpan);
+        });
+        
+        container.appendChild(enhanceBtn);
+        container.appendChild(statusSpan);
+        
+        field.parentNode.insertBefore(container, field.nextSibling);
+    }
+    
+    async enhanceFieldContent(fieldId, type, button, statusSpan) {
+        const field = document.getElementById(fieldId);
+        const originalText = field.value.trim();
+        
+        if (!originalText || originalText.length < 10) {
+            statusSpan.textContent = 'Please write some content first (minimum 10 characters)';
+            statusSpan.style.color = '#f44336';
+            return;
+        }
+        
+        button.disabled = true;
+        button.textContent = '⏳ Enhancing...';
+        statusSpan.textContent = 'AI is enhancing your content...';
+        statusSpan.style.color = '#2196f3';
+        
+        try {
+            let result;
+            if (type === 'biography') {
+                result = await this.contentAI.enhanceUserBio(originalText);
+            } else {
+                const metadata = this.radioMetadata || this.beatMetadata || { title: 'Track', genre: 'Music' };
+                result = await this.contentAI.improveTrackDescription(originalText, metadata);
+            }
+            
+            if (result.enhanced || result.improved) {
+                this.showEnhancementComparison(fieldId, result, type);
+                statusSpan.textContent = 'Enhancement ready - choose your version';
+                statusSpan.style.color = '#4caf50';
+            } else {
+                statusSpan.textContent = result.message || 'Enhancement not available';
+                statusSpan.style.color = '#ff9800';
+            }
+            
+        } catch (error) {
+            console.error('Content enhancement failed:', error);
+            statusSpan.textContent = 'Enhancement failed - using original';
+            statusSpan.style.color = '#f44336';
+        } finally {
+            button.disabled = false;
+            button.textContent = '✨ Enhance with AI';
+        }
+    }
+    
+    showEnhancementComparison(fieldId, result, type) {
+        const field = document.getElementById(fieldId);
+        const enhanced = result.enhanced || result.improved;
+        const original = result.original;
+        
+        // Create comparison modal
+        const modal = document.createElement('div');
+        modal.className = 'enhancement-modal';
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        `;
+        
+        const content = document.createElement('div');
+        content.style.cssText = `
+            background: white; border-radius: 8px; padding: 24px;
+            max-width: 600px; width: 100%; max-height: 80vh; overflow-y: auto;
+        `;
+        
+        content.innerHTML = `
+            <h3 style="margin: 0 0 16px 0; color: #333;">✨ AI Enhancement Results</h3>
+            
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: #666; font-size: 14px; margin: 0 0 8px 0;">📝 ORIGINAL:</h4>
+                <div style="background: #f5f5f5; padding: 12px; border-radius: 4px; border-left: 4px solid #ccc;">
+                    ${this.escapeHtml(original)}
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 24px;">
+                <h4 style="color: #2196f3; font-size: 14px; margin: 0 0 8px 0;">✨ AI ENHANCED:</h4>
+                <div style="background: #e3f2fd; padding: 12px; border-radius: 4px; border-left: 4px solid #2196f3;">
+                    ${this.escapeHtml(enhanced)}
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button id="use-original" class="btn btn-secondary">Keep Original</button>
+                <button id="use-enhanced" class="btn btn-primary">Use Enhanced</button>
+                <button id="edit-enhanced" class="btn btn-secondary">Edit Enhanced</button>
+            </div>
+        `;
+        
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+        
+        // Event handlers
+        content.querySelector('#use-original').addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+        
+        content.querySelector('#use-enhanced').addEventListener('click', () => {
+            field.value = enhanced;
+            field.dispatchEvent(new Event('input', { bubbles: true }));
+            document.body.removeChild(modal);
+        });
+        
+        content.querySelector('#edit-enhanced').addEventListener('click', () => {
+            field.value = enhanced;
+            field.focus();
+            field.setSelectionRange(field.value.length, field.value.length);
+            document.body.removeChild(modal);
+        });
+        
+        // Close on backdrop click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML.replace(/\n/g, '<br>');
+    }
 
     async generateDownloadPackage(result) {
         try {
@@ -1499,6 +1695,63 @@ Verification: Check Chrome extension storage for transaction details`;
                 });
             }
             
+            // Generate professional formats with AI enhancement
+            if (this.radioFormats) {
+                try {
+                    // Generate press release with AI enhancement
+                    let pressRelease;
+                    if (this.contentAI && radioMetadata.biography) {
+                        const result = await this.contentAI.generatePressReleaseContent(radioMetadata.biography, radioMetadata);
+                        pressRelease = result.content || this.radioFormats.generateFallbackPressRelease(radioMetadata, radioMetadata.biography);
+                    } else {
+                        pressRelease = this.radioFormats.generateFallbackPressRelease(radioMetadata, radioMetadata.biography);
+                    }
+                    
+                    files.push({
+                        name: 'press_release.txt',
+                        content: pressRelease
+                    });
+                    
+                    // Generate submission letter
+                    const submissionLetter = this.radioFormats.generateSubmissionLetter(radioMetadata, radioMetadata.biography);
+                    files.push({
+                        name: 'radio_submission_letter.txt',
+                        content: submissionLetter
+                    });
+                    
+                    // Generate professional HTML press kit
+                    const htmlPressKit = this.radioFormats.generatePressPDF(radioMetadata, radioMetadata.biography);
+                    files.push({
+                        name: 'press_kit.html',
+                        content: htmlPressKit
+                    });
+                    
+                    // Generate VCF contact card
+                    const contactVCF = this.radioFormats.generateContactVCF(radioMetadata);
+                    files.push({
+                        name: 'contact_info.vcf',
+                        content: contactVCF
+                    });
+                    
+                    // Generate broadcast XML metadata
+                    const broadcastXML = this.radioFormats.generateBroadcastXML(radioMetadata);
+                    files.push({
+                        name: 'broadcast_metadata.xml',
+                        content: broadcastXML
+                    });
+                    
+                    // Generate SAMRO documentation
+                    const samroDoc = this.radioFormats.generateSAMROSubmission(radioMetadata, splitSheet);
+                    files.push({
+                        name: 'SAMRO_documentation.txt',
+                        content: samroDoc
+                    });
+                    
+                } catch (error) {
+                    console.error('Professional format generation failed:', error);
+                }
+            }
+            
             // Add press kit JSON with all artist info
             const pressKit = {
                 artist: {
@@ -1519,6 +1772,14 @@ Verification: Check Chrome extension storage for transaction details`;
                     date: radioMetadata.submissionDate,
                     type: 'radio_submission',
                     radioReady: true
+                },
+                formats: {
+                    pressRelease: 'press_release.txt',
+                    submissionLetter: 'radio_submission_letter.txt',
+                    htmlPressKit: 'press_kit.html',
+                    contactCard: 'contact_info.vcf',
+                    broadcastMetadata: 'broadcast_metadata.xml',
+                    samroDocumentation: 'SAMRO_documentation.txt'
                 }
             };
             
@@ -1538,9 +1799,9 @@ Verification: Check Chrome extension storage for transaction details`;
             
             URL.revokeObjectURL(url);
             
-            // Radio package generated successfully
-            
-            generateBtn.textContent = '✅ Package Generated!';
+            // Show success with format count
+            const formatCount = files.length;
+            generateBtn.textContent = `✅ ${formatCount} Files Generated!`;
             setTimeout(() => {
                 generateBtn.textContent = '📦 Generate Radio Package';
                 generateBtn.disabled = false;
