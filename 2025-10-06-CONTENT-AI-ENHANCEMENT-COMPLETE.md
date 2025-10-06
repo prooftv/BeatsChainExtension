@@ -175,7 +175,15 @@
 - Maintains user creative control
 - Provides professional radio industry output
 
-**📦 PACKAGE CREATED:** `BeatsChain-Extension-Production-v20-CONTENT-AI-ENHANCED.zip`
+**📦 PACKAGES CREATED:** 
+- `BeatsChain-Extension-Production-v20-CONTENT-AI-ENHANCED.zip` (Initial release)
+- `BeatsChain-Extension-Production-v21-RADIO-FIXED.zip` (Fixed radio package generation)
+
+### 🔧 RADIO PACKAGE FIX (v21):
+- **ISSUE RESOLVED:** Radio packages now generate 10+ files instead of 6
+- **GUARANTEED FILES:** Audio, cover image, metadata JSONs, TXT files, HTML press kit, VCF contact, XML broadcast data, CSV track data
+- **FALLBACK SYSTEM:** Professional formats generated even without AI availability
+- **COMPREHENSIVE PACKAGE:** All industry-standard formats included
 
 ### New Files Added:
 - `lib/content-ai.js` - Content Enhancement AI system

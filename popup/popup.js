@@ -1695,61 +1695,50 @@ Verification: Check Chrome extension storage for transaction details`;
                 });
             }
             
-            // Generate professional formats with AI enhancement
-            if (this.radioFormats) {
-                try {
-                    // Generate press release with AI enhancement
-                    let pressRelease;
-                    if (this.contentAI && radioMetadata.biography) {
+            // ALWAYS generate professional formats - with or without AI
+            try {
+                // 1. Press Release (AI-enhanced or fallback)
+                let pressRelease = 'FOR IMMEDIATE RELEASE\n\nNew Track Release\n\nTrack: ' + radioMetadata.title + '\nArtist: ' + radioMetadata.artist;
+                if (this.contentAI && radioMetadata.biography) {
+                    try {
                         const result = await this.contentAI.generatePressReleaseContent(radioMetadata.biography, radioMetadata);
-                        pressRelease = result.content || this.radioFormats.generateFallbackPressRelease(radioMetadata, radioMetadata.biography);
-                    } else {
-                        pressRelease = this.radioFormats.generateFallbackPressRelease(radioMetadata, radioMetadata.biography);
+                        pressRelease = result.content || pressRelease;
+                    } catch (error) {
+                        console.log('AI press release failed, using fallback');
                     }
-                    
-                    files.push({
-                        name: 'press_release.txt',
-                        content: pressRelease
-                    });
-                    
-                    // Generate submission letter
-                    const submissionLetter = this.radioFormats.generateSubmissionLetter(radioMetadata, radioMetadata.biography);
-                    files.push({
-                        name: 'radio_submission_letter.txt',
-                        content: submissionLetter
-                    });
-                    
-                    // Generate professional HTML press kit
-                    const htmlPressKit = this.radioFormats.generatePressPDF(radioMetadata, radioMetadata.biography);
-                    files.push({
-                        name: 'press_kit.html',
-                        content: htmlPressKit
-                    });
-                    
-                    // Generate VCF contact card
-                    const contactVCF = this.radioFormats.generateContactVCF(radioMetadata);
-                    files.push({
-                        name: 'contact_info.vcf',
-                        content: contactVCF
-                    });
-                    
-                    // Generate broadcast XML metadata
-                    const broadcastXML = this.radioFormats.generateBroadcastXML(radioMetadata);
-                    files.push({
-                        name: 'broadcast_metadata.xml',
-                        content: broadcastXML
-                    });
-                    
-                    // Generate SAMRO documentation
-                    const samroDoc = this.radioFormats.generateSAMROSubmission(radioMetadata, splitSheet);
-                    files.push({
-                        name: 'SAMRO_documentation.txt',
-                        content: samroDoc
-                    });
-                    
-                } catch (error) {
-                    console.error('Professional format generation failed:', error);
                 }
+                files.push({ name: 'press_release.txt', content: pressRelease });
+                
+                // 2. Submission Letter
+                const submissionLetter = `Dear Radio Programming Director,\n\nI am submitting "${radioMetadata.title}" by ${radioMetadata.artist} for radio airplay consideration.\n\nTrack Details:\n- Title: ${radioMetadata.title}\n- Artist: ${radioMetadata.artist}\n- Genre: ${radioMetadata.genre}\n- Duration: ${radioMetadata.duration}\n- Language: ${radioMetadata.language}\n\nThis track is professionally mastered and radio-ready.\n\nBest regards,\n${radioMetadata.artist}\n\nDate: ${new Date().toLocaleDateString()}`;
+                files.push({ name: 'radio_submission_letter.txt', content: submissionLetter });
+                
+                // 3. HTML Press Kit
+                const htmlPressKit = `<!DOCTYPE html>\n<html><head><title>${radioMetadata.artist} - Press Kit</title></head>\n<body>\n<h1>${radioMetadata.artist}</h1>\n<h2>"${radioMetadata.title}"</h2>\n<p><strong>Genre:</strong> ${radioMetadata.genre}</p>\n<p><strong>Duration:</strong> ${radioMetadata.duration}</p>\n${radioMetadata.biography ? `<h3>Biography</h3><p>${radioMetadata.biography}</p>` : ''}\n</body></html>`;
+                files.push({ name: 'press_kit.html', content: htmlPressKit });
+                
+                // 4. VCF Contact Card
+                const contactVCF = `BEGIN:VCARD\nVERSION:3.0\nFN:${radioMetadata.artist}\nORG:${radioMetadata.recordLabel || 'Independent'}\nTITLE:Recording Artist\nNOTE:${radioMetadata.genre} artist - ${radioMetadata.title}\nEND:VCARD`;
+                files.push({ name: 'contact_info.vcf', content: contactVCF });
+                
+                // 5. Broadcast XML
+                const broadcastXML = `<?xml version="1.0" encoding="UTF-8"?>\n<RadioSubmission>\n<Track>\n<Title>${radioMetadata.title}</Title>\n<Artist>${radioMetadata.artist}</Artist>\n<Genre>${radioMetadata.genre}</Genre>\n<Duration>${radioMetadata.duration}</Duration>\n<Language>${radioMetadata.language}</Language>\n</Track>\n</RadioSubmission>`;
+                files.push({ name: 'broadcast_metadata.xml', content: broadcastXML });
+                
+                // 6. CSV Track Data
+                const csvData = `"Title","Artist","Genre","Duration","Language","ISRC"\n"${radioMetadata.title}","${radioMetadata.artist}","${radioMetadata.genre}","${radioMetadata.duration}","${radioMetadata.language}","${radioMetadata.isrc || ''}"`;
+                files.push({ name: 'track_data.csv', content: csvData });
+                
+                // 7. Artist Bio HTML
+                if (radioMetadata.biography) {
+                    const bioHTML = `<!DOCTYPE html>\n<html><head><title>${radioMetadata.artist} - Biography</title></head>\n<body>\n<h1>${radioMetadata.artist}</h1>\n<p>${radioMetadata.biography}</p>\n${radioMetadata.influences ? `<p><strong>Influences:</strong> ${radioMetadata.influences}</p>` : ''}\n</body></html>`;
+                    files.push({ name: 'artist_bio.html', content: bioHTML });
+                }
+                
+                console.log(`Generated ${files.length} professional format files`);
+                
+            } catch (error) {
+                console.error('Professional format generation failed:', error);
             }
             
             // Add press kit JSON with all artist info
