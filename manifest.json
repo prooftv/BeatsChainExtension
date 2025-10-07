@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BeatsChain - Music NFT Minter",
-  "version": "1.0.0",
+  "version": "1.22.0",
   "description": "Mint your beats as NFTs with AI-generated licensing",
   "permissions": [
     "storage",

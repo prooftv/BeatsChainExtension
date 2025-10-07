@@ -1404,6 +1404,31 @@ Verification: Check Chrome extension storage for transaction details`;
                 this.userInputManager.setUserInput('radio-genre', mappedGenre, false);
             }
         }
+        
+        // Add event listeners to track user changes
+        this.setupRadioInputTracking();
+    }
+    
+    setupRadioInputTracking() {
+        // Track user changes to radio inputs
+        const radioInputs = [
+            { id: 'radio-track-title', key: 'radio-title' },
+            { id: 'radio-artist-name', key: 'radio-artist' },
+            { id: 'radio-stage-name', key: 'radio-stage' },
+            { id: 'radio-genre', key: 'radio-genre' }
+        ];
+        
+        radioInputs.forEach(({ id, key }) => {
+            const element = document.getElementById(id);
+            if (element && !element.hasAttribute('data-tracked')) {
+                element.setAttribute('data-tracked', 'true');
+                element.addEventListener('change', () => {
+                    if (element.value.trim()) {
+                        this.userInputManager.setUserInput(key, element.value.trim(), true);
+                    }
+                });
+            }
+        });
     }
     
     createRadioAudioPreview(file) {
@@ -1632,10 +1657,10 @@ Verification: Check Chrome extension storage for transaction details`;
             // Get validated radio inputs
             const radioInputs = this.getRadioInputs();
             const radioMetadata = {
-                title: this.sanitizeInput(radioInputs.title || this.radioMetadata.title),
-                artist: this.sanitizeInput(radioInputs.artistName || 'Unknown Artist'),
-                stageName: this.sanitizeInput(radioInputs.stageName || ''),
-                genre: this.sanitizeInput(radioInputs.genre || this.radioMetadata.suggestedGenre),
+                title: this.sanitizeInput(this.userInputManager.getValue('radio-title', radioInputs.title, this.radioMetadata?.title || 'Untitled Track')),
+                artist: this.sanitizeInput(this.userInputManager.getValue('radio-artist', radioInputs.artistName, 'Unknown Artist')),
+                stageName: this.sanitizeInput(this.userInputManager.getValue('radio-stage', radioInputs.stageName, '')),
+                genre: this.sanitizeInput(this.userInputManager.getValue('radio-genre', radioInputs.genre, this.radioMetadata?.suggestedGenre || 'Electronic')),
                 language: this.sanitizeInput(radioInputs.language || 'English'),
                 recordLabel: this.sanitizeInput(radioInputs.recordLabel || 'Independent'),
                 isrc: this.sanitizeInput(radioInputs.isrc || ''),
@@ -1687,7 +1712,7 @@ Verification: Check Chrome extension storage for transaction details`;
             
             // Add artist biography file if provided
             if (radioMetadata.biography && radioMetadata.biography.trim()) {
-                const bioText = `ARTIST BIOGRAPHY\n\nArtist: ${radioMetadata.artist}\nStage Name: ${radioMetadata.stageName || 'N/A'}\n\n${radioMetadata.biography}\n\nMusical Influences: ${radioMetadata.influences || 'Not specified'}\n\nSocial Media:\n${radioMetadata.social.instagram ? `Instagram: ${radioMetadata.social.instagram}\n` : ''}${radioMetadata.social.twitter ? `Twitter: ${radioMetadata.social.twitter}\n` : ''}\n\nGenerated: ${new Date().toLocaleString()}`;
+                const bioText = `ARTIST BIOGRAPHY\n\nArtist: ${radioMetadata.artist}\nStage Name: ${radioMetadata.stageName || 'N/A'}\n\n${radioMetadata.biography}\n\nMusical Influences: ${radioMetadata.influences || 'Not specified'}\n\nContact Information:\n${radioMetadata.contact?.website ? `Website: ${radioMetadata.contact.website}\n` : ''}${radioMetadata.contact?.email ? `Email: ${radioMetadata.contact.email}\n` : ''}${radioMetadata.contact?.phone ? `Phone: ${radioMetadata.contact.phone}\n` : ''}\nSocial Media:\n${radioMetadata.social?.instagram ? `Instagram: ${radioMetadata.social.instagram}\n` : ''}${radioMetadata.social?.twitter ? `Twitter: ${radioMetadata.social.twitter}\n` : ''}\n\nGenerated: ${new Date().toLocaleString()}`;
                 
                 files.push({
                     name: 'artist_biography.txt',
@@ -1695,50 +1720,30 @@ Verification: Check Chrome extension storage for transaction details`;
                 });
             }
             
-            // ALWAYS generate professional formats - with or without AI
+            // Generate essential formats only (no press kits)
             try {
-                // 1. Press Release (AI-enhanced or fallback)
-                let pressRelease = 'FOR IMMEDIATE RELEASE\n\nNew Track Release\n\nTrack: ' + radioMetadata.title + '\nArtist: ' + radioMetadata.artist;
-                if (this.contentAI && radioMetadata.biography) {
-                    try {
-                        const result = await this.contentAI.generatePressReleaseContent(radioMetadata.biography, radioMetadata);
-                        pressRelease = result.content || pressRelease;
-                    } catch (error) {
-                        console.log('AI press release failed, using fallback');
-                    }
-                }
-                files.push({ name: 'press_release.txt', content: pressRelease });
-                
-                // 2. Submission Letter
-                const submissionLetter = `Dear Radio Programming Director,\n\nI am submitting "${radioMetadata.title}" by ${radioMetadata.artist} for radio airplay consideration.\n\nTrack Details:\n- Title: ${radioMetadata.title}\n- Artist: ${radioMetadata.artist}\n- Genre: ${radioMetadata.genre}\n- Duration: ${radioMetadata.duration}\n- Language: ${radioMetadata.language}\n\nThis track is professionally mastered and radio-ready.\n\nBest regards,\n${radioMetadata.artist}\n\nDate: ${new Date().toLocaleDateString()}`;
-                files.push({ name: 'radio_submission_letter.txt', content: submissionLetter });
-                
-                // 3. HTML Press Kit
-                const htmlPressKit = `<!DOCTYPE html>\n<html><head><title>${radioMetadata.artist} - Press Kit</title></head>\n<body>\n<h1>${radioMetadata.artist}</h1>\n<h2>"${radioMetadata.title}"</h2>\n<p><strong>Genre:</strong> ${radioMetadata.genre}</p>\n<p><strong>Duration:</strong> ${radioMetadata.duration}</p>\n${radioMetadata.biography ? `<h3>Biography</h3><p>${radioMetadata.biography}</p>` : ''}\n</body></html>`;
-                files.push({ name: 'press_kit.html', content: htmlPressKit });
-                
-                // 4. VCF Contact Card
-                const contactVCF = `BEGIN:VCARD\nVERSION:3.0\nFN:${radioMetadata.artist}\nORG:${radioMetadata.recordLabel || 'Independent'}\nTITLE:Recording Artist\nNOTE:${radioMetadata.genre} artist - ${radioMetadata.title}\nEND:VCARD`;
+                // 1. VCF Contact Card with complete contact info
+                let contactVCF = `BEGIN:VCARD\nVERSION:3.0\nFN:${radioMetadata.artist}\nORG:${radioMetadata.recordLabel || 'Independent'}\nTITLE:Recording Artist\nNOTE:${radioMetadata.genre} artist - ${radioMetadata.title}`;
+                if (radioMetadata.contact?.email) contactVCF += `\nEMAIL:${radioMetadata.contact.email}`;
+                if (radioMetadata.contact?.phone) contactVCF += `\nTEL:${radioMetadata.contact.phone}`;
+                if (radioMetadata.contact?.website) contactVCF += `\nURL:${radioMetadata.contact.website}`;
+                if (radioMetadata.social?.instagram) contactVCF += `\nURL:${radioMetadata.social.instagram}`;
+                if (radioMetadata.social?.twitter) contactVCF += `\nURL:${radioMetadata.social.twitter}`;
+                contactVCF += `\nEND:VCARD`;
                 files.push({ name: 'contact_info.vcf', content: contactVCF });
                 
-                // 5. Broadcast XML
+                // 2. Broadcast XML (required for radio systems)
                 const broadcastXML = `<?xml version="1.0" encoding="UTF-8"?>\n<RadioSubmission>\n<Track>\n<Title>${radioMetadata.title}</Title>\n<Artist>${radioMetadata.artist}</Artist>\n<Genre>${radioMetadata.genre}</Genre>\n<Duration>${radioMetadata.duration}</Duration>\n<Language>${radioMetadata.language}</Language>\n</Track>\n</RadioSubmission>`;
                 files.push({ name: 'broadcast_metadata.xml', content: broadcastXML });
                 
-                // 6. CSV Track Data
-                const csvData = `"Title","Artist","Genre","Duration","Language","ISRC"\n"${radioMetadata.title}","${radioMetadata.artist}","${radioMetadata.genre}","${radioMetadata.duration}","${radioMetadata.language}","${radioMetadata.isrc || ''}"`;
+                // 3. CSV Track Data (for database import)
+                const csvData = `"Title","Artist","Genre","Duration","Language","ISRC","Website","Email","Phone"\n"${radioMetadata.title}","${radioMetadata.artist}","${radioMetadata.genre}","${radioMetadata.duration}","${radioMetadata.language}","${radioMetadata.isrc || ''}","${radioMetadata.contact?.website || ''}","${radioMetadata.contact?.email || ''}","${radioMetadata.contact?.phone || ''}"`;
                 files.push({ name: 'track_data.csv', content: csvData });
                 
-                // 7. Artist Bio HTML
-                if (radioMetadata.biography) {
-                    const bioHTML = `<!DOCTYPE html>\n<html><head><title>${radioMetadata.artist} - Biography</title></head>\n<body>\n<h1>${radioMetadata.artist}</h1>\n<p>${radioMetadata.biography}</p>\n${radioMetadata.influences ? `<p><strong>Influences:</strong> ${radioMetadata.influences}</p>` : ''}\n</body></html>`;
-                    files.push({ name: 'artist_bio.html', content: bioHTML });
-                }
-                
-                console.log(`Generated ${files.length} professional format files`);
+                console.log(`Generated ${files.length} essential format files`);
                 
             } catch (error) {
-                console.error('Professional format generation failed:', error);
+                console.error('Essential format generation failed:', error);
             }
             
             // Add press kit JSON with all artist info
@@ -1805,37 +1810,36 @@ Verification: Check Chrome extension storage for transaction details`;
     }
     
     getRadioInputs() {
-        // USER INPUT PRIORITY: Get inputs from radio metadata manager with user priority
-        if (this.radioMetadataManager) {
-            const metadata = this.radioMetadataManager.getTrackMetadata();
-            // Get profile biography data
-            const profileBio = this.getProfileBiography();
-            
-            // Ensure user inputs override AI suggestions
-            return {
-                ...metadata,
-                // Final check: user inputs take priority over everything
-                title: this.userInputManager.getValue('radio-title', metadata.title, this.radioMetadata?.title || 'Untitled Track'),
-                genre: this.userInputManager.getValue('radio-genre', metadata.genre, this.radioMetadata?.suggestedGenre || 'Electronic'),
-                artistName: this.userInputManager.getValue('radio-artist', metadata.artistName, 'Unknown Artist'),
-                // Use profile biography if available, otherwise radio form
-                biography: profileBio.biography || metadata.biography || '',
-                influences: profileBio.influences || metadata.influences || '',
-                social: {
-                    instagram: profileBio.social.instagram || metadata.social?.instagram || '',
-                    twitter: profileBio.social.twitter || metadata.social?.twitter || ''
-                }
-            };
-        }
+        // Collect current form values
+        const formTitle = document.getElementById('radio-track-title')?.value?.trim();
+        const formArtist = document.getElementById('radio-artist-name')?.value?.trim();
+        const formStage = document.getElementById('radio-stage-name')?.value?.trim();
+        const formGenre = document.getElementById('radio-genre')?.value?.trim();
+        const formLanguage = document.getElementById('radio-language')?.value?.trim();
+        const formLabel = document.getElementById('radio-record-label')?.value?.trim();
+        const formISRC = document.getElementById('radio-isrc')?.value?.trim();
+        const formRating = document.getElementById('radio-content-rating')?.value?.trim();
         
-        // Fallback with profile data
+        // Store user inputs if they exist
+        if (formTitle) this.userInputManager.setUserInput('radio-title', formTitle, true);
+        if (formArtist) this.userInputManager.setUserInput('radio-artist', formArtist, true);
+        if (formStage) this.userInputManager.setUserInput('radio-stage', formStage, true);
+        if (formGenre) this.userInputManager.setUserInput('radio-genre', formGenre, true);
+        
         const profileBio = this.getProfileBiography();
+        
         return {
-            title: this.userInputManager.getValue('radio-title', null, this.radioMetadata?.title || 'Untitled Track'),
-            artistName: this.userInputManager.getValue('radio-artist', null, 'Unknown Artist'),
-            genre: this.userInputManager.getValue('radio-genre', null, this.radioMetadata?.suggestedGenre || 'Electronic'),
+            title: this.userInputManager.getValue('radio-title', formTitle, this.radioMetadata?.title || 'Untitled Track'),
+            artistName: this.userInputManager.getValue('radio-artist', formArtist, 'Unknown Artist'),
+            stageName: this.userInputManager.getValue('radio-stage', formStage, ''),
+            genre: this.userInputManager.getValue('radio-genre', formGenre, this.radioMetadata?.suggestedGenre || 'Electronic'),
+            language: formLanguage || 'English',
+            recordLabel: formLabel || 'Independent',
+            isrc: formISRC || '',
+            contentRating: formRating || 'Clean',
             biography: profileBio.biography || '',
             influences: profileBio.influences || '',
+            contact: profileBio.contact || {},
             social: profileBio.social || {}
         };
     }
@@ -1844,6 +1848,11 @@ Verification: Check Chrome extension storage for transaction details`;
         return {
             biography: document.getElementById('profile-artist-bio')?.value?.trim() || '',
             influences: document.getElementById('profile-influences')?.value?.trim() || '',
+            contact: {
+                website: document.getElementById('profile-website')?.value?.trim() || '',
+                email: document.getElementById('profile-email-contact')?.value?.trim() || '',
+                phone: document.getElementById('profile-phone')?.value?.trim() || ''
+            },
             social: {
                 instagram: document.getElementById('profile-instagram')?.value?.trim() || '',
                 twitter: document.getElementById('profile-twitter')?.value?.trim() || ''
@@ -1893,11 +1902,17 @@ Verification: Check Chrome extension storage for transaction details`;
             if (profileData) {
                 const bioField = document.getElementById('profile-artist-bio');
                 const influencesField = document.getElementById('profile-influences');
+                const websiteField = document.getElementById('profile-website');
+                const emailField = document.getElementById('profile-email-contact');
+                const phoneField = document.getElementById('profile-phone');
                 const instagramField = document.getElementById('profile-instagram');
                 const twitterField = document.getElementById('profile-twitter');
                 
                 if (bioField) bioField.value = profileData.biography || '';
                 if (influencesField) influencesField.value = profileData.influences || '';
+                if (websiteField) websiteField.value = profileData.contact?.website || '';
+                if (emailField) emailField.value = profileData.contact?.email || '';
+                if (phoneField) phoneField.value = profileData.contact?.phone || '';
                 if (instagramField) instagramField.value = profileData.social?.instagram || '';
                 if (twitterField) twitterField.value = profileData.social?.twitter || '';
             }
