@@ -39,24 +39,68 @@ body {
     font-size: 14px;
 }
 
-.nav-tabs {
-    display: flex;
-    gap: 5px;
+.nav-menu {
+    position: relative;
     margin-top: 10px;
 }
 
-.nav-tab {
-    padding: 8px 16px;
+.menu-toggle {
+    width: 100%;
+    padding: 10px;
     background: rgba(255, 255, 255, 0.1);
     border: none;
-    border-radius: 20px;
-    color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    color: white;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 14px;
     transition: all 0.3s ease;
 }
 
-.nav-tab.active {
+.menu-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 8px;
+    margin-top: 5px;
+    display: none;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav-dropdown.open {
+    display: block;
+}
+
+.nav-item {
+    width: 100%;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    font-size: 14px;
+    text-align: left;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-item:last-child {
+    border-bottom: none;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.nav-item.active {
     background: #4CAF50;
     color: white;
 }
@@ -119,6 +163,9 @@ body {
 .profile-actions {
     display: flex;
     gap: 10px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .history-filters {
@@ -1346,6 +1393,253 @@ textarea:focus {
 .radio-upload-area.dragover {
     border-color: #4CAF50;
     background-color: rgba(76, 175, 80, 0.1);
+}
+
+/* AI Insights Styles */
+.insights-content {
+    padding: 15px;
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+.insights-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(76, 175, 80, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.insights-description {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    margin: 0;
+}
+
+.btn-grow {
+    padding: 8px 16px;
+    font-size: 12px;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    border: none;
+    border-radius: 20px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.btn-grow:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.btn-grow:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.insights-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+.empty-insights {
+    text-align: center;
+    padding: 40px 20px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.empty-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 15px;
+    opacity: 0.7;
+}
+
+.empty-insights p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0 0 8px 0;
+    font-size: 16px;
+}
+
+.empty-insights small {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.insight-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.insight-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.insight-card.expanded {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.insight-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.insight-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.insight-icon {
+    font-size: 16px;
+}
+
+.insight-title h4 {
+    color: white;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.insight-category {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.insight-preview {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.insight-details {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.insight-details.expanded {
+    display: block;
+}
+
+.insight-description {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.insight-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.insight-btn {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.insight-btn.primary {
+    background: #4CAF50;
+    color: white;
+}
+
+.insight-btn.secondary {
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.insight-btn:hover {
+    opacity: 0.8;
+}
+
+.insight-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.insight-timestamp {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+}
+
+.insight-expand {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.insight-expand:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.insights-footer {
+    text-align: center;
+    padding: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.insights-note {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    font-style: italic;
+}
+
+.insight-new {
+    position: relative;
+}
+
+.insight-new::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: #4CAF50;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.2); }
+    100% { opacity: 1; transform: scale(1); }
 }
 
 /* Responsive adjustments for radio steps */

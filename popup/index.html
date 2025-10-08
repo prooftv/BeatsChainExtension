@@ -13,12 +13,16 @@
             <h1>🎵 BeatsChain</h1>
             <p>Mint your beats as NFTs</p>
             
-            <nav class="nav-tabs">
-                <button class="nav-tab active" data-section="mint">🎵 Mint</button>
-                <button class="nav-tab" data-section="profile">👤 Profile</button>
-                <button class="nav-tab" data-section="history">📜 History</button>
-                <button class="nav-tab" data-section="share">📱 Share</button>
-                <button class="nav-tab" data-section="radio">📻 Radio</button>
+            <nav class="nav-menu">
+                <button class="menu-toggle" id="menu-toggle">☰ Menu</button>
+                <div class="nav-dropdown" id="nav-dropdown">
+                    <button class="nav-item active" data-section="mint">🎵 Mint NFT</button>
+                    <button class="nav-item" data-section="profile">👤 Profile</button>
+                    <button class="nav-item" data-section="history">📜 History</button>
+                    <button class="nav-item" data-section="share">📱 Share</button>
+                    <button class="nav-item" data-section="radio">📻 Radio</button>
+                    <button class="nav-item" data-section="insights">🌱 AI Insights</button>
+                </div>
             </nav>
         </header>
 
@@ -85,12 +89,49 @@
                                 <label for="profile-twitter">Twitter:</label>
                                 <input type="url" id="profile-twitter" class="form-input" placeholder="https://twitter.com/username">
                             </div>
+                            
+                            <div class="form-row">
+                                <label for="profile-facebook">Facebook:</label>
+                                <input type="url" id="profile-facebook" class="form-input" placeholder="https://facebook.com/username">
+                            </div>
+                            
+                            <h5 style="color: white; margin: 20px 0 10px 0; font-size: 14px;">🎵 Music Platforms</h5>
+                            
+                            <div class="form-row">
+                                <label for="profile-spotify">Spotify:</label>
+                                <input type="url" id="profile-spotify" class="form-input" placeholder="https://open.spotify.com/artist/...">
+                            </div>
+                            
+                            <div class="form-row">
+                                <label for="profile-soundcloud">SoundCloud:</label>
+                                <input type="url" id="profile-soundcloud" class="form-input" placeholder="https://soundcloud.com/username">
+                            </div>
+                            
+                            <div class="form-row">
+                                <label for="profile-youtube">YouTube:</label>
+                                <input type="url" id="profile-youtube" class="form-input" placeholder="https://youtube.com/@username">
+                            </div>
+                            
+                            <div class="form-row">
+                                <label for="profile-bandcamp">Bandcamp:</label>
+                                <input type="url" id="profile-bandcamp" class="form-input" placeholder="https://username.bandcamp.com">
+                            </div>
+                            
+                            <div class="form-row">
+                                <label for="profile-tiktok">TikTok:</label>
+                                <input type="url" id="profile-tiktok" class="form-input" placeholder="https://tiktok.com/@username">
+                            </div>
+                            
+                            <div class="form-row">
+                                <label for="profile-apple-music">Apple Music:</label>
+                                <input type="url" id="profile-apple-music" class="form-input" placeholder="https://music.apple.com/artist/...">
+                            </div>
                         </div>
                     </div>
                     
                     <div class="profile-actions">
                         <button id="save-profile" class="btn btn-primary">💾 Save Profile</button>
-                        <button id="export-wallet" class="btn btn-secondary">Export Wallet</button>
+                        <button id="export-wallet" class="btn btn-secondary">📤 Export Wallet</button>
                     </div>
                 </div>
             </section>
@@ -353,6 +394,31 @@
                         
                         <div id="qr-code" class="qr-code" style="display: none;"></div>
                         <div id="seo-output" class="seo-output" style="display: none;"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- AI Insights Section -->
+            <section id="insights-section" class="section">
+                <h2>🌱 AI Insights</h2>
+                <div class="insights-content">
+                    <div class="insights-header">
+                        <p class="insights-description">Smart insights that grow with your music journey</p>
+                        <button id="grow-new-branch" class="btn btn-primary btn-grow">🌱 Grow New Branch</button>
+                    </div>
+                    
+                    <div id="insights-list" class="insights-list">
+                        <div class="empty-insights">
+                            <div class="empty-icon">🌱</div>
+                            <p>Your AI insights will grow here</p>
+                            <small>Upload beats, update your profile, and prepare radio submissions to generate personalized insights</small>
+                        </div>
+                    </div>
+                    
+                    <div class="insights-footer">
+                        <small class="insights-note">
+                            💡 All insights are generated locally and stored privately in your browser
+                        </small>
                     </div>
                 </div>
             </section>
@@ -631,6 +697,8 @@
     <script src="../lib/wallet.js"></script>
     <script src="../lib/chrome-ai.js"></script>
     <script src="../lib/auth.js"></script>
+    <script src="../lib/enhanced-auth.js"></script>
+    <script src="../lib/session-manager.js"></script>
     <script src="../lib/ipfs.js"></script>
     <script src="../lib/thirdweb.js" type="module"></script>
     <script src="../lib/zip-utils.js"></script>
@@ -642,6 +710,7 @@
     <script src="../lib/user-input-manager.js"></script>
     <script src="../lib/security-validator.js"></script>
     <script src="../lib/radio-ipfs-manager.js"></script>
+    <script src="../lib/smart-trees-ai.js"></script>
     <script src="radio-navigation.js"></script>
     <!-- Main Application -->
     <script src="popup.js" type="module"></script>

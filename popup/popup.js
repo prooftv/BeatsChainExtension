@@ -22,6 +22,8 @@ class BeatsChainApp {
         // Content Enhancement AI
         this.contentAI = null;
         this.radioFormats = null;
+        // Smart Trees AI Intelligence
+        this.smartTreesAI = null;
         this.isInitialized = false;
     }
 
@@ -31,14 +33,37 @@ class BeatsChainApp {
             
             // Initialize managers with error handling
             try {
-                this.authManager = new AuthenticationManager();
+                // Try enhanced authentication first, fallback to basic
+                if (window.EnhancedAuthenticationManager) {
+                    this.authManager = new EnhancedAuthenticationManager();
+                    console.log('🛡️ Initializing enhanced authentication...');
+                } else {
+                    this.authManager = new AuthenticationManager();
+                    console.log('🔑 Initializing basic authentication...');
+                }
+                
                 const isAuthenticated = await this.authManager.initialize();
                 if (isAuthenticated) {
-                    console.log('✅ User authenticated');
-                    await this.updateAuthenticatedUI();
+                    const userProfile = this.authManager.getUserProfile();
+                    console.log('✅ User authenticated:', userProfile.name);
+                    
+                    if (userProfile.enhanced) {
+                        console.log('🛡️ Enhanced security active:', {
+                            role: userProfile.role,
+                            securityLevel: userProfile.securityLevel,
+                            mfaEnabled: userProfile.mfaEnabled
+                        });
+                    }
+                    
+                    await this.updateAuthenticatedUI(userProfile);
+                } else {
+                    console.log('ℹ️ User not authenticated - sign in required for minting');
+                    this.showAuthenticationRequired();
                 }
             } catch (error) {
-                console.log('Auth manager unavailable, continuing without authentication');
+                console.error('Authentication manager initialization failed:', error);
+                this.showAuthenticationRequired();
+                return;
             }
             
             try {
@@ -66,6 +91,9 @@ class BeatsChainApp {
             // Initialize Content Enhancement AI
             await this.initializeContentAI();
             
+            // Initialize Smart Trees AI
+            await this.initializeSmartTreesAI();
+            
             await this.loadWalletData();
             await this.loadProfile();
             this.isInitialized = true;
@@ -76,11 +104,30 @@ class BeatsChainApp {
     }
 
     setupEventListeners() {
-        // Navigation tabs
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
+        // Hamburger menu navigation
+        const menuToggle = document.getElementById('menu-toggle');
+        const navDropdown = document.getElementById('nav-dropdown');
+        
+        if (menuToggle && navDropdown) {
+            menuToggle.addEventListener('click', () => {
+                navDropdown.classList.toggle('open');
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!menuToggle.contains(e.target) && !navDropdown.contains(e.target)) {
+                    navDropdown.classList.remove('open');
+                }
+            });
+        }
+        
+        // Navigation items
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
                 const section = e.target.dataset.section;
                 this.switchTab(section);
+                // Close menu after selection
+                if (navDropdown) navDropdown.classList.remove('open');
             });
         });
 
@@ -155,6 +202,12 @@ class BeatsChainApp {
             generateRadioBtn.addEventListener('click', this.generateRadioPackage.bind(this));
         }
         
+        // AI Insights events
+        const growBranchBtn = document.getElementById('grow-new-branch');
+        if (growBranchBtn) {
+            growBranchBtn.addEventListener('click', this.growNewBranch.bind(this));
+        }
+        
         const addContributorBtn = document.getElementById('add-contributor');
         if (addContributorBtn) {
             addContributorBtn.addEventListener('click', this.addContributor.bind(this));
@@ -212,6 +265,16 @@ class BeatsChainApp {
             this.createAudioPreview(file);
             this.displayMetadata(this.beatMetadata);
             this.showArtistForm();
+            
+            // Record activity for Smart Trees AI
+            if (this.smartTreesAI) {
+                this.smartTreesAI.recordActivity('beat_upload', {
+                    genre: this.beatMetadata.suggestedGenre,
+                    duration: this.beatMetadata.durationSeconds,
+                    quality: this.beatMetadata.qualityLevel,
+                    format: this.beatMetadata.format
+                });
+            }
             
             const proceedBtn = document.getElementById('proceed-to-licensing');
             if (proceedBtn) proceedBtn.style.display = 'block';
@@ -277,6 +340,15 @@ class BeatsChainApp {
             licenseTextarea.value = this.licenseTerms;
             statusText.textContent = 'License generated successfully!';
             document.getElementById('approve-license').disabled = false;
+            
+            // Record license generation activity
+            if (this.smartTreesAI) {
+                this.smartTreesAI.recordActivity('license_generation', {
+                    genre: enhancedMetadata.genre,
+                    licenseType: licenseOptions.licenseType,
+                    commercialUse: licenseOptions.commercialUse
+                });
+            }
             
         } catch (error) {
             console.error('License generation failed:', error);
@@ -371,15 +443,17 @@ Verification: Check Chrome extension storage for transaction details`;
         statusDiv.textContent = 'Preparing to mint NFT...';
 
         try {
-            // Get wallet address (bypass for now)
-            let walletAddress = await this.authManager?.getWalletAddress();
-            if (!walletAddress) {
-                // Generate temporary wallet for testing
-                const tempWallet = '0x' + Array.from(crypto.getRandomValues(new Uint8Array(20)), 
-                    byte => byte.toString(16).padStart(2, '0')).join('');
-                walletAddress = tempWallet;
-                console.log('Using temporary wallet for testing:', walletAddress);
+            // Get authenticated wallet address - REQUIRED for real transactions
+            if (!this.authManager) {
+                throw new Error('Authentication required: Please sign in to mint NFTs');
             }
+            
+            const walletAddress = await this.authManager.getWalletAddress();
+            if (!walletAddress) {
+                throw new Error('Wallet not available: Please sign in with Google to generate your secure wallet');
+            }
+            
+            console.log('✅ Using authenticated wallet:', walletAddress.substring(0, 6) + '...' + walletAddress.substring(-4));
             
             statusDiv.textContent = 'Uploading to IPFS...';
             
@@ -483,15 +557,20 @@ Verification: Check Chrome extension storage for transaction details`;
 
     switchTab(section) {
         // Pause all audio when switching tabs
-        this.audioManager.pauseAllAudio();
+        if (this.audioManager) {
+            this.audioManager.pauseAllAudio();
+        }
         
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.classList.remove('active');
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
         });
         document.querySelector(`[data-section="${section}"]`).classList.add('active');
 
         if (section === 'mint') {
-            this.showSection(this.currentSection || 'upload-section');
+            // Show the current mint workflow section or default to upload
+            const mintSection = this.currentSection && this.currentSection.includes('section') ? 
+                this.currentSection : 'upload-section';
+            this.showSection(mintSection);
         } else if (section === 'profile') {
             this.showSection('profile-section');
         } else if (section === 'history') {
@@ -501,6 +580,9 @@ Verification: Check Chrome extension storage for transaction details`;
         } else if (section === 'radio') {
             this.showSection('radio-section');
             this.loadRadioSubmission();
+        } else if (section === 'insights') {
+            this.showSection('insights-section');
+            this.loadAIInsights();
         }
     }
 
@@ -677,35 +759,177 @@ Verification: Check Chrome extension storage for transaction details`;
     }
 
     async handleGoogleSignIn() {
-        const signInBtn = document.getElementById('google-signin');
+        // Find any sign-in button (could be in different sections)
+        const signInBtns = document.querySelectorAll('[id^="google-signin"], [id^="auth-signin"]');
+        const signInBtn = signInBtns[0] || document.getElementById('google-signin');
+        
+        if (!signInBtn) {
+            console.error('Sign-in button not found');
+            return;
+        }
+        
         const originalText = signInBtn.textContent;
         
         try {
             signInBtn.disabled = true;
             signInBtn.textContent = 'Signing in...';
             
-            if (this.authManager) {
-                const result = await this.authManager.signInWithGoogle();
-                if (result.success) {
-                    signInBtn.style.display = 'none';
-                    console.log('✅ Successfully signed in');
+            if (!this.authManager) {
+                // Initialize enhanced authentication if available
+                if (window.EnhancedAuthenticationManager) {
+                    this.authManager = new EnhancedAuthenticationManager();
+                    console.log('🛡️ Using enhanced authentication for sign-in');
+                } else {
+                    this.authManager = new AuthenticationManager();
+                    console.log('🔑 Using basic authentication for sign-in');
                 }
+            }
+            
+            const result = await this.authManager.signInWithGoogle();
+            if (result.success) {
+                console.log('✅ Successfully signed in:', result.user.name);
+                
+                // Log enhanced features if available
+                if (result.enhanced) {
+                    console.log('🛡️ Enhanced authentication features:', {
+                        role: result.role,
+                        securityLevel: result.securityLevel,
+                        mfaRequired: result.mfaRequired
+                    });
+                }
+                
+                // Hide authentication required messages
+                this.hideAuthenticationRequired();
+                
+                // Update authenticated UI with enhanced features
+                await this.updateAuthenticatedUI(result);
+                
+                // Hide all sign-in buttons
+                signInBtns.forEach(btn => {
+                    btn.style.display = 'none';
+                });
+                
+                // Show success message with enhanced info
+                this.showSignInSuccess(result.user, result.enhanced ? result : null);
+                
             } else {
-                throw new Error('Authentication manager not available');
+                throw new Error('Sign-in failed - no success result');
             }
             
         } catch (error) {
             console.error('❌ Sign-in failed:', error);
             signInBtn.textContent = originalText;
             signInBtn.disabled = false;
-            alert('Sign-in failed. Please try again.');
+            
+            // Show user-friendly error
+            const errorMsg = error.message.includes('User denied') ? 
+                'Sign-in cancelled. Please try again to access minting features.' :
+                'Sign-in failed. Please check your internet connection and try again.';
+            
+            this.showSignInError(errorMsg);
         }
+    }
+    
+    showSignInSuccess(user, enhancedInfo = null) {
+        // Show temporary success message
+        const successDiv = document.createElement('div');
+        successDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px 16px;
+            border-radius: 8px;
+            z-index: 10000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 300px;
+        `;
+        
+        let enhancedText = '';
+        if (enhancedInfo && enhancedInfo.enhanced) {
+            const features = [];
+            if (enhancedInfo.role === 'admin') features.push('ADMIN');
+            if (enhancedInfo.securityLevel !== 'basic') features.push(enhancedInfo.securityLevel.toUpperCase());
+            if (enhancedInfo.mfaRequired) features.push('MFA');
+            
+            if (features.length > 0) {
+                enhancedText = `<br><small style="color: #0f5132;">🛡️ Enhanced: ${features.join(' • ')}</small>`;
+            }
+        }
+        
+        successDiv.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span>✅</span>
+                <div>
+                    <strong>Welcome, ${user.name}!</strong><br>
+                    <small>You can now mint NFTs and access all features</small>
+                    ${enhancedText}
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(successDiv);
+        
+        // Remove after 5 seconds (longer for enhanced info)
+        setTimeout(() => {
+            if (successDiv.parentNode) {
+                successDiv.parentNode.removeChild(successDiv);
+            }
+        }, enhancedInfo ? 6000 : 4000);
+    }
+    
+    showSignInError(message) {
+        // Show temporary error message
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px 16px;
+            border-radius: 8px;
+            z-index: 10000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        `;
+        
+        errorDiv.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span>❌</span>
+                <div>
+                    <strong>Sign-in Failed</strong><br>
+                    <small>${message}</small>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(errorDiv);
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.parentNode.removeChild(errorDiv);
+            }
+        }, 5000);
     }
 
     async updateAuthenticatedUI(authResult = null) {
         try {
+            if (!this.authManager) {
+                console.error('Authentication manager not available');
+                this.showAuthenticationRequired();
+                return;
+            }
+            
             const userProfile = this.authManager.getUserProfile();
-            if (!userProfile) return;
+            if (!userProfile) {
+                console.log('No user profile available - authentication required');
+                this.showAuthenticationRequired();
+                return;
+            }
             
             // Update profile display
             const profileName = document.getElementById('profile-name');
@@ -721,12 +945,19 @@ Verification: Check Chrome extension storage for transaction details`;
                 profileWallet.textContent = `${walletAddress.substring(0, 6)}...${walletAddress.substring(-4)}`;
             }
             
-            // Show role-based features
+            // Show enhanced authentication features
+            if (userProfile.enhanced) {
+                this.updateRoleBasedUI(userProfile.role);
+                this.updateSecurityIndicators(userProfile.securityLevel);
+                this.showEnhancedFeatures(userProfile);
+            }
+            
+            // Show role-based features (fallback for basic auth)
             if (authResult && authResult.role) {
                 this.updateRoleBasedUI(authResult.role);
             }
             
-            // Update security indicators
+            // Update security indicators (fallback for basic auth)
             if (authResult && authResult.securityLevel) {
                 this.updateSecurityIndicators(authResult.securityLevel);
             }
@@ -746,8 +977,13 @@ Verification: Check Chrome extension storage for transaction details`;
         });
         
         producerFeatures.forEach(el => {
-            el.style.display = ['admin', 'producer'].includes(role) ? 'block' : 'none';
+            el.style.display = role === 'admin' ? 'block' : 'none';
         });
+
+        // Add admin invitation UI if user is admin
+        if (role === 'admin') {
+            this.addAdminInvitationUI();
+        }
     }
     
     updateSecurityIndicators(securityLevel) {
@@ -755,6 +991,15 @@ Verification: Check Chrome extension storage for transaction details`;
         const securityBadge = document.createElement('div');
         securityBadge.className = `security-badge ${securityLevel}`;
         securityBadge.textContent = `🛡️ ${securityLevel.toUpperCase()}`;
+        securityBadge.style.cssText = `
+            background: ${securityLevel === 'premium' ? '#28a745' : securityLevel === 'enhanced' ? '#ffc107' : '#6c757d'};
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        `;
         
         const header = document.querySelector('.header');
         if (header && !header.querySelector('.security-badge')) {
@@ -762,11 +1007,149 @@ Verification: Check Chrome extension storage for transaction details`;
         }
     }
     
+    showEnhancedFeatures(userProfile) {
+        // Show enhanced authentication status
+        const enhancedStatus = document.createElement('div');
+        enhancedStatus.className = 'enhanced-auth-status';
+        enhancedStatus.style.cssText = `
+            background: #e8f5e8;
+            border: 1px solid #28a745;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+            color: #155724;
+        `;
+        
+        const features = [];
+        if (userProfile.role === 'admin') features.push(`👑 ADMIN Role`);
+        if (userProfile.mfaEnabled) features.push('🔐 MFA Enabled');
+        if (userProfile.securityLevel === 'premium') features.push('🎆 Premium Security');
+        
+        enhancedStatus.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span>🛡️</span>
+                <strong>Enhanced Security Active</strong>
+            </div>
+            <div style="font-size: 12px;">
+                ${features.join(' • ')}
+            </div>
+        `;
+        
+        // Add to profile section if it exists
+        const profileSection = document.getElementById('profile-section');
+        if (profileSection && !profileSection.querySelector('.enhanced-auth-status')) {
+            const profileContent = profileSection.querySelector('.profile-content');
+            if (profileContent) {
+                profileContent.insertBefore(enhancedStatus, profileContent.firstChild);
+            }
+        }
+        
+        // Show security score if available
+        if (this.authManager.calculateSecurityScore) {
+            const securityScore = this.authManager.calculateSecurityScore();
+            this.showSecurityScore(securityScore);
+        }
+    }
+    
+    showSecurityScore(score) {
+        const scoreElement = document.createElement('div');
+        scoreElement.className = 'security-score';
+        scoreElement.style.cssText = `
+            background: ${score >= 80 ? '#d4edda' : score >= 60 ? '#fff3cd' : '#f8d7da'};
+            border: 1px solid ${score >= 80 ? '#c3e6cb' : score >= 60 ? '#ffeaa7' : '#f5c6cb'};
+            color: ${score >= 80 ? '#155724' : score >= 60 ? '#856404' : '#721c24'};
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-size: 12px;
+        `;
+        
+        scoreElement.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>📊 Security Score</span>
+                <strong>${score}/100</strong>
+            </div>
+        `;
+        
+        const enhancedStatus = document.querySelector('.enhanced-auth-status');
+        if (enhancedStatus) {
+            enhancedStatus.appendChild(scoreElement);
+        }
+    }
+    
+    showAuthenticationRequired() {
+        // Show authentication required message for all sections that need it
+        const sections = ['licensing-section', 'minting-section', 'success-section'];
+        
+        sections.forEach(sectionId => {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const authMessage = document.createElement('div');
+                authMessage.className = 'auth-required-message';
+                authMessage.style.cssText = `
+                    background: #fff3cd;
+                    border: 1px solid #ffeaa7;
+                    border-radius: 8px;
+                    padding: 16px;
+                    margin: 16px 0;
+                    text-align: center;
+                    color: #856404;
+                `;
+                
+                authMessage.innerHTML = `
+                    <div style="font-size: 24px; margin-bottom: 8px;">🔒</div>
+                    <h4 style="margin: 0 0 8px 0; color: #856404;">Authentication Required</h4>
+                    <p style="margin: 0 0 12px 0;">Please sign in with Google to access minting features</p>
+                    <button id="auth-signin-${sectionId}" class="btn btn-primary" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                        🔑 Sign In with Google
+                    </button>
+                `;
+                
+                // Add to beginning of section
+                section.insertBefore(authMessage, section.firstChild);
+                
+                // Add click handler for sign-in button
+                const signInBtn = authMessage.querySelector(`#auth-signin-${sectionId}`);
+                if (signInBtn) {
+                    signInBtn.addEventListener('click', () => this.handleGoogleSignIn());
+                }
+            }
+        });
+        
+        // Disable minting-related buttons
+        const mintingButtons = ['generate-license', 'approve-license', 'mint-nft'];
+        mintingButtons.forEach(buttonId => {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.disabled = true;
+                button.title = 'Authentication required - Please sign in with Google';
+            }
+        });
+        
+        console.log('🔒 Authentication required - user must sign in to continue');
+    }
+    
     showSecurityStatus(authResult) {
         console.log('Security Status:', {
             role: authResult.role,
             securityLevel: authResult.securityLevel,
             mfaRequired: authResult.mfaRequired
+        });
+    }
+    
+    hideAuthenticationRequired() {
+        // Remove authentication required messages
+        const authMessages = document.querySelectorAll('.auth-required-message');
+        authMessages.forEach(message => message.remove());
+        
+        // Re-enable minting buttons
+        const mintingButtons = ['generate-license', 'approve-license', 'mint-nft'];
+        mintingButtons.forEach(buttonId => {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.disabled = false;
+                button.title = '';
+            }
         });
     }
 
@@ -825,6 +1208,433 @@ Verification: Check Chrome extension storage for transaction details`;
         } catch (error) {
             console.log('Content AI initialization failed:', error);
         }
+    }
+    
+    async initializeSmartTreesAI() {
+        try {
+            if (window.SmartTreesAI) {
+                this.smartTreesAI = new SmartTreesAI(this.chromeAI, this.userInputManager);
+                const aiReady = await this.smartTreesAI.initialize();
+                if (aiReady) {
+                    console.log('✅ Smart Trees AI ready');
+                    // Clean up old data periodically
+                    setTimeout(() => this.smartTreesAI.cleanup(), 5000);
+                } else {
+                    console.log('ℹ️ Smart Trees AI using basic templates');
+                }
+            }
+        } catch (error) {
+            console.log('Smart Trees AI initialization failed:', error);
+        }
+    }
+    
+    async loadAIInsights() {
+        if (!this.smartTreesAI) {
+            console.log('Smart Trees AI not available');
+            return;
+        }
+        
+        try {
+            const insights = this.smartTreesAI.getInsights(5);
+            this.displayInsights(insights);
+        } catch (error) {
+            console.error('Failed to load AI insights:', error);
+        }
+    }
+    
+    displayInsights(insights) {
+        const insightsList = document.getElementById('insights-list');
+        if (!insightsList) return;
+        
+        if (insights.length === 0) {
+            insightsList.innerHTML = `
+                <div class="empty-insights">
+                    <div class="empty-icon">🌱</div>
+                    <p>Your AI insights will grow here</p>
+                    <small>Upload beats, update your profile, and submit to radio stations to generate personalized insights</small>
+                </div>
+            `;
+            return;
+        }
+        
+        insightsList.innerHTML = '';
+        
+        insights.forEach(insight => {
+            const card = this.createInsightCard(insight);
+            insightsList.appendChild(card);
+        });
+    }
+    
+    createInsightCard(insight) {
+        const card = document.createElement('div');
+        card.className = `insight-card ${!insight.viewed ? 'insight-new' : ''}`;
+        card.dataset.insightId = insight.id;
+        
+        const categoryIcons = {
+            performance: '📊',
+            opportunities: '🎯', 
+            optimization: '⚡',
+            collaboration: '🤝',
+            market: '📈'
+        };
+        
+        const icon = categoryIcons[insight.category] || '💡';
+        const preview = insight.description.length > 80 ? 
+            insight.description.substring(0, 80) + '...' : insight.description;
+        
+        card.innerHTML = `
+            <div class="insight-header">
+                <div class="insight-title">
+                    <span class="insight-icon">${icon}</span>
+                    <h4>${this.escapeHtml(insight.title)}</h4>
+                </div>
+                <span class="insight-category">${insight.category}</span>
+            </div>
+            <div class="insight-preview">${this.escapeHtml(preview)}</div>
+            <div class="insight-meta">
+                <span class="insight-timestamp">${this.formatTimestamp(insight.timestamp)}</span>
+                <button class="insight-expand">▼ Expand</button>
+            </div>
+            <div class="insight-details">
+                <div class="insight-description">${this.escapeHtml(insight.description)}</div>
+                <div class="insight-actions">
+                    <button class="insight-btn primary" data-action="mark-useful">✓ Useful</button>
+                    <button class="insight-btn secondary" data-action="dismiss">✗ Dismiss</button>
+                </div>
+            </div>
+        `;
+        
+        // Add event listeners
+        const expandBtn = card.querySelector('.insight-expand');
+        const details = card.querySelector('.insight-details');
+        
+        expandBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isExpanded = details.classList.contains('expanded');
+            
+            if (isExpanded) {
+                details.classList.remove('expanded');
+                card.classList.remove('expanded');
+                expandBtn.textContent = '▼ Expand';
+            } else {
+                details.classList.add('expanded');
+                card.classList.add('expanded');
+                expandBtn.textContent = '▲ Collapse';
+                
+                // Mark as viewed
+                if (this.smartTreesAI && !insight.viewed) {
+                    this.smartTreesAI.markViewed(insight.id);
+                    card.classList.remove('insight-new');
+                }
+            }
+        });
+        
+        // Action buttons
+        card.querySelector('[data-action="mark-useful"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (this.smartTreesAI) {
+                this.smartTreesAI.markActionTaken(insight.id);
+            }
+            card.style.opacity = '0.7';
+            setTimeout(() => {
+                card.querySelector('.insight-btn.primary').textContent = '✓ Noted';
+                card.querySelector('.insight-btn.primary').disabled = true;
+            }, 200);
+        });
+        
+        card.querySelector('[data-action="dismiss"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (this.smartTreesAI) {
+                this.smartTreesAI.dismissInsight(insight.id);
+            }
+            card.style.transform = 'translateX(-100%)';
+            card.style.opacity = '0';
+            setTimeout(() => {
+                card.remove();
+                // Reload insights if list is empty
+                if (document.querySelectorAll('.insight-card').length === 0) {
+                    this.loadAIInsights();
+                }
+            }, 300);
+        });
+        
+        return card;
+    }
+
+    addAdminInvitationUI() {
+        // Check if admin invitation UI already exists
+        if (document.getElementById('admin-invitation-section')) {
+            return;
+        }
+
+        // Find profile section to add admin features
+        const profileSection = document.getElementById('profile-section');
+        if (!profileSection) return;
+
+        // Create admin invitation section
+        const adminSection = document.createElement('div');
+        adminSection.id = 'admin-invitation-section';
+        adminSection.className = 'admin-only';
+        adminSection.style.cssText = `
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        `;
+
+        adminSection.innerHTML = `
+            <h4 style="margin: 0 0 12px 0; color: #495057; display: flex; align-items: center; gap: 8px;">
+                <span>👑</span> Admin Management
+            </h4>
+            
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 4px; font-weight: 500;">Invite New Admin:</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="email" id="admin-invite-email" placeholder="admin@example.com" 
+                           style="flex: 1; padding: 8px; border: 1px solid #ced4da; border-radius: 4px;">
+                    <button id="send-admin-invite" class="btn btn-primary" 
+                            style="padding: 8px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        📧 Invite
+                    </button>
+                </div>
+                <small style="color: #6c757d; margin-top: 4px; display: block;">Invited admins will have full system access</small>
+            </div>
+            
+            <div id="pending-invitations">
+                <h5 style="margin: 0 0 8px 0; color: #495057;">Pending Invitations:</h5>
+                <div id="invitations-list" style="max-height: 150px; overflow-y: auto;"></div>
+            </div>
+        `;
+
+        // Insert at the beginning of profile section
+        const profileContent = profileSection.querySelector('.profile-content') || profileSection;
+        profileContent.insertBefore(adminSection, profileContent.firstChild);
+
+        // Add event listeners
+        this.setupAdminInvitationHandlers();
+        
+        // Load pending invitations
+        this.loadPendingInvitations();
+    }
+
+    setupAdminInvitationHandlers() {
+        const inviteBtn = document.getElementById('send-admin-invite');
+        const emailInput = document.getElementById('admin-invite-email');
+
+        if (inviteBtn && emailInput) {
+            inviteBtn.addEventListener('click', async () => {
+                await this.handleAdminInvite();
+            });
+
+            emailInput.addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    await this.handleAdminInvite();
+                }
+            });
+        }
+    }
+
+    async handleAdminInvite() {
+        const emailInput = document.getElementById('admin-invite-email');
+        const inviteBtn = document.getElementById('send-admin-invite');
+        
+        if (!emailInput || !inviteBtn || !this.authManager) return;
+
+        const email = emailInput.value.trim();
+        if (!email) {
+            this.showInviteMessage('Please enter an email address', 'error');
+            return;
+        }
+
+        const originalText = inviteBtn.textContent;
+        inviteBtn.disabled = true;
+        inviteBtn.textContent = '📤 Sending...';
+
+        try {
+            const result = await this.authManager.inviteAdmin(email);
+            
+            if (result.success) {
+                emailInput.value = '';
+                this.showInviteMessage(result.message, 'success');
+                await this.loadPendingInvitations();
+            } else {
+                this.showInviteMessage('Invitation failed', 'error');
+            }
+
+        } catch (error) {
+            console.error('Admin invitation failed:', error);
+            this.showInviteMessage(error.message, 'error');
+        } finally {
+            inviteBtn.disabled = false;
+            inviteBtn.textContent = originalText;
+        }
+    }
+
+    async loadPendingInvitations() {
+        if (!this.authManager) return;
+
+        try {
+            const invitations = await this.authManager.getPendingInvitations();
+            const listContainer = document.getElementById('invitations-list');
+            
+            if (!listContainer) return;
+
+            if (invitations.length === 0) {
+                listContainer.innerHTML = '<p style="color: #6c757d; font-style: italic; margin: 0;">No pending invitations</p>';
+                return;
+            }
+
+            listContainer.innerHTML = '';
+            
+            invitations.forEach(invitation => {
+                const inviteItem = document.createElement('div');
+                inviteItem.style.cssText = `
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 8px;
+                    background: white;
+                    border: 1px solid #e9ecef;
+                    border-radius: 4px;
+                    margin-bottom: 4px;
+                `;
+
+                const expiresDate = new Date(invitation.expiresAt).toLocaleDateString();
+                
+                inviteItem.innerHTML = `
+                    <div>
+                        <strong>${invitation.email}</strong><br>
+                        <small style="color: #6c757d;">Expires: ${expiresDate}</small>
+                    </div>
+                    <button class="revoke-invite" data-id="${invitation.id}" 
+                            style="padding: 4px 8px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                        ❌ Revoke
+                    </button>
+                `;
+
+                // Add revoke handler
+                const revokeBtn = inviteItem.querySelector('.revoke-invite');
+                revokeBtn.addEventListener('click', async () => {
+                    await this.handleRevokeInvitation(invitation.id, invitation.email);
+                });
+
+                listContainer.appendChild(inviteItem);
+            });
+
+        } catch (error) {
+            console.error('Failed to load pending invitations:', error);
+        }
+    }
+
+    async handleRevokeInvitation(invitationId, email) {
+        if (!confirm(`Revoke admin invitation for ${email}?`)) {
+            return;
+        }
+
+        try {
+            const result = await this.authManager.revokeInvitation(invitationId);
+            
+            if (result.success) {
+                this.showInviteMessage(result.message, 'success');
+                await this.loadPendingInvitations();
+            }
+
+        } catch (error) {
+            console.error('Failed to revoke invitation:', error);
+            this.showInviteMessage(error.message, 'error');
+        }
+    }
+
+    showInviteMessage(message, type) {
+        // Remove existing message
+        const existingMsg = document.getElementById('invite-message');
+        if (existingMsg) {
+            existingMsg.remove();
+        }
+
+        // Create new message
+        const messageDiv = document.createElement('div');
+        messageDiv.id = 'invite-message';
+        messageDiv.style.cssText = `
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin: 8px 0;
+            font-size: 14px;
+            background: ${type === 'success' ? '#d4edda' : '#f8d7da'};
+            border: 1px solid ${type === 'success' ? '#c3e6cb' : '#f5c6cb'};
+            color: ${type === 'success' ? '#155724' : '#721c24'};
+        `;
+        
+        messageDiv.textContent = message;
+
+        // Insert after invite button
+        const inviteBtn = document.getElementById('send-admin-invite');
+        if (inviteBtn && inviteBtn.parentNode) {
+            inviteBtn.parentNode.insertBefore(messageDiv, inviteBtn.nextSibling);
+        }
+
+        // Remove after 5 seconds
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+            }
+        }, 5000);
+    }
+    
+    async growNewBranch() {
+        const growBtn = document.getElementById('grow-new-branch');
+        if (!this.smartTreesAI || !growBtn) return;
+        
+        const originalText = growBtn.textContent;
+        growBtn.disabled = true;
+        growBtn.textContent = '🌱 Growing...';
+        
+        try {
+            const newInsight = await this.smartTreesAI.growNewBranch();
+            
+            if (newInsight) {
+                // Reload insights to show the new one
+                await this.loadAIInsights();
+                
+                growBtn.textContent = '✨ New Insight!';
+                setTimeout(() => {
+                    growBtn.textContent = originalText;
+                    growBtn.disabled = false;
+                }, 2000);
+            } else {
+                growBtn.textContent = '💭 Need More Data';
+                setTimeout(() => {
+                    growBtn.textContent = originalText;
+                    growBtn.disabled = false;
+                }, 2000);
+            }
+            
+        } catch (error) {
+            console.error('Failed to grow new branch:', error);
+            growBtn.textContent = originalText;
+            growBtn.disabled = false;
+        }
+    }
+    
+    formatTimestamp(timestamp) {
+        const now = Date.now();
+        const diff = now - timestamp;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+        
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days < 7) return `${days}d ago`;
+        return new Date(timestamp).toLocaleDateString();
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
     
     setupContentEnhancementUI() {
@@ -1729,6 +2539,7 @@ Verification: Check Chrome extension storage for transaction details`;
                 if (radioMetadata.contact?.website) contactVCF += `\nURL:${radioMetadata.contact.website}`;
                 if (radioMetadata.social?.instagram) contactVCF += `\nURL:${radioMetadata.social.instagram}`;
                 if (radioMetadata.social?.twitter) contactVCF += `\nURL:${radioMetadata.social.twitter}`;
+                if (radioMetadata.social?.facebook) contactVCF += `\nURL:${radioMetadata.social.facebook}`;
                 contactVCF += `\nEND:VCARD`;
                 files.push({ name: 'contact_info.vcf', content: contactVCF });
                 
@@ -1855,7 +2666,16 @@ Verification: Check Chrome extension storage for transaction details`;
             },
             social: {
                 instagram: document.getElementById('profile-instagram')?.value?.trim() || '',
-                twitter: document.getElementById('profile-twitter')?.value?.trim() || ''
+                twitter: document.getElementById('profile-twitter')?.value?.trim() || '',
+                facebook: document.getElementById('profile-facebook')?.value?.trim() || ''
+            },
+            musicPlatforms: {
+                spotify: document.getElementById('profile-spotify')?.value?.trim() || '',
+                soundcloud: document.getElementById('profile-soundcloud')?.value?.trim() || '',
+                youtube: document.getElementById('profile-youtube')?.value?.trim() || '',
+                bandcamp: document.getElementById('profile-bandcamp')?.value?.trim() || '',
+                tiktok: document.getElementById('profile-tiktok')?.value?.trim() || '',
+                appleMusic: document.getElementById('profile-apple-music')?.value?.trim() || ''
             }
         };
     }
@@ -1907,6 +2727,15 @@ Verification: Check Chrome extension storage for transaction details`;
                 const phoneField = document.getElementById('profile-phone');
                 const instagramField = document.getElementById('profile-instagram');
                 const twitterField = document.getElementById('profile-twitter');
+                const facebookField = document.getElementById('profile-facebook');
+                
+                // Music platform fields
+                const spotifyField = document.getElementById('profile-spotify');
+                const soundcloudField = document.getElementById('profile-soundcloud');
+                const youtubeField = document.getElementById('profile-youtube');
+                const bandcampField = document.getElementById('profile-bandcamp');
+                const tiktokField = document.getElementById('profile-tiktok');
+                const appleMusicField = document.getElementById('profile-apple-music');
                 
                 if (bioField) bioField.value = profileData.biography || '';
                 if (influencesField) influencesField.value = profileData.influences || '';
@@ -1915,6 +2744,15 @@ Verification: Check Chrome extension storage for transaction details`;
                 if (phoneField) phoneField.value = profileData.contact?.phone || '';
                 if (instagramField) instagramField.value = profileData.social?.instagram || '';
                 if (twitterField) twitterField.value = profileData.social?.twitter || '';
+                if (facebookField) facebookField.value = profileData.social?.facebook || '';
+                
+                // Load music platforms
+                if (spotifyField) spotifyField.value = profileData.musicPlatforms?.spotify || '';
+                if (soundcloudField) soundcloudField.value = profileData.musicPlatforms?.soundcloud || '';
+                if (youtubeField) youtubeField.value = profileData.musicPlatforms?.youtube || '';
+                if (bandcampField) bandcampField.value = profileData.musicPlatforms?.bandcamp || '';
+                if (tiktokField) tiktokField.value = profileData.musicPlatforms?.tiktok || '';
+                if (appleMusicField) appleMusicField.value = profileData.musicPlatforms?.appleMusic || '';
             }
             
         } catch (error) {
