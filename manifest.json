@@ -3,6 +3,7 @@
   "name": "BeatsChain - Music NFT Minter",
   "version": "1.24.0",
   "description": "Mint your beats as NFTs with AI-generated licensing",
+  "key": "beatschainextensionbeatschainext",
   "permissions": [
     "storage",
     "activeTab",
@@ -26,7 +27,7 @@
     "service_worker": "background/service-worker.js"
   },
   "oauth2": {
-    "client_id": "your_google_client_id.apps.googleusercontent.com",
+    "client_id": "239753403483-2k59be2b2je5etbsc9fjfkmpkvdhi29t.apps.googleusercontent.com",
     "scopes": ["openid", "email", "profile"]
   },
   "action": {
