@@ -28,6 +28,37 @@ body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.header-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.brand-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+}
+
+.brand-text {
+    text-align: left;
+}
+
+.brand-text h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+}
+
+.brand-text p {
+    margin: 2px 0 0 0;
+    font-size: 11px;
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.8);
+}
+
 .header h1 {
     color: white;
     font-size: 24px;
