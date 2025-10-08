@@ -57,6 +57,35 @@
                         </div>
                     </div>
                     
+                    <!-- Enhanced Profile Information -->
+                    <div class="enhanced-profile">
+                        <h4>📝 Profile Information</h4>
+                        <div class="profile-form">
+                            <div class="form-row">
+                                <label for="profile-legal-name">Legal Name:</label>
+                                <input type="text" id="profile-legal-name" class="form-input" placeholder="Full legal name for contracts and legal documents" maxlength="100">
+                                <small class="field-help">Used in contracts, licensing agreements, and legal documentation</small>
+                            </div>
+                            
+                            <div class="form-row">
+                                <label for="profile-display-name">Display Name:</label>
+                                <input type="text" id="profile-display-name" class="form-input" placeholder="Artist/stage name for public display" maxlength="100">
+                                <small class="field-help">Used in NFT metadata, public profiles, and branding</small>
+                            </div>
+                            
+                            <div class="form-row">
+                                <label for="profile-role">Primary Role:</label>
+                                <select id="profile-role" class="form-input">
+                                    <option value="">Select your primary role</option>
+                                    <option value="artist">Artist (Vocalist/Performer)</option>
+                                    <option value="producer">Producer (Beat Maker/Instrumentalist)</option>
+                                    <option value="both">Both Artist & Producer</option>
+                                </select>
+                                <small class="field-help">Affects UI features and metadata generation</small>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Artist Biography Form -->
                     <div class="artist-biography">
                         <h4>📝 Artist Biography & Press Kit</h4>
@@ -197,6 +226,16 @@
                         <div class="form-row">
                             <label for="beat-title">Beat/Song Title:</label>
                             <input type="text" id="beat-title" placeholder="Enter beat title" class="form-input">
+                        </div>
+                        <div class="form-row">
+                            <label for="content-type">Content Type:</label>
+                            <select id="content-type" class="form-input">
+                                <option value="">Select Content Type</option>
+                                <option value="instrumental">Instrumental (Beat/Track without vocals)</option>
+                                <option value="vocal">Vocal (Song with vocals)</option>
+                                <option value="mixed">Mixed (Beat with vocal samples)</option>
+                            </select>
+                            <small class="field-help">Determines licensing templates and metadata requirements</small>
                         </div>
                         <div class="form-row">
                             <label for="genre-select">Genre:</label>

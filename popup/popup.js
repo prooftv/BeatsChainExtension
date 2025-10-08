@@ -130,6 +130,12 @@ class BeatsChainApp {
                 if (navDropdown) navDropdown.classList.remove('open');
             });
         });
+        
+        // Export wallet button
+        const exportWalletBtn = document.getElementById('export-wallet');
+        if (exportWalletBtn) {
+            exportWalletBtn.addEventListener('click', this.handleExportWallet.bind(this));
+        }
 
         // Upload functionality
         const uploadArea = document.getElementById('upload-area');
@@ -697,6 +703,10 @@ Verification: Check Chrome extension storage for transaction details`;
         const stageNameInput = document.getElementById('stage-name')?.value;
         const beatTitleInput = document.getElementById('beat-title')?.value;
         const genreInput = document.getElementById('genre-select')?.value;
+        const contentTypeInput = document.getElementById('content-type')?.value;
+        
+        // Get enhanced profile data
+        const enhancedProfile = this.getEnhancedProfileData();
         
         // Store user inputs with priority tracking
         if (artistNameInput && artistNameInput.trim()) {
@@ -711,13 +721,23 @@ Verification: Check Chrome extension storage for transaction details`;
         if (genreInput && genreInput.trim()) {
             this.userInputManager.setUserInput('genre', genreInput, true);
         }
+        if (contentTypeInput && contentTypeInput.trim()) {
+            this.userInputManager.setUserInput('content-type', contentTypeInput, true);
+        }
+        
+        // Use display name as primary, fall back to legal name, then form input
+        const primaryName = enhancedProfile.displayName || enhancedProfile.legalName || artistNameInput;
         
         // Return with user priority
         return {
-            artistName: this.userInputManager.getValue('artist', null, 'Unknown Artist'),
-            stageName: this.userInputManager.getValue('stageName', null, ''),
-            beatTitle: this.userInputManager.getValue('title', this.beatMetadata.title, 'Untitled Beat'),
-            genre: this.userInputManager.getValue('genre', this.beatMetadata.suggestedGenre, 'Electronic')
+            artistName: this.userInputManager.getValue('artist', primaryName, 'Unknown Artist'),
+            stageName: this.userInputManager.getValue('stageName', stageNameInput, ''),
+            beatTitle: this.userInputManager.getValue('title', beatTitleInput, this.beatMetadata?.title || 'Untitled Beat'),
+            genre: this.userInputManager.getValue('genre', genreInput, this.beatMetadata?.suggestedGenre || 'Electronic'),
+            contentType: this.userInputManager.getValue('content-type', contentTypeInput, 'instrumental'),
+            legalName: enhancedProfile.legalName,
+            displayName: enhancedProfile.displayName,
+            role: enhancedProfile.role
         };
     }
     
@@ -2662,6 +2682,14 @@ Verification: Check Chrome extension storage for transaction details`;
         };
     }
     
+    getEnhancedProfileData() {
+        return {
+            legalName: this.sanitizeInput(document.getElementById('profile-legal-name')?.value?.trim() || ''),
+            displayName: this.sanitizeInput(document.getElementById('profile-display-name')?.value?.trim() || ''),
+            role: document.getElementById('profile-role')?.value?.trim() || ''
+        };
+    }
+    
     getProfileBiography() {
         return {
             biography: document.getElementById('profile-artist-bio')?.value?.trim() || '',
@@ -2690,12 +2718,41 @@ Verification: Check Chrome extension storage for transaction details`;
     async saveProfile() {
         try {
             const profileData = this.getProfileBiography();
+            const enhancedProfile = this.getEnhancedProfileData();
+            
+            // Validate required fields
+            if (enhancedProfile.legalName && !this.userInputManager.validateUserInput(enhancedProfile.legalName, 'legal-name')) {
+                alert('Please enter a valid legal name (letters, numbers, spaces, hyphens, apostrophes only)');
+                return;
+            }
+            
+            if (enhancedProfile.displayName && !this.userInputManager.validateUserInput(enhancedProfile.displayName, 'display-name')) {
+                alert('Please enter a valid display name (letters, numbers, spaces, hyphens, apostrophes only)');
+                return;
+            }
+            
+            const completeProfile = {
+                ...profileData,
+                ...enhancedProfile,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            // Store user inputs in manager
+            if (enhancedProfile.legalName) {
+                this.userInputManager.setUserInput('legal-name', enhancedProfile.legalName, true);
+            }
+            if (enhancedProfile.displayName) {
+                this.userInputManager.setUserInput('display-name', enhancedProfile.displayName, true);
+            }
+            if (enhancedProfile.role) {
+                this.userInputManager.setUserInput('role', enhancedProfile.role, true);
+            }
             
             // Store in browser storage
             if (window.StorageManager) {
-                await window.StorageManager.set('artistProfile', profileData);
+                await window.StorageManager.set('artistProfile', completeProfile);
             } else {
-                localStorage.setItem('artistProfile', JSON.stringify(profileData));
+                localStorage.setItem('artistProfile', JSON.stringify(completeProfile));
             }
             
             // Show success message
@@ -2727,6 +2784,12 @@ Verification: Check Chrome extension storage for transaction details`;
             }
             
             if (profileData) {
+                // Enhanced profile fields
+                const legalNameField = document.getElementById('profile-legal-name');
+                const displayNameField = document.getElementById('profile-display-name');
+                const roleField = document.getElementById('profile-role');
+                
+                // Biography fields
                 const bioField = document.getElementById('profile-artist-bio');
                 const influencesField = document.getElementById('profile-influences');
                 const websiteField = document.getElementById('profile-website');
@@ -2744,6 +2807,21 @@ Verification: Check Chrome extension storage for transaction details`;
                 const tiktokField = document.getElementById('profile-tiktok');
                 const appleMusicField = document.getElementById('profile-apple-music');
                 
+                // Load enhanced profile data
+                if (legalNameField) {
+                    legalNameField.value = profileData.legalName || '';
+                    // Pre-fill with Google name if empty
+                    if (!profileData.legalName && this.authManager) {
+                        const userProfile = this.authManager.getUserProfile();
+                        if (userProfile && userProfile.name) {
+                            legalNameField.value = userProfile.name;
+                        }
+                    }
+                }
+                if (displayNameField) displayNameField.value = profileData.displayName || '';
+                if (roleField) roleField.value = profileData.role || '';
+                
+                // Load biography data
                 if (bioField) bioField.value = profileData.biography || '';
                 if (influencesField) influencesField.value = profileData.influences || '';
                 if (websiteField) websiteField.value = profileData.contact?.website || '';
@@ -2760,6 +2838,15 @@ Verification: Check Chrome extension storage for transaction details`;
                 if (bandcampField) bandcampField.value = profileData.musicPlatforms?.bandcamp || '';
                 if (tiktokField) tiktokField.value = profileData.musicPlatforms?.tiktok || '';
                 if (appleMusicField) appleMusicField.value = profileData.musicPlatforms?.appleMusic || '';
+            } else {
+                // Pre-fill legal name with Google name for new users
+                const legalNameField = document.getElementById('profile-legal-name');
+                if (legalNameField && this.authManager) {
+                    const userProfile = this.authManager.getUserProfile();
+                    if (userProfile && userProfile.name) {
+                        legalNameField.value = userProfile.name;
+                    }
+                }
             }
             
         } catch (error) {
@@ -2830,6 +2917,52 @@ Verification: Check Chrome extension storage for transaction details`;
         if (generateBtn) {
             generateBtn.disabled = !isValid;
             generateBtn.title = isValid ? 'Generate radio package' : `Need: 100% total (${total.toFixed(1)}%) + valid names for all contributors`;
+        }
+    }
+    
+    async handleExportWallet() {
+        try {
+            if (!this.authManager) {
+                alert('Please sign in first to export wallet');
+                return;
+            }
+            
+            const walletAddress = await this.authManager.getWalletAddress();
+            if (!walletAddress) {
+                alert('No wallet found. Please sign in to generate a wallet.');
+                return;
+            }
+            
+            // Get wallet data from storage
+            const walletData = await chrome.storage.local.get(['wallet_private_key', 'wallet_address']);
+            
+            if (!walletData.wallet_private_key) {
+                alert('Wallet private key not found. Cannot export.');
+                return;
+            }
+            
+            // Create export data
+            const exportData = {
+                address: walletData.wallet_address,
+                privateKey: walletData.wallet_private_key,
+                exportDate: new Date().toISOString(),
+                warning: 'KEEP THIS PRIVATE KEY SECURE - Anyone with this key can access your wallet'
+            };
+            
+            // Download as JSON file
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `BeatsChain-Wallet-${walletAddress.substring(0, 8)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            alert('Wallet exported successfully! Keep the file secure.');
+            
+        } catch (error) {
+            console.error('Wallet export failed:', error);
+            alert('Failed to export wallet. Please try again.');
         }
     }
 }

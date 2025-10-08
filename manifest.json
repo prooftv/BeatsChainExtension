@@ -38,6 +38,9 @@
       "128": "assets/icons/icon128.png"
     }
   },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "icons": {
     "16": "assets/icons/icon16.png",
     "32": "assets/icons/icon32.png",
