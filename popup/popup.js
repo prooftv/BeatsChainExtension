@@ -821,10 +821,17 @@ Verification: Check Chrome extension storage for transaction details`;
             signInBtn.textContent = originalText;
             signInBtn.disabled = false;
             
-            // Show user-friendly error
-            const errorMsg = error.message.includes('User denied') ? 
-                'Sign-in cancelled. Please try again to access minting features.' :
-                'Sign-in failed. Please check your internet connection and try again.';
+            // Show user-friendly error based on error type
+            let errorMsg;
+            if (error.message.includes('User denied') || error.message.includes('cancelled')) {
+                errorMsg = 'Sign-in cancelled. Please try again to access minting features.';
+            } else if (error.message.includes('OAuth2 not configured')) {
+                errorMsg = 'Authentication system not configured. Please contact support.';
+            } else if (error.message.includes('client_id')) {
+                errorMsg = 'Authentication configuration error. Please contact support.';
+            } else {
+                errorMsg = 'Sign-in failed. Please check your internet connection and try again.';
+            }
             
             this.showSignInError(errorMsg);
         }
