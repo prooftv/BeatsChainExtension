@@ -3,7 +3,8 @@
   "name": "BeatsChain - Music NFT Minter",
   "version": "1.24.0",
   "description": "Mint your beats as NFTs with AI-generated licensing",
-  "key": "beatschainextensionbeatschainext",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkNfOJtS85Z3hxOsfREeR3ovkeSwAQo/UDRU5qmAuDxwwdgKJM+DQrwY3/nLn4NOdakdEZ4o8KDCDvaLQ8N2+xqL7BAGiEbc02/kpQJIbW99asO1QkXmJ2rwyIDAaoF6bMtzBrVp1sNXmC3yI39j7ZU1K7vdMU3vTX2zg+/6n12dGrXUT4rs0Tdso3EGf/AMutwfmC/A8ynlthfFE5+e4+FErDkNzUm8CBzQWe25uXS58deikei9ilf5wANH6CDsOyTMTmqEATPMZy4JBnOhO9CWDdJuNiJDXTwysHEboMb/CI+5Eec65a1MR93h/I0y7RYk6mV7LQMU8eg7ckPf5lwIDAQAB",
+
   "permissions": [
     "storage",
     "activeTab",
@@ -26,10 +27,7 @@
   "background": {
     "service_worker": "background/service-worker.js"
   },
-  "oauth2": {
-    "client_id": "239753403483-2k59be2b2je5etbsc9fjfkmpkvdhi29t.apps.googleusercontent.com",
-    "scopes": ["openid", "email", "profile"]
-  },
+
   "action": {
     "default_popup": "popup/index.html",
     "default_title": "BeatsChain Minter",
@@ -45,6 +43,10 @@
     "32": "assets/icons/icon32.png",
     "48": "assets/icons/icon48.png",
     "128": "assets/icons/icon128.png"
+  },
+  "oauth2": {
+    "client_id": "239753403483-d62qtbm41d29p7ldikackdrru77vd1g5.apps.googleusercontent.com",
+    "scopes": ["openid", "email", "profile"]
   },
   "web_accessible_resources": [
     {
