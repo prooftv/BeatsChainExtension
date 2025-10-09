@@ -251,11 +251,6 @@ class BeatsChainApp {
     }
 
     async processFile(file) {
-        if (!file) {
-            console.error('No file provided for processing');
-            return;
-        }
-        
         this.showProgress(true);
         
         try {
@@ -449,11 +444,6 @@ Verification: Check Chrome extension storage for transaction details`;
         const mintBtn = document.getElementById('mint-nft');
         const statusDiv = document.getElementById('mint-status');
         
-        if (!mintBtn || !statusDiv) {
-            console.error('Required DOM elements not found for minting');
-            return;
-        }
-        
         mintBtn.disabled = true;
         statusDiv.className = 'mint-status pending';
         statusDiv.textContent = 'Preparing to mint NFT...';
@@ -577,21 +567,16 @@ Verification: Check Chrome extension storage for transaction details`;
             this.audioManager.pauseAllAudio();
         }
         
-        const navItems = document.querySelectorAll('.nav-item');
-        if (navItems.length > 0) {
-            navItems.forEach(item => {
-                item.classList.remove('active');
-            });
-        }
-        
-        const activeNavItem = document.querySelector(`[data-section="${section}"]`);
-        if (activeNavItem) {
-            activeNavItem.classList.add('active');
-        }
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        document.querySelector(`[data-section="${section}"]`).classList.add('active');
 
         if (section === 'mint') {
-            // Always show upload-section for mint workflow
-            this.showSection('upload-section');
+            // Show the current mint workflow section or default to upload
+            const mintSection = this.currentSection && this.currentSection.includes('section') ? 
+                this.currentSection : 'upload-section';
+            this.showSection(mintSection);
         } else if (section === 'profile') {
             this.showSection('profile-section');
         } else if (section === 'history') {
@@ -604,11 +589,6 @@ Verification: Check Chrome extension storage for transaction details`;
         } else if (section === 'insights') {
             this.showSection('insights-section');
             this.loadAIInsights();
-        }
-        
-        // Check authentication for mint workflow sections
-        if (section === 'mint') {
-            this.checkAuthenticationStatus();
         }
     }
 
@@ -672,28 +652,13 @@ Verification: Check Chrome extension storage for transaction details`;
         if (artistForm) {
             artistForm.style.display = 'block';
             
-            // Auto-populate from profile if available
-            const enhancedProfile = this.getEnhancedProfileData();
-            
-            const artistNameInput = document.getElementById('artist-name');
-            if (artistNameInput && !artistNameInput.value && enhancedProfile.legalName) {
-                artistNameInput.value = enhancedProfile.legalName;
-            }
-            
-            const stageNameInput = document.getElementById('stage-name');
-            if (stageNameInput && !stageNameInput.value && enhancedProfile.displayName) {
-                stageNameInput.value = enhancedProfile.displayName;
-            }
-            
-            // Auto-populate track title from metadata
             const beatTitleInput = document.getElementById('beat-title');
-            if (beatTitleInput && this.beatMetadata.title && !beatTitleInput.value) {
+            if (beatTitleInput && this.beatMetadata.title) {
                 beatTitleInput.value = this.beatMetadata.title;
             }
             
-            // Auto-populate genre from AI analysis
             const genreSelect = document.getElementById('genre-select');
-            if (genreSelect && this.beatMetadata.suggestedGenre && !genreSelect.value) {
+            if (genreSelect && this.beatMetadata.suggestedGenre) {
                 genreSelect.value = this.beatMetadata.suggestedGenre;
             }
         }
@@ -733,14 +698,14 @@ Verification: Check Chrome extension storage for transaction details`;
     }
     
     getArtistInputs() {
-        // Get form inputs
+        // Get raw inputs
         const artistNameInput = document.getElementById('artist-name')?.value;
         const stageNameInput = document.getElementById('stage-name')?.value;
         const beatTitleInput = document.getElementById('beat-title')?.value;
         const genreInput = document.getElementById('genre-select')?.value;
         const contentTypeInput = document.getElementById('content-type')?.value;
         
-        // Get enhanced profile data for fallback
+        // Get enhanced profile data
         const enhancedProfile = this.getEnhancedProfileData();
         
         // Store user inputs with priority tracking
@@ -760,13 +725,13 @@ Verification: Check Chrome extension storage for transaction details`;
             this.userInputManager.setUserInput('content-type', contentTypeInput, true);
         }
         
-        // Use form inputs with profile fallback
-        const primaryName = artistNameInput || enhancedProfile.legalName || enhancedProfile.displayName || 'Unknown Artist';
-        const stageName = stageNameInput || enhancedProfile.displayName || '';
+        // Use display name as primary, fall back to legal name, then form input
+        const primaryName = enhancedProfile.displayName || enhancedProfile.legalName || artistNameInput;
         
+        // Return with user priority
         return {
             artistName: this.userInputManager.getValue('artist', primaryName, 'Unknown Artist'),
-            stageName: this.userInputManager.getValue('stageName', stageName, ''),
+            stageName: this.userInputManager.getValue('stageName', stageNameInput, ''),
             beatTitle: this.userInputManager.getValue('title', beatTitleInput, this.beatMetadata?.title || 'Untitled Beat'),
             genre: this.userInputManager.getValue('genre', genreInput, this.beatMetadata?.suggestedGenre || 'Electronic'),
             contentType: this.userInputManager.getValue('content-type', contentTypeInput, 'instrumental'),
@@ -921,34 +886,16 @@ Verification: Check Chrome extension storage for transaction details`;
             }
         }
         
-        const container = document.createElement('div');
-        container.style.cssText = 'display: flex; align-items: center; gap: 8px;';
-        
-        const checkmark = document.createElement('span');
-        checkmark.textContent = '✅';
-        
-        const content = document.createElement('div');
-        const welcome = document.createElement('strong');
-        welcome.textContent = `Welcome, ${user.name}!`;
-        
-        const subtitle = document.createElement('small');
-        subtitle.textContent = 'You can now mint NFTs and access all features';
-        
-        content.appendChild(welcome);
-        content.appendChild(document.createElement('br'));
-        content.appendChild(subtitle);
-        
-        if (enhancedText) {
-            const enhanced = document.createElement('small');
-            enhanced.style.color = '#0f5132';
-            enhanced.textContent = enhancedText.replace(/<[^>]*>/g, '');
-            content.appendChild(document.createElement('br'));
-            content.appendChild(enhanced);
-        }
-        
-        container.appendChild(checkmark);
-        container.appendChild(content);
-        successDiv.appendChild(container);
+        successDiv.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span>✅</span>
+                <div>
+                    <strong>Welcome, ${user.name}!</strong><br>
+                    <small>You can now mint NFTs and access all features</small>
+                    ${enhancedText}
+                </div>
+            </div>
+        `;
         
         document.body.appendChild(successDiv);
         
@@ -976,26 +923,15 @@ Verification: Check Chrome extension storage for transaction details`;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         `;
         
-        const container = document.createElement('div');
-        container.style.cssText = 'display: flex; align-items: center; gap: 8px;';
-        
-        const errorIcon = document.createElement('span');
-        errorIcon.textContent = '❌';
-        
-        const content = document.createElement('div');
-        const title = document.createElement('strong');
-        title.textContent = 'Sign-in Failed';
-        
-        const errorMsg = document.createElement('small');
-        errorMsg.textContent = message;
-        
-        content.appendChild(title);
-        content.appendChild(document.createElement('br'));
-        content.appendChild(errorMsg);
-        
-        container.appendChild(errorIcon);
-        container.appendChild(content);
-        errorDiv.appendChild(container);
+        errorDiv.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span>❌</span>
+                <div>
+                    <strong>Sign-in Failed</strong><br>
+                    <small>${message}</small>
+                </div>
+            </div>
+        `;
         
         document.body.appendChild(errorDiv);
         
@@ -1169,8 +1105,8 @@ Verification: Check Chrome extension storage for transaction details`;
     }
     
     showAuthenticationRequired() {
-        // Show authentication required message for all mint workflow sections
-        const sections = ['upload-section', 'licensing-section', 'minting-section', 'success-section'];
+        // Show authentication required message for all sections that need it
+        const sections = ['licensing-section', 'minting-section', 'success-section'];
         
         sections.forEach(sectionId => {
             const section = document.getElementById(sectionId);
@@ -1187,28 +1123,14 @@ Verification: Check Chrome extension storage for transaction details`;
                     color: #856404;
                 `;
                 
-                const lockIcon = document.createElement('div');
-                lockIcon.style.cssText = 'font-size: 24px; margin-bottom: 8px;';
-                lockIcon.textContent = '🔒';
-                
-                const title = document.createElement('h4');
-                title.style.cssText = 'margin: 0 0 8px 0; color: #856404;';
-                title.textContent = 'Authentication Required';
-                
-                const description = document.createElement('p');
-                description.style.cssText = 'margin: 0 0 12px 0;';
-                description.textContent = 'Please sign in with Google to access minting features';
-                
-                const signInBtn = document.createElement('button');
-                signInBtn.id = `auth-signin-${sectionId}`;
-                signInBtn.className = 'btn btn-primary';
-                signInBtn.style.cssText = 'background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;';
-                signInBtn.textContent = '🔑 Sign In with Google';
-                
-                authMessage.appendChild(lockIcon);
-                authMessage.appendChild(title);
-                authMessage.appendChild(description);
-                authMessage.appendChild(signInBtn);
+                authMessage.innerHTML = `
+                    <div style="font-size: 24px; margin-bottom: 8px;">🔒</div>
+                    <h4 style="margin: 0 0 8px 0; color: #856404;">Authentication Required</h4>
+                    <p style="margin: 0 0 12px 0;">Please sign in with Google to access minting features</p>
+                    <button id="auth-signin-${sectionId}" class="btn btn-primary" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                        🔑 Sign In with Google
+                    </button>
+                `;
                 
                 // Add to beginning of section
                 section.insertBefore(authMessage, section.firstChild);
@@ -1232,21 +1154,6 @@ Verification: Check Chrome extension storage for transaction details`;
         });
         
         console.log('🔒 Authentication required - user must sign in to continue');
-    }
-    
-    checkAuthenticationStatus() {
-        if (!this.authManager) {
-            this.showAuthenticationRequired();
-            return false;
-        }
-        
-        const userProfile = this.authManager.getUserProfile();
-        if (!userProfile) {
-            this.showAuthenticationRequired();
-            return false;
-        }
-        
-        return true;
     }
     
     showSecurityStatus(authResult) {
@@ -1402,82 +1309,27 @@ Verification: Check Chrome extension storage for transaction details`;
         const preview = insight.description.length > 80 ? 
             insight.description.substring(0, 80) + '...' : insight.description;
         
-        // Create header
-        const header = document.createElement('div');
-        header.className = 'insight-header';
-        
-        const titleDiv = document.createElement('div');
-        titleDiv.className = 'insight-title';
-        
-        const iconSpan = document.createElement('span');
-        iconSpan.className = 'insight-icon';
-        iconSpan.textContent = icon;
-        
-        const titleH4 = document.createElement('h4');
-        titleH4.textContent = insight.title;
-        
-        titleDiv.appendChild(iconSpan);
-        titleDiv.appendChild(titleH4);
-        
-        const categorySpan = document.createElement('span');
-        categorySpan.className = 'insight-category';
-        categorySpan.textContent = insight.category;
-        
-        header.appendChild(titleDiv);
-        header.appendChild(categorySpan);
-        
-        // Create preview
-        const previewDiv = document.createElement('div');
-        previewDiv.className = 'insight-preview';
-        previewDiv.textContent = preview;
-        
-        // Create meta
-        const metaDiv = document.createElement('div');
-        metaDiv.className = 'insight-meta';
-        
-        const timestampSpan = document.createElement('span');
-        timestampSpan.className = 'insight-timestamp';
-        timestampSpan.textContent = this.formatTimestamp(insight.timestamp);
-        
-        const expandBtn = document.createElement('button');
-        expandBtn.className = 'insight-expand';
-        expandBtn.textContent = '▼ Expand';
-        
-        metaDiv.appendChild(timestampSpan);
-        metaDiv.appendChild(expandBtn);
-        
-        // Create details
-        const detailsDiv = document.createElement('div');
-        detailsDiv.className = 'insight-details';
-        
-        const descriptionDiv = document.createElement('div');
-        descriptionDiv.className = 'insight-description';
-        descriptionDiv.textContent = insight.description;
-        
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'insight-actions';
-        
-        const usefulBtn = document.createElement('button');
-        usefulBtn.className = 'insight-btn primary';
-        usefulBtn.setAttribute('data-action', 'mark-useful');
-        usefulBtn.textContent = '✓ Useful';
-        
-        const dismissBtn = document.createElement('button');
-        dismissBtn.className = 'insight-btn secondary';
-        dismissBtn.setAttribute('data-action', 'dismiss');
-        dismissBtn.textContent = '✗ Dismiss';
-        
-        actionsDiv.appendChild(usefulBtn);
-        actionsDiv.appendChild(dismissBtn);
-        
-        detailsDiv.appendChild(descriptionDiv);
-        detailsDiv.appendChild(actionsDiv);
-        
-        // Assemble card
-        card.appendChild(header);
-        card.appendChild(previewDiv);
-        card.appendChild(metaDiv);
-        card.appendChild(detailsDiv);
+        card.innerHTML = `
+            <div class="insight-header">
+                <div class="insight-title">
+                    <span class="insight-icon">${icon}</span>
+                    <h4>${this.escapeHtml(insight.title)}</h4>
+                </div>
+                <span class="insight-category">${insight.category}</span>
+            </div>
+            <div class="insight-preview">${this.escapeHtml(preview)}</div>
+            <div class="insight-meta">
+                <span class="insight-timestamp">${this.formatTimestamp(insight.timestamp)}</span>
+                <button class="insight-expand">▼ Expand</button>
+            </div>
+            <div class="insight-details">
+                <div class="insight-description">${this.escapeHtml(insight.description)}</div>
+                <div class="insight-actions">
+                    <button class="insight-btn primary" data-action="mark-useful">✓ Useful</button>
+                    <button class="insight-btn secondary" data-action="dismiss">✗ Dismiss</button>
+                </div>
+            </div>
+        `;
         
         // Add event listeners
         const expandBtn = card.querySelector('.insight-expand');
