@@ -570,13 +570,14 @@ Verification: Check Chrome extension storage for transaction details`;
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
         });
-        document.querySelector(`[data-section="${section}"]`).classList.add('active');
+        
+        const activeNavItem = document.querySelector(`[data-section="${section}"]`);
+        if (activeNavItem) {
+            activeNavItem.classList.add('active');
+        }
 
         if (section === 'mint') {
-            // Show the current mint workflow section or default to upload
-            const mintSection = this.currentSection && this.currentSection.includes('section') ? 
-                this.currentSection : 'upload-section';
-            this.showSection(mintSection);
+            this.showSection('upload-section');
         } else if (section === 'profile') {
             this.showSection('profile-section');
         } else if (section === 'history') {
