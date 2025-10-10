@@ -1215,6 +1215,9 @@ Verification: Check Chrome extension storage for transaction details`;
 
     async loadWalletData() {
         try {
+            // Always show WalletConnect section regardless of authentication
+            this.initializeWalletConnect();
+            
             if (!this.authManager) return;
             
             const walletAddress = await this.authManager.getWalletAddress();
@@ -1224,11 +1227,6 @@ Verification: Check Chrome extension storage for transaction details`;
             const balanceElement = document.getElementById('wallet-balance');
             if (balanceElement && walletBalance) {
                 balanceElement.textContent = `${walletBalance} MATIC`;
-            }
-            
-            // Initialize WalletConnect if user is authenticated
-            if (walletAddress) {
-                this.initializeWalletConnect();
             }
             
             console.log('Wallet loaded:', walletAddress);
