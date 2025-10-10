@@ -220,6 +220,43 @@
                 <!-- Audio Preview -->
                 <div id="audio-preview" class="audio-preview"></div>
                 
+                <!-- Audio Metadata Display -->
+                <div id="metadata-display" class="metadata-display" style="display: none;">
+                    <div class="analysis-header">
+                        <h4>Audio Analysis</h4>
+                        <button class="collapse-btn" id="upload-analysis-toggle">▶</button>
+                    </div>
+                    <div class="analysis-content collapsed" id="upload-analysis-content">
+                        <div class="metadata-grid">
+                            <div class="meta-row">
+                                <span class="meta-label">Duration:</span>
+                                <span id="meta-duration">-</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Quality:</span>
+                                <span id="meta-quality">-</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Estimated BPM:</span>
+                                <span id="meta-bpm">-</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Suggested Genre:</span>
+                                <span id="meta-genre">-</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Energy Level:</span>
+                                <span id="meta-energy">-</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">File Size:</span>
+                                <span id="meta-size">-</span>
+                            </div>
+                        </div>
+                        <small class="meta-note">This analysis will be used to generate professional licensing terms</small>
+                    </div>
+                </div>
+                
                 <!-- Artist Information Form -->
                 <div id="artist-form" class="artist-form" style="display: none;">
                     <h4>🎤 Artist Information</h4>
@@ -262,43 +299,6 @@
                                 <option value="Other">Other</option>
                             </select>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Audio Metadata Display -->
-                <div id="metadata-display" class="metadata-display" style="display: none;">
-                    <div class="analysis-header">
-                        <h4>Audio Analysis</h4>
-                        <button class="collapse-btn" id="upload-analysis-toggle">▶</button>
-                    </div>
-                    <div class="analysis-content collapsed" id="upload-analysis-content">
-                        <div class="metadata-grid">
-                            <div class="meta-row">
-                                <span class="meta-label">Duration:</span>
-                                <span id="meta-duration">-</span>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">Quality:</span>
-                                <span id="meta-quality">-</span>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">Estimated BPM:</span>
-                                <span id="meta-bpm">-</span>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">Suggested Genre:</span>
-                                <span id="meta-genre">-</span>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">Energy Level:</span>
-                                <span id="meta-energy">-</span>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">File Size:</span>
-                                <span id="meta-size">-</span>
-                            </div>
-                        </div>
-                        <small class="meta-note">This analysis will be used to generate professional licensing terms</small>
                     </div>
                 </div>
                 
@@ -459,16 +459,16 @@
             
             <!-- AI Insights Section -->
             <section id="insights-section" class="section">
-                <h2>🌱 AI Insights</h2>
+                <h2>AI Insights</h2>
                 <div class="insights-content">
                     <div class="insights-header">
                         <p class="insights-description">Smart insights that grow with your music journey</p>
-                        <button id="grow-new-branch" class="btn btn-primary btn-grow">🌱 Grow New Branch</button>
+                        <button id="grow-new-branch" class="btn btn-primary btn-grow">Grow New Branch</button>
                     </div>
                     
                     <div id="insights-list" class="insights-list">
                         <div class="empty-insights">
-                            <div class="empty-icon">🌱</div>
+                            <div class="empty-icon">AI</div>
                             <p>Your AI insights will grow here</p>
                             <small>Upload beats, update your profile, and prepare radio submissions to generate personalized insights</small>
                         </div>
@@ -476,7 +476,7 @@
                     
                     <div class="insights-footer">
                         <small class="insights-note">
-                            💡 All insights are generated locally and stored privately in your browser
+                            All insights are generated locally and stored privately in your browser
                         </small>
                     </div>
                 </div>
@@ -484,10 +484,10 @@
             
             <!-- Radio Submission Section -->
             <section id="radio-section" class="section">
-                <h2>📻 Radio Submission</h2>
+                <h2>Radio Submission</h2>
                 <div class="radio-content">
                     <div class="radio-info">
-                        <p>🎵 <strong>Independent Radio Submission System</strong></p>
+                        <p><strong>Independent Radio Submission System</strong></p>
                         <small>Upload audio files specifically for radio submission - separate from NFT minting</small>
                     </div>
                     
@@ -577,7 +577,7 @@
                                     </div>
                                 </div>
                                 <div class="samro-metadata">
-                                    <h5>🏦 SAMRO Metadata Standards</h5>
+                                    <h5>SAMRO Metadata Standards</h5>
                                     <div class="metadata-grid">
                                         <div class="meta-row">
                                             <span class="meta-label">Composition Type:</span>
@@ -604,7 +604,7 @@
                     
                     <!-- Step 2: Track Information -->
                     <div id="radio-step-2" class="radio-step">
-                        <h4>🎵 Track Information</h4>
+                        <h4>Track Information</h4>
                         <div class="track-info-form">
                             <div class="form-grid">
                                 <div class="form-row">
@@ -680,14 +680,14 @@
                     
                     <!-- Step 3: Cover Image Upload -->
                     <div id="radio-step-3" class="radio-step">
-                        <h4>🖼️ Cover Image Upload</h4>
+                        <h4>Cover Image Upload</h4>
                         <div class="cover-upload-section">
-                            <p class="requirement-note">📻 <strong>Required for Radio Submission</strong> - Radio stations need cover art for display</p>
+                            <p class="requirement-note"><strong>Required for Radio Submission</strong> - Radio stations need cover art for display</p>
                             
                             <div class="cover-upload-area" id="radio-cover-upload">
                                 <input type="file" id="radio-cover-image" accept="image/*" hidden required>
                                 <div class="upload-content">
-                                    <span class="upload-icon">🖼️</span>
+                                    <span class="upload-icon">IMG</span>
                                     <p>Upload cover image</p>
                                     <small>JPG, PNG (min 500x500px, max 5MB)</small>
                                 </div>
@@ -723,13 +723,13 @@
                     
                     <!-- Step 4: Radio Validation -->
                     <div id="radio-step-4" class="radio-step">
-                        <h4>🔍 Radio Compliance Check</h4>
+                        <h4>Radio Compliance Check</h4>
                         <div id="radio-validation-results" class="validation-results">
                             <!-- Validation results will be populated here -->
                         </div>
                         <div class="step-actions">
                             <button id="radio-step-4-back" class="btn btn-secondary">Back: Cover Image</button>
-                            <button id="validate-radio" class="btn btn-secondary">🔍 Validate for Radio</button>
+                            <button id="validate-radio" class="btn btn-secondary">Validate for Radio</button>
                             <button id="radio-step-4-next" class="btn btn-primary" disabled>Next: Split Sheets</button>
                         </div>
                     </div>
@@ -737,8 +737,8 @@
                     <!-- Step 5: Split Sheets -->
                     <div id="radio-step-5" class="radio-step">
                         <div id="split-sheets" class="split-sheets">
-                            <h4>📄 Split Sheets (SAMRO Compliant)</h4>
-                            <p class="samro-info">🏛️ Required for South African Music Rights Organisation (SAMRO) registration</p>
+                            <h4>Split Sheets (SAMRO Compliant)</h4>
+                            <p class="samro-info">Required for South African Music Rights Organisation (SAMRO) registration</p>
                             
                             <div class="contributors-list">
                                 <div class="contributor-item">
@@ -753,7 +753,7 @@
                                     <input type="text" placeholder="SAMRO Number (optional)" class="form-input samro-number">
                                 </div>
                             </div>
-                            <button id="add-contributor" class="btn btn-secondary">➕ Add Contributor</button>
+                            <button id="add-contributor" class="btn btn-secondary">Add Contributor</button>
                             <div class="percentage-total">
                                 <span>Total: <span id="total-percentage">100</span>%</span>
                                 <small class="percentage-note">Must equal exactly 100%</small>
@@ -768,31 +768,31 @@
                     
                     <!-- Step 6: Package Generation -->
                     <div id="radio-step-6" class="radio-step">
-                        <h4>📦 Radio Submission Package</h4>
+                        <h4>Radio Submission Package</h4>
                         <div class="package-summary">
-                            <h5>📋 Essential Package Contents:</h5>
+                            <h5>Essential Package Contents:</h5>
                             <ul id="package-contents">
-                                <li>🎵 Audio file (radio-ready format)</li>
-                                <li>🖼️ Cover image (station display)</li>
-                                <li>📄 Track metadata (JSON format)</li>
-                                <li>📊 Split sheets (SAMRO compliant)</li>
-                                <li>📞 Contact card with website/email/phone (VCF)</li>
-                                <li>📺 Broadcast metadata (XML)</li>
-                                <li>📊 Track data with contact info (CSV)</li>
-                                <li>🏦 SAMRO documentation</li>
-                                <li>📝 Artist biography (if provided)</li>
+                                <li>Audio file (radio-ready format)</li>
+                                <li>Cover image (station display)</li>
+                                <li>Track metadata (JSON format)</li>
+                                <li>Split sheets (SAMRO compliant)</li>
+                                <li>Contact card with website/email/phone (VCF)</li>
+                                <li>Broadcast metadata (XML)</li>
+                                <li>Track data with contact info (CSV)</li>
+                                <li>SAMRO documentation</li>
+                                <li>Artist biography (if provided)</li>
                             </ul>
                         </div>
                         
                         <div class="package-info">
-                            <p><strong>📞 Complete Contact Info:</strong> Website, email, and phone included in all formats</p>
-                            <p><strong>🎧 Radio Ready:</strong> Essential formats optimized for radio station requirements</p>
-                            <p><strong>🏦 SAMRO Compliant:</strong> Includes all required South African music rights documentation</p>
+                            <p><strong>Complete Contact Info:</strong> Website, email, and phone included in all formats</p>
+                            <p><strong>Radio Ready:</strong> Essential formats optimized for radio station requirements</p>
+                            <p><strong>SAMRO Compliant:</strong> Includes all required South African music rights documentation</p>
                         </div>
                         
                         <div class="radio-actions">
                             <button id="radio-step-6-back" class="btn btn-secondary">Back: Split Sheets</button>
-                            <button id="generate-radio-package" class="btn btn-primary">📦 Generate Professional Package</button>
+                            <button id="generate-radio-package" class="btn btn-primary">Generate Professional Package</button>
                         </div>
                         
                         <div id="package-status" class="package-status" style="display: none;"></div>
