@@ -30,13 +30,13 @@
             <nav class="nav-menu">
                 <button class="menu-toggle" id="menu-toggle">☰ Menu</button>
                 <div class="nav-dropdown" id="nav-dropdown">
-                    <button class="nav-item active" data-section="mint">🎵 Mint NFT</button>
-                    <button class="nav-item" data-section="profile">👤 Profile</button>
-                    <button class="nav-item" data-section="history">📜 History</button>
-                    <button class="nav-item" data-section="share">📱 Share</button>
-                    <button class="nav-item" data-section="radio">📻 Radio</button>
-                    <button class="nav-item" data-section="insights">🌱 AI Insights</button>
-                    <button class="nav-item auth-action" id="header-logout" style="display: none;">🚪 Logout</button>
+                    <button class="nav-item active" data-section="mint">Mint NFT</button>
+                    <button class="nav-item" data-section="profile">Profile</button>
+                    <button class="nav-item" data-section="history">History</button>
+                    <button class="nav-item" data-section="share">Share</button>
+                    <button class="nav-item" data-section="radio">Radio</button>
+                    <button class="nav-item" data-section="insights">AI Insights</button>
+                    <button class="nav-item auth-action" id="header-logout" style="display: none;">Logout</button>
                 </div>
             </nav>
         </header>
@@ -204,7 +204,7 @@
                 
                 <!-- Google Sign-in -->
                 <div class="auth-section">
-                    <button id="google-signin" class="btn btn-google">📧 Sign in with Google</button>
+                    <button id="google-signin" class="btn btn-google">Sign in with Google</button>
                     <span id="user-email" class="user-info"></span>
                 </div>
                 
@@ -267,34 +267,39 @@
                 
                 <!-- Audio Metadata Display -->
                 <div id="metadata-display" class="metadata-display" style="display: none;">
-                    <h4>📊 Audio Analysis</h4>
-                    <div class="metadata-grid">
-                        <div class="meta-row">
-                            <span class="meta-label">Duration:</span>
-                            <span id="meta-duration">-</span>
-                        </div>
-                        <div class="meta-row">
-                            <span class="meta-label">Quality:</span>
-                            <span id="meta-quality">-</span>
-                        </div>
-                        <div class="meta-row">
-                            <span class="meta-label">Estimated BPM:</span>
-                            <span id="meta-bpm">-</span>
-                        </div>
-                        <div class="meta-row">
-                            <span class="meta-label">Suggested Genre:</span>
-                            <span id="meta-genre">-</span>
-                        </div>
-                        <div class="meta-row">
-                            <span class="meta-label">Energy Level:</span>
-                            <span id="meta-energy">-</span>
-                        </div>
-                        <div class="meta-row">
-                            <span class="meta-label">File Size:</span>
-                            <span id="meta-size">-</span>
-                        </div>
+                    <div class="analysis-header">
+                        <h4>Audio Analysis</h4>
+                        <button class="collapse-btn" id="upload-analysis-toggle">▶</button>
                     </div>
-                    <small class="meta-note">💡 This analysis will be used to generate professional licensing terms</small>
+                    <div class="analysis-content collapsed" id="upload-analysis-content">
+                        <div class="metadata-grid">
+                            <div class="meta-row">
+                                <span class="meta-label">Duration:</span>
+                                <span id="meta-duration">-</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Quality:</span>
+                                <span id="meta-quality">-</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Estimated BPM:</span>
+                                <span id="meta-bpm">-</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Suggested Genre:</span>
+                                <span id="meta-genre">-</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Energy Level:</span>
+                                <span id="meta-energy">-</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">File Size:</span>
+                                <span id="meta-size">-</span>
+                            </div>
+                        </div>
+                        <small class="meta-note">This analysis will be used to generate professional licensing terms</small>
+                    </div>
                 </div>
                 
                 <!-- Cover Image Upload -->
@@ -525,10 +530,10 @@
                         <!-- Enhanced Radio Audio Analysis -->
                         <div id="radio-metadata-display" class="metadata-display radio-analysis" style="display: none;">
                             <div class="analysis-header">
-                                <h4>📊 Enhanced Audio Analysis</h4>
-                                <button class="collapse-btn" id="radio-analysis-toggle">▼</button>
+                                <h4>Enhanced Audio Analysis</h4>
+                                <button class="collapse-btn" id="radio-analysis-toggle">▶</button>
                             </div>
-                            <div class="analysis-content" id="radio-analysis-content">
+                            <div class="analysis-content collapsed" id="radio-analysis-content">
                                 <div class="metadata-grid">
                                     <div class="meta-row">
                                         <span class="meta-label">Duration:</span>
@@ -592,7 +597,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <small class="meta-note">💡 Enhanced analysis for professional radio submission and SAMRO compliance</small>
+                                <small class="meta-note">Enhanced analysis for professional radio submission and SAMRO compliance</small>
                             </div>
                         </div>
                     </div>
@@ -808,8 +813,8 @@
                     <span id="wallet-balance">0 MATIC</span>
                 </div>
                 <div class="nft-list">
-                    <h4>Your NFTs</h4>
-                    <div id="nft-collection"></div>
+                    <h4 aria-label="Your NFT collection" role="heading" aria-level="4">Your NFTs</h4>
+                    <div id="nft-collection" aria-live="polite" aria-label="NFT collection list"></div>
                 </div>
                 
                 <!-- WalletConnect Integration -->

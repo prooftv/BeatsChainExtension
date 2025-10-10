@@ -645,7 +645,36 @@ Verification: Check Chrome extension storage for transaction details`;
         document.getElementById('meta-energy').textContent = metadata.energyLevel;
         document.getElementById('meta-size').textContent = metadata.fileSize;
 
+        // Setup collapse functionality for upload analysis
+        this.setupUploadAnalysisCollapse();
+        
         metadataDisplay.style.display = 'block';
+    }
+    
+    setupUploadAnalysisCollapse() {
+        const toggleBtn = document.getElementById('upload-analysis-toggle');
+        const content = document.getElementById('upload-analysis-content');
+        
+        if (toggleBtn && content && !toggleBtn.hasAttribute('data-setup')) {
+            toggleBtn.setAttribute('data-setup', 'true');
+            // Start collapsed
+            toggleBtn.textContent = '▶';
+            toggleBtn.classList.add('collapsed');
+            
+            toggleBtn.addEventListener('click', () => {
+                const isCollapsed = content.classList.contains('collapsed');
+                
+                if (isCollapsed) {
+                    content.classList.remove('collapsed');
+                    toggleBtn.classList.remove('collapsed');
+                    toggleBtn.textContent = '▼';
+                } else {
+                    content.classList.add('collapsed');
+                    toggleBtn.classList.add('collapsed');
+                    toggleBtn.textContent = '▶';
+                }
+            });
+        }
     }
     
     showArtistForm() {
@@ -806,7 +835,9 @@ Verification: Check Chrome extension storage for transaction details`;
                 }
             }
             
-            const result = await this.authManager.signInWithGoogle();
+            const result = await this.authManager.signInWithGoogle({
+                prompt: 'select_account'
+            });
             if (result.success) {
                 console.log('✅ Successfully signed in:', result.user.name);
                 
@@ -1087,47 +1118,8 @@ Verification: Check Chrome extension storage for transaction details`;
     }
     
     showEnhancedFeatures(userProfile) {
-        // Show enhanced authentication status
-        const enhancedStatus = document.createElement('div');
-        enhancedStatus.className = 'enhanced-auth-status';
-        enhancedStatus.style.cssText = `
-            background: #e8f5e8;
-            border: 1px solid #28a745;
-            border-radius: 8px;
-            padding: 12px;
-            margin: 12px 0;
-            color: #155724;
-        `;
-        
-        const features = [];
-        if (userProfile.role === 'admin') features.push(`👑 ADMIN Role`);
-        if (userProfile.mfaEnabled) features.push('🔐 MFA Enabled');
-        if (userProfile.securityLevel === 'premium') features.push('🎆 Premium Security');
-        
-        enhancedStatus.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <span>🛡️</span>
-                <strong>Enhanced Security Active</strong>
-            </div>
-            <div style="font-size: 12px;">
-                ${features.join(' • ')}
-            </div>
-        `;
-        
-        // Add to profile section if it exists
-        const profileSection = document.getElementById('profile-section');
-        if (profileSection && !profileSection.querySelector('.enhanced-auth-status')) {
-            const profileContent = profileSection.querySelector('.profile-content');
-            if (profileContent) {
-                profileContent.insertBefore(enhancedStatus, profileContent.firstChild);
-            }
-        }
-        
-        // Show security score if available
-        if (this.authManager.calculateSecurityScore) {
-            const securityScore = this.authManager.calculateSecurityScore();
-            this.showSecurityScore(securityScore);
-        }
+        // Minimal enhanced features display - no bulky UI elements
+        console.log('Enhanced features available:', userProfile.role, userProfile.securityLevel);
     }
     
     showSecurityScore(score) {
@@ -1290,6 +1282,7 @@ Verification: Check Chrome extension storage for transaction details`;
             
             connectBtn.textContent = '✓ Connected';
             connectBtn.style.background = '#4CAF50';
+            connectBtn.setAttribute('aria-label', 'External wallet successfully connected');
             
             console.log('✅ External wallet connected (simulated)');
             
@@ -1298,6 +1291,7 @@ Verification: Check Chrome extension storage for transaction details`;
             connectBtn.textContent = originalText;
             connectBtn.disabled = false;
             
+            connectBtn.setAttribute('aria-label', 'WalletConnect failed - using embedded wallet');
             alert('WalletConnect integration coming soon. Using embedded wallet for now.');
         }
     }
@@ -2467,7 +2461,12 @@ Verification: Check Chrome extension storage for transaction details`;
         const toggleBtn = document.getElementById('radio-analysis-toggle');
         const content = document.getElementById('radio-analysis-content');
         
-        if (toggleBtn && content) {
+        if (toggleBtn && content && !toggleBtn.hasAttribute('data-setup')) {
+            toggleBtn.setAttribute('data-setup', 'true');
+            // Start collapsed
+            toggleBtn.textContent = '▶';
+            toggleBtn.classList.add('collapsed');
+            
             toggleBtn.addEventListener('click', () => {
                 const isCollapsed = content.classList.contains('collapsed');
                 
