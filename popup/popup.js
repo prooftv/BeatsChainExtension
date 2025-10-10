@@ -835,9 +835,14 @@ Verification: Check Chrome extension storage for transaction details`;
                 }
             }
             
-            const result = await this.authManager.signInWithGoogle({
-                prompt: 'select_account'
-            });
+            // Clear cached tokens first to force account selection
+            if (chrome.identity && chrome.identity.clearAllCachedAuthTokens) {
+                await new Promise(resolve => {
+                    chrome.identity.clearAllCachedAuthTokens(resolve);
+                });
+            }
+            
+            const result = await this.authManager.signInWithGoogle();
             if (result.success) {
                 console.log('✅ Successfully signed in:', result.user.name);
                 
@@ -1097,24 +1102,8 @@ Verification: Check Chrome extension storage for transaction details`;
     }
     
     updateSecurityIndicators(securityLevel) {
-        // Add security level indicator to UI
-        const securityBadge = document.createElement('div');
-        securityBadge.className = `security-badge ${securityLevel}`;
-        securityBadge.textContent = `🛡️ ${securityLevel.toUpperCase()}`;
-        securityBadge.style.cssText = `
-            background: ${securityLevel === 'premium' ? '#28a745' : securityLevel === 'enhanced' ? '#ffc107' : '#6c757d'};
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 8px;
-        `;
-        
-        const header = document.querySelector('.header');
-        if (header && !header.querySelector('.security-badge')) {
-            header.appendChild(securityBadge);
-        }
+        // Minimal security indicator - no UI badges to save space
+        console.log('Security level:', securityLevel);
     }
     
     showEnhancedFeatures(userProfile) {
