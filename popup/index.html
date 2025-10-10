@@ -18,6 +18,15 @@
                 </div>
             </div>
             
+            <!-- Header Authentication Status -->
+            <div class="header-auth" id="header-auth" style="display: none;">
+                <div class="auth-status">
+                    <span class="user-avatar" id="header-user-avatar">👤</span>
+                    <span class="user-name" id="header-user-name">User</span>
+                    <span class="user-role-badge" id="header-user-role" style="display: none;"></span>
+                </div>
+            </div>
+            
             <nav class="nav-menu">
                 <button class="menu-toggle" id="menu-toggle">☰ Menu</button>
                 <div class="nav-dropdown" id="nav-dropdown">
@@ -27,6 +36,7 @@
                     <button class="nav-item" data-section="share">📱 Share</button>
                     <button class="nav-item" data-section="radio">📻 Radio</button>
                     <button class="nav-item" data-section="insights">🌱 AI Insights</button>
+                    <button class="nav-item auth-action" id="header-logout" style="display: none;">🚪 Logout</button>
                 </div>
             </nav>
         </header>
@@ -511,6 +521,80 @@
                         <div id="radio-validation" class="radio-validation">
                             <!-- Dynamic content loaded by JavaScript -->
                         </div>
+                        
+                        <!-- Enhanced Radio Audio Analysis -->
+                        <div id="radio-metadata-display" class="metadata-display radio-analysis" style="display: none;">
+                            <div class="analysis-header">
+                                <h4>📊 Enhanced Audio Analysis</h4>
+                                <button class="collapse-btn" id="radio-analysis-toggle">▼</button>
+                            </div>
+                            <div class="analysis-content" id="radio-analysis-content">
+                                <div class="metadata-grid">
+                                    <div class="meta-row">
+                                        <span class="meta-label">Duration:</span>
+                                        <span id="radio-meta-duration">-</span>
+                                    </div>
+                                    <div class="meta-row">
+                                        <span class="meta-label">Quality:</span>
+                                        <span id="radio-meta-quality">-</span>
+                                    </div>
+                                    <div class="meta-row">
+                                        <span class="meta-label">Format:</span>
+                                        <span id="radio-meta-format">-</span>
+                                    </div>
+                                    <div class="meta-row">
+                                        <span class="meta-label">Bitrate:</span>
+                                        <span id="radio-meta-bitrate">-</span>
+                                    </div>
+                                    <div class="meta-row">
+                                        <span class="meta-label">Sample Rate:</span>
+                                        <span id="radio-meta-samplerate">-</span>
+                                    </div>
+                                    <div class="meta-row">
+                                        <span class="meta-label">File Size:</span>
+                                        <span id="radio-meta-size">-</span>
+                                    </div>
+                                    <div class="meta-row">
+                                        <span class="meta-label">Estimated BPM:</span>
+                                        <span id="radio-meta-bpm">-</span>
+                                    </div>
+                                    <div class="meta-row">
+                                        <span class="meta-label">Suggested Genre:</span>
+                                        <span id="radio-meta-genre">-</span>
+                                    </div>
+                                    <div class="meta-row">
+                                        <span class="meta-label">Energy Level:</span>
+                                        <span id="radio-meta-energy">-</span>
+                                    </div>
+                                    <div class="meta-row">
+                                        <span class="meta-label">Radio Readiness:</span>
+                                        <span id="radio-meta-readiness">-</span>
+                                    </div>
+                                </div>
+                                <div class="samro-metadata">
+                                    <h5>🏦 SAMRO Metadata Standards</h5>
+                                    <div class="metadata-grid">
+                                        <div class="meta-row">
+                                            <span class="meta-label">Composition Type:</span>
+                                            <span id="samro-composition-type">-</span>
+                                        </div>
+                                        <div class="meta-row">
+                                            <span class="meta-label">Performance Rights:</span>
+                                            <span id="samro-performance-rights">-</span>
+                                        </div>
+                                        <div class="meta-row">
+                                            <span class="meta-label">Mechanical Rights:</span>
+                                            <span id="samro-mechanical-rights">-</span>
+                                        </div>
+                                        <div class="meta-row">
+                                            <span class="meta-label">Territory:</span>
+                                            <span id="samro-territory">South Africa</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <small class="meta-note">💡 Enhanced analysis for professional radio submission and SAMRO compliance</small>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Step 2: Track Information -->
@@ -727,6 +811,16 @@
                     <h4>Your NFTs</h4>
                     <div id="nft-collection"></div>
                 </div>
+                
+                <!-- WalletConnect Integration -->
+                <div class="wallet-connect-section" id="wallet-connect-section" style="display: none;">
+                    <h4>External Wallet</h4>
+                    <button id="connect-external-wallet" class="btn btn-secondary btn-sm">🔗 Connect Wallet</button>
+                    <div id="external-wallet-status" class="wallet-status" style="display: none;">
+                        <span class="status-indicator">✓</span>
+                        <span class="status-text">External wallet connected</span>
+                    </div>
+                </div>
             </div>
         </aside>
     </div>
@@ -755,6 +849,7 @@
     <script src="../lib/security-validator.js"></script>
     <script src="../lib/radio-ipfs-manager.js"></script>
     <script src="../lib/smart-trees-ai.js"></script>
+    <script src="../lib/samro-metadata.js"></script>
     <script src="radio-navigation.js"></script>
     <!-- Main Application -->
     <script src="popup.js" type="module"></script>

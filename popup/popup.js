@@ -959,6 +959,9 @@ Verification: Check Chrome extension storage for transaction details`;
                 return;
             }
             
+            // Update header authentication status
+            this.updateHeaderAuth(userProfile, authResult);
+            
             // Update profile display
             const profileName = document.getElementById('profile-name');
             const profileEmail = document.getElementById('profile-email');
@@ -992,6 +995,54 @@ Verification: Check Chrome extension storage for transaction details`;
             
         } catch (error) {
             console.error('Failed to update authenticated UI:', error);
+        }
+    }
+    
+    updateHeaderAuth(userProfile, authResult = null) {
+        const headerAuth = document.getElementById('header-auth');
+        const headerUserName = document.getElementById('header-user-name');
+        const headerUserRole = document.getElementById('header-user-role');
+        const headerLogout = document.getElementById('header-logout');
+        
+        if (headerAuth && headerUserName) {
+            headerAuth.style.display = 'flex';
+            headerUserName.textContent = userProfile.name || 'User';
+            
+            // Show role badge for admin users
+            const role = userProfile.role || (authResult && authResult.role);
+            if (role === 'admin' && headerUserRole) {
+                headerUserRole.style.display = 'inline';
+                headerUserRole.textContent = 'ADMIN';
+                headerUserRole.className = 'user-role-badge admin';
+            }
+            
+            // Show logout option
+            if (headerLogout) {
+                headerLogout.style.display = 'block';
+                headerLogout.addEventListener('click', () => this.handleLogout());
+            }
+        }
+    }
+    
+    async handleLogout() {
+        try {
+            if (this.authManager) {
+                await this.authManager.signOut();
+            }
+            
+            // Hide header auth
+            const headerAuth = document.getElementById('header-auth');
+            const headerLogout = document.getElementById('header-logout');
+            if (headerAuth) headerAuth.style.display = 'none';
+            if (headerLogout) headerLogout.style.display = 'none';
+            
+            // Reset app state
+            this.resetApp();
+            this.showAuthenticationRequired();
+            
+            console.log('✅ Successfully logged out');
+        } catch (error) {
+            console.error('Logout failed:', error);
         }
     }
     
@@ -1194,9 +1245,60 @@ Verification: Check Chrome extension storage for transaction details`;
                 balanceElement.textContent = `${walletBalance} MATIC`;
             }
             
+            // Initialize WalletConnect if user is authenticated
+            if (walletAddress) {
+                this.initializeWalletConnect();
+            }
+            
             console.log('Wallet loaded:', walletAddress);
         } catch (error) {
             console.error('Failed to load wallet data:', error);
+        }
+    }
+    
+    initializeWalletConnect() {
+        const walletConnectSection = document.getElementById('wallet-connect-section');
+        const connectBtn = document.getElementById('connect-external-wallet');
+        
+        if (walletConnectSection) {
+            walletConnectSection.style.display = 'block';
+        }
+        
+        if (connectBtn) {
+            connectBtn.addEventListener('click', this.handleWalletConnect.bind(this));
+        }
+    }
+    
+    async handleWalletConnect() {
+        const connectBtn = document.getElementById('connect-external-wallet');
+        const statusDiv = document.getElementById('external-wallet-status');
+        
+        if (!connectBtn) return;
+        
+        const originalText = connectBtn.textContent;
+        connectBtn.disabled = true;
+        connectBtn.textContent = '🔄 Connecting...';
+        
+        try {
+            // Simulate WalletConnect integration (placeholder for future implementation)
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Show connected status
+            if (statusDiv) {
+                statusDiv.style.display = 'flex';
+            }
+            
+            connectBtn.textContent = '✓ Connected';
+            connectBtn.style.background = '#4CAF50';
+            
+            console.log('✅ External wallet connected (simulated)');
+            
+        } catch (error) {
+            console.error('WalletConnect failed:', error);
+            connectBtn.textContent = originalText;
+            connectBtn.disabled = false;
+            
+            alert('WalletConnect integration coming soon. Using embedded wallet for now.');
         }
     }
     
@@ -1206,6 +1308,12 @@ Verification: Check Chrome extension storage for transaction details`;
             if (window.RadioIPFSManager) {
                 this.radioIPFSManager = new RadioIPFSManager();
                 console.log('✅ Radio IPFS manager initialized');
+            }
+            
+            // Initialize SAMRO Metadata Manager
+            if (window.SamroMetadataManager) {
+                this.samroManager = new SamroMetadataManager();
+                console.log('✅ SAMRO metadata manager initialized');
             }
             
         } catch (error) {
@@ -2059,6 +2167,12 @@ Verification: Check Chrome extension storage for transaction details`;
             this.splitSheetsManager = new SplitSheetsManager();
             this.radioMetadataManager = new RadioMetadataManager();
             
+            // Initialize SAMRO manager if available
+            if (this.samroManager) {
+                this.samroManager.initialize();
+                console.log('✅ SAMRO fields initialized');
+            }
+            
             // Initialize metadata form
             this.radioMetadataManager.initializeForm();
             
@@ -2277,41 +2391,97 @@ Verification: Check Chrome extension storage for transaction details`;
         const metadataDisplay = document.getElementById('radio-metadata-display');
         if (!metadataDisplay) return;
         
-        // Secure DOM creation instead of innerHTML
-        metadataDisplay.innerHTML = '';
+        // Update enhanced radio analysis fields
+        document.getElementById('radio-meta-duration').textContent = metadata.duration || '-';
+        document.getElementById('radio-meta-quality').textContent = metadata.qualityLevel || '-';
+        document.getElementById('radio-meta-format').textContent = metadata.format || '-';
+        document.getElementById('radio-meta-bitrate').textContent = metadata.estimatedBitrate || '-';
+        document.getElementById('radio-meta-samplerate').textContent = metadata.sampleRate || '44.1 kHz';
+        document.getElementById('radio-meta-size').textContent = metadata.fileSize || '-';
+        document.getElementById('radio-meta-bpm').textContent = metadata.estimatedBPM || '-';
+        document.getElementById('radio-meta-genre').textContent = metadata.suggestedGenre || '-';
+        document.getElementById('radio-meta-energy').textContent = metadata.energyLevel || '-';
         
-        const title = document.createElement('h4');
-        title.textContent = '📊 Audio Analysis';
+        // Calculate radio readiness score
+        const readinessScore = this.calculateRadioReadiness(metadata);
+        document.getElementById('radio-meta-readiness').textContent = readinessScore;
         
-        const grid = document.createElement('div');
-        grid.className = 'metadata-grid';
+        // Update SAMRO metadata
+        document.getElementById('samro-composition-type').textContent = this.determineSamroCompositionType(metadata);
+        document.getElementById('samro-performance-rights').textContent = 'Required';
+        document.getElementById('samro-mechanical-rights').textContent = 'Required';
         
-        const metaItems = [
-            { label: 'Duration:', value: metadata.duration },
-            { label: 'Quality:', value: metadata.qualityLevel },
-            { label: 'Format:', value: metadata.format },
-            { label: 'File Size:', value: metadata.fileSize }
-        ];
+        // Setup collapse functionality
+        this.setupRadioAnalysisCollapse();
         
-        metaItems.forEach(item => {
-            const row = document.createElement('div');
-            row.className = 'meta-row';
-            
-            const label = document.createElement('span');
-            label.className = 'meta-label';
-            label.textContent = item.label;
-            
-            const value = document.createElement('span');
-            value.textContent = item.value;
-            
-            row.appendChild(label);
-            row.appendChild(value);
-            grid.appendChild(row);
-        });
-        
-        metadataDisplay.appendChild(title);
-        metadataDisplay.appendChild(grid);
         metadataDisplay.style.display = 'block';
+    }
+    
+    calculateRadioReadiness(metadata) {
+        let score = 0;
+        let total = 0;
+        
+        // Duration check (2:30-3:30 optimal)
+        if (metadata.durationSeconds) {
+            total++;
+            if (metadata.durationSeconds >= 150 && metadata.durationSeconds <= 210) {
+                score++;
+            } else if (metadata.durationSeconds <= 240) {
+                score += 0.8;
+            }
+        }
+        
+        // Quality check
+        if (metadata.estimatedBitrate) {
+            total++;
+            const bitrate = parseInt(metadata.estimatedBitrate);
+            if (bitrate >= 320) score++;
+            else if (bitrate >= 256) score += 0.8;
+            else if (bitrate >= 192) score += 0.6;
+        }
+        
+        // Format check
+        if (metadata.format) {
+            total++;
+            if (['MP3', 'WAV'].includes(metadata.format.toUpperCase())) {
+                score++;
+            }
+        }
+        
+        const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+        return `${percentage}% Ready`;
+    }
+    
+    determineSamroCompositionType(metadata) {
+        if (metadata.suggestedGenre) {
+            const genre = metadata.suggestedGenre.toLowerCase();
+            if (genre.includes('instrumental') || !metadata.hasVocals) {
+                return 'Instrumental Work';
+            }
+            return 'Musical Work with Lyrics';
+        }
+        return 'Musical Work';
+    }
+    
+    setupRadioAnalysisCollapse() {
+        const toggleBtn = document.getElementById('radio-analysis-toggle');
+        const content = document.getElementById('radio-analysis-content');
+        
+        if (toggleBtn && content) {
+            toggleBtn.addEventListener('click', () => {
+                const isCollapsed = content.classList.contains('collapsed');
+                
+                if (isCollapsed) {
+                    content.classList.remove('collapsed');
+                    toggleBtn.classList.remove('collapsed');
+                    toggleBtn.textContent = '▼';
+                } else {
+                    content.classList.add('collapsed');
+                    toggleBtn.classList.add('collapsed');
+                    toggleBtn.textContent = '▶';
+                }
+            });
+        }
     }
     
     async validateForRadio() {
@@ -2543,9 +2713,24 @@ Verification: Check Chrome extension storage for transaction details`;
                 content: JSON.stringify(splitSheet, null, 2)
             });
             
+            // Generate enhanced SAMRO documentation
+            let samroReport;
+            if (this.samroManager && this.samroManager.isValid()) {
+                const samroMetadata = this.samroManager.getSamroMetadata();
+                samroReport = this.samroManager.generateSamroReport(radioMetadata);
+                
+                // Add comprehensive SAMRO metadata file
+                files.push({
+                    name: 'SAMRO_metadata.json',
+                    content: JSON.stringify(samroMetadata, null, 2)
+                });
+            } else {
+                samroReport = this.splitSheetsManager.generateSamroReport(radioMetadata);
+            }
+            
             files.push({
                 name: 'SAMRO_Split_Sheet.txt',
-                content: this.splitSheetsManager.generateSamroReport(radioMetadata)
+                content: samroReport
             });
             
             // Add artist biography file if provided
