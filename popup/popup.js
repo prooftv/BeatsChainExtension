@@ -2272,6 +2272,8 @@ Verification: Check Chrome extension storage for transaction details`;
     }
     
     async processRadioFile(file) {
+        console.log('🎵 Processing radio file:', file.name);
+        
         try {
             // Enhanced security validation for radio files
             if (!this.audioManager) {
@@ -2284,23 +2286,32 @@ Verification: Check Chrome extension storage for transaction details`;
             }
             
             this.radioAudioFile = file;
+            console.log('📊 Extracting radio metadata...');
             this.radioMetadata = await this.extractAudioMetadata(file, 'radio');
+            console.log('📊 Radio metadata extracted:', this.radioMetadata);
             
             // Create audio preview FIRST
+            console.log('🎧 Creating radio audio preview...');
             this.createRadioAudioPreview(file);
+            
+            // CRITICAL FIX: Always display radio metadata analysis
+            console.log('📊 Displaying radio metadata analysis...');
             this.displayRadioMetadata(this.radioMetadata);
             
             // Show next button for step progression
             const nextButton = document.getElementById('radio-step-1-next');
             if (nextButton) {
                 nextButton.style.display = 'block';
+                console.log('✅ Next button shown');
             }
             
             // Pre-populate track information in step 2
             this.populateTrackInfoFromMetadata();
             
+            console.log('✅ Radio file processed successfully with analysis displayed');
+            
         } catch (error) {
-            console.error('Radio file processing failed:', error);
+            console.error('❌ Radio file processing failed:', error);
             alert(`Radio file upload failed: ${error.message}`);
         }
     }
@@ -2369,33 +2380,41 @@ Verification: Check Chrome extension storage for transaction details`;
     }
     
     displayRadioMetadata(metadata) {
+        console.log('🔍 Displaying radio metadata:', metadata);
         const metadataDisplay = document.getElementById('radio-metadata-display');
-        if (!metadataDisplay) return;
+        if (!metadataDisplay) {
+            console.error('❌ Radio metadata display element not found');
+            return;
+        }
         
-        // Update enhanced radio analysis fields
-        document.getElementById('radio-meta-duration').textContent = metadata.duration || '-';
-        document.getElementById('radio-meta-quality').textContent = metadata.qualityLevel || '-';
-        document.getElementById('radio-meta-format').textContent = metadata.format || '-';
-        document.getElementById('radio-meta-bitrate').textContent = metadata.estimatedBitrate || '-';
-        document.getElementById('radio-meta-samplerate').textContent = metadata.sampleRate || '44.1 kHz';
-        document.getElementById('radio-meta-size').textContent = metadata.fileSize || '-';
-        document.getElementById('radio-meta-bpm').textContent = metadata.estimatedBPM || '-';
-        document.getElementById('radio-meta-genre').textContent = metadata.suggestedGenre || '-';
-        document.getElementById('radio-meta-energy').textContent = metadata.energyLevel || '-';
-        
-        // Calculate radio readiness score
-        const readinessScore = this.calculateRadioReadiness(metadata);
-        document.getElementById('radio-meta-readiness').textContent = readinessScore;
-        
-        // Update SAMRO metadata
-        document.getElementById('samro-composition-type').textContent = this.determineSamroCompositionType(metadata);
-        document.getElementById('samro-performance-rights').textContent = 'Required';
-        document.getElementById('samro-mechanical-rights').textContent = 'Required';
-        
-        // Setup collapse functionality
-        this.setupRadioAnalysisCollapse();
-        
-        metadataDisplay.style.display = 'block';
+        try {
+            // Update enhanced radio analysis fields with error checking
+            const updateElement = (id, value) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value || '-';
+                } else {
+                    console.warn(`⚠️ Element ${id} not found`);
+                }
+            };
+            
+            updateElement('radio-meta-duration', metadata.duration);
+            updateElement('radio-meta-quality', metadata.qualityLevel);
+            updateElement('radio-meta-bpm', metadata.estimatedBPM);
+            updateElement('radio-meta-genre', metadata.suggestedGenre);
+            updateElement('radio-meta-energy', metadata.energyLevel);
+            updateElement('radio-meta-size', metadata.fileSize);
+            
+            // Setup collapse functionality FIRST
+            this.setupRadioAnalysisCollapse();
+            
+            // Show the metadata display
+            metadataDisplay.style.display = 'block';
+            console.log('✅ Radio metadata display updated and shown');
+            
+        } catch (error) {
+            console.error('❌ Error displaying radio metadata:', error);
+        }
     }
     
     calculateRadioReadiness(metadata) {
@@ -2448,25 +2467,39 @@ Verification: Check Chrome extension storage for transaction details`;
         const toggleBtn = document.getElementById('radio-analysis-toggle');
         const content = document.getElementById('radio-analysis-content');
         
-        if (toggleBtn && content && !toggleBtn.hasAttribute('data-setup')) {
-            toggleBtn.setAttribute('data-setup', 'true');
-            // Start collapsed
-            toggleBtn.textContent = '▶';
-            toggleBtn.classList.add('collapsed');
+        console.log('🔧 Setting up radio analysis collapse:', { toggleBtn: !!toggleBtn, content: !!content });
+        
+        if (toggleBtn && content) {
+            // Remove existing listeners to prevent duplicates
+            const newToggleBtn = toggleBtn.cloneNode(true);
+            toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
             
-            toggleBtn.addEventListener('click', () => {
+            // Start collapsed
+            newToggleBtn.textContent = '▶';
+            newToggleBtn.classList.add('collapsed');
+            content.classList.add('collapsed');
+            
+            newToggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 const isCollapsed = content.classList.contains('collapsed');
+                console.log('📊 Radio analysis toggle clicked, currently collapsed:', isCollapsed);
                 
                 if (isCollapsed) {
                     content.classList.remove('collapsed');
-                    toggleBtn.classList.remove('collapsed');
-                    toggleBtn.textContent = '▼';
+                    newToggleBtn.classList.remove('collapsed');
+                    newToggleBtn.textContent = '▼';
                 } else {
                     content.classList.add('collapsed');
-                    toggleBtn.classList.add('collapsed');
-                    toggleBtn.textContent = '▶';
+                    newToggleBtn.classList.add('collapsed');
+                    newToggleBtn.textContent = '▶';
                 }
             });
+            
+            console.log('✅ Radio analysis collapse setup complete');
+        } else {
+            console.error('❌ Radio analysis collapse elements not found');
         }
     }
     

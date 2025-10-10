@@ -223,7 +223,7 @@
                 <!-- Audio Metadata Display -->
                 <div id="metadata-display" class="metadata-display" style="display: none;">
                     <div class="analysis-header">
-                        <h4>Audio Analysis</h4>
+                        <h4>📊 Audio Analysis</h4>
                         <button class="collapse-btn" id="upload-analysis-toggle">▶</button>
                     </div>
                     <div class="analysis-content collapsed" id="upload-analysis-content">
@@ -527,11 +527,14 @@
                             <!-- Dynamic content loaded by JavaScript -->
                         </div>
                         
-                        <!-- Enhanced Radio Audio Analysis -->
-                        <div id="radio-metadata-display" class="metadata-display radio-analysis" style="display: none;">
+                        <!-- Radio Audio Preview -->
+                        <div id="radio-audio-preview" class="audio-preview"></div>
+                        
+                        <!-- Radio Audio Analysis -->
+                        <div id="radio-metadata-display" class="metadata-display" style="display: none;">
                             <div class="analysis-header">
-                                <h4>Enhanced Audio Analysis</h4>
-                                <button class="collapse-btn" id="radio-analysis-toggle">▶</button>
+                                <h4>📊 Audio Analysis</h4>
+                                <button class="collapse-btn" id="radio-analysis-toggle" type="button">▶</button>
                             </div>
                             <div class="analysis-content collapsed" id="radio-analysis-content">
                                 <div class="metadata-grid">
@@ -542,22 +545,6 @@
                                     <div class="meta-row">
                                         <span class="meta-label">Quality:</span>
                                         <span id="radio-meta-quality">-</span>
-                                    </div>
-                                    <div class="meta-row">
-                                        <span class="meta-label">Format:</span>
-                                        <span id="radio-meta-format">-</span>
-                                    </div>
-                                    <div class="meta-row">
-                                        <span class="meta-label">Bitrate:</span>
-                                        <span id="radio-meta-bitrate">-</span>
-                                    </div>
-                                    <div class="meta-row">
-                                        <span class="meta-label">Sample Rate:</span>
-                                        <span id="radio-meta-samplerate">-</span>
-                                    </div>
-                                    <div class="meta-row">
-                                        <span class="meta-label">File Size:</span>
-                                        <span id="radio-meta-size">-</span>
                                     </div>
                                     <div class="meta-row">
                                         <span class="meta-label">Estimated BPM:</span>
@@ -572,32 +559,11 @@
                                         <span id="radio-meta-energy">-</span>
                                     </div>
                                     <div class="meta-row">
-                                        <span class="meta-label">Radio Readiness:</span>
-                                        <span id="radio-meta-readiness">-</span>
+                                        <span class="meta-label">File Size:</span>
+                                        <span id="radio-meta-size">-</span>
                                     </div>
                                 </div>
-                                <div class="samro-metadata">
-                                    <h5>SAMRO Metadata Standards</h5>
-                                    <div class="metadata-grid">
-                                        <div class="meta-row">
-                                            <span class="meta-label">Composition Type:</span>
-                                            <span id="samro-composition-type">-</span>
-                                        </div>
-                                        <div class="meta-row">
-                                            <span class="meta-label">Performance Rights:</span>
-                                            <span id="samro-performance-rights">-</span>
-                                        </div>
-                                        <div class="meta-row">
-                                            <span class="meta-label">Mechanical Rights:</span>
-                                            <span id="samro-mechanical-rights">-</span>
-                                        </div>
-                                        <div class="meta-row">
-                                            <span class="meta-label">Territory:</span>
-                                            <span id="samro-territory">South Africa</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <small class="meta-note">Enhanced analysis for professional radio submission and SAMRO compliance</small>
+                                <small class="meta-note">This analysis will be used for radio compliance validation</small>
                             </div>
                         </div>
                     </div>
