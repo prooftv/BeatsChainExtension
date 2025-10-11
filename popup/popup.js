@@ -58,20 +58,25 @@ class BeatsChainApp {
                     await this.updateAuthenticatedUI(userProfile);
                 } else {
                     console.log('ℹ️ User not authenticated - sign in required for minting');
+                    // CHROME AI CHALLENGE 2025: Bypass authentication for judges
+                    console.log('🎯 Chrome Challenge Mode: Authentication bypassed for evaluation');
+                    this.currentUser = {
+                        email: 'chrome-judge@beatschain.demo',
+                        name: 'Chrome AI Challenge Judge',
+                        id: 'chrome-challenge-demo'
+                    };
                     this.showAuthenticationRequired();
                 }
             } catch (error) {
                 console.error('Authentication manager initialization failed:', error);
                 // CHROME AI CHALLENGE 2025: Bypass authentication for judges
-                console.log('🎯 Chrome Challenge Mode: Authentication bypassed for evaluation');
+                console.log('🎯 Chrome Challenge Mode: Authentication bypassed for evaluation (error case)');
                 this.currentUser = {
                     email: 'chrome-judge@beatschain.demo',
                     name: 'Chrome AI Challenge Judge',
                     id: 'chrome-challenge-demo'
                 };
-                // Hide authentication required messages for Chrome Challenge
-                this.hideAuthenticationRequired();
-                // Continue initialization instead of returning
+                this.showAuthenticationRequired();
             }
             
             try {
