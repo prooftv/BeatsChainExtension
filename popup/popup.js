@@ -3412,24 +3412,63 @@ Verification: Check Chrome extension storage for transaction details`;
                 return;
             }
             
-            // Create export data
-            const exportData = {
-                address: walletData.wallet_address,
-                privateKey: walletData.wallet_private_key,
-                exportDate: new Date().toISOString(),
-                warning: 'KEEP THIS PRIVATE KEY SECURE - Anyone with this key can access your wallet'
+            // Create beginner-friendly export guide
+            const exportGuide = {
+                "WALLET_EXPORT_GUIDE": "BeatsChain Wallet - Beginner's Guide",
+                "WHAT_IS_THIS": {
+                    "explanation": "This is your Web3 wallet - like a digital bank account for cryptocurrencies and NFTs",
+                    "yourAddress": walletData.wallet_address,
+                    "network": "Polygon Mumbai Testnet (for testing)",
+                    "createdDate": new Date().toISOString()
+                },
+                "HOW_TO_USE_YOUR_WALLET": {
+                    "step1": "Download a wallet app (MetaMask, Trust Wallet, or Coinbase Wallet)",
+                    "step2": "Choose 'Import Existing Wallet' or 'Import Account'",
+                    "step3": "Select 'Private Key' as import method",
+                    "step4": "Paste your private key (found below)",
+                    "step5": "Your wallet will appear with your NFTs and crypto"
+                },
+                "POPULAR_WALLET_APPS": {
+                    "MetaMask": "Most popular - works in browser and mobile",
+                    "Trust_Wallet": "Mobile-first - easy for beginners",
+                    "Coinbase_Wallet": "User-friendly - good for new users"
+                },
+                "IMPORT_INSTRUCTIONS": {
+                    "MetaMask": "Settings → Import Account → Private Key → Paste key below",
+                    "Trust_Wallet": "Settings → Wallets → Import Wallet → Private Key",
+                    "Coinbase_Wallet": "Settings → Import → Private Key"
+                },
+                "YOUR_PRIVATE_KEY": walletData.wallet_private_key,
+                "SECURITY_WARNING": {
+                    "CRITICAL": "🚨 NEVER SHARE YOUR PRIVATE KEY WITH ANYONE! 🚨",
+                    "why_important": "Anyone with this key can steal ALL your crypto and NFTs",
+                    "storage_tips": [
+                        "Save this file in a secure location (not cloud storage)",
+                        "Consider printing a physical backup",
+                        "Never email or message your private key",
+                        "Don't store it in photos or screenshots"
+                    ],
+                    "if_lost": "If you lose this key, you lose access to your wallet forever"
+                },
+                "NEXT_STEPS": {
+                    "backup": "Make multiple secure backups of this file",
+                    "test": "Import into a wallet app to test access",
+                    "learn": "Learn more about Web3 security at ethereum.org/security"
+                },
+                "SUPPORT": "Need help? Visit our documentation or contact support"
             };
             
             // Download as JSON file
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(exportGuide, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `BeatsChain-Wallet-${walletAddress.substring(0, 8)}.json`;
+            a.download = `BeatsChain-Wallet-Guide-${walletAddress.substring(0, 8)}.json`;
             a.click();
             URL.revokeObjectURL(url);
             
-            alert('Wallet exported successfully! Keep the file secure.');
+            // Show educational success message
+            alert('✅ Wallet guide downloaded!\n\n📖 This file contains:\n• Step-by-step setup instructions\n• Popular wallet app recommendations\n• Important security warnings\n• Your private key for importing\n\n🔒 Keep this file secure and never share your private key!');
             
         } catch (error) {
             console.error('Wallet export failed:', error);
