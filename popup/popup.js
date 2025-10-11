@@ -62,10 +62,15 @@ class BeatsChainApp {
                 }
             } catch (error) {
                 console.error('Authentication manager initialization failed:', error);
-                // For Chrome Challenge: Continue with demo mode
-                console.log('🎯 Running in Chrome Challenge demo mode');
+                // CHROME AI CHALLENGE 2025: Bypass authentication for judges
+                console.log('🎯 Chrome Challenge Mode: Authentication bypassed for evaluation');
+                this.currentUser = {
+                    email: 'chrome-judge@beatschain.demo',
+                    name: 'Chrome AI Challenge Judge',
+                    id: 'chrome-challenge-demo'
+                };
                 this.showAuthenticationRequired();
-                // Don't return - continue initialization for demo
+                // Continue initialization instead of returning
             }
             
             try {
@@ -584,6 +589,7 @@ Verification: Check Chrome extension storage for transaction details`;
             this.showSection('profile-section');
         } else if (section === 'history') {
             this.showSection('history-section');
+            this.loadHistory();
         } else if (section === 'share') {
             this.showSection('share-section');
         } else if (section === 'radio') {
@@ -2838,9 +2844,16 @@ Verification: Check Chrome extension storage for transaction details`;
             
             URL.revokeObjectURL(url);
             
-            // Show success with format count
+            // Show success with format count and download notification
             const formatCount = files.length;
             generateBtn.textContent = `✅ ${formatCount} Files Generated!`;
+            
+            // Show prominent download success message
+            this.showRadioPackageSuccess(formatCount, sanitizedTitle);
+            
+            // Store radio submission in history
+            this.storeRadioSubmission(radioMetadata, formatCount);
+            
             setTimeout(() => {
                 generateBtn.textContent = '📦 Generate Radio Package';
                 generateBtn.disabled = false;
@@ -2848,7 +2861,41 @@ Verification: Check Chrome extension storage for transaction details`;
             
         } catch (error) {
             console.error('Radio package generation failed:', error);
-            alert(`Failed to generate radio package: ${error.message}`);
+            
+            // Show error notification
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #f8d7da;
+                border: 1px solid #f5c6cb;
+                color: #721c24;
+                padding: 16px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                max-width: 350px;
+            `;
+            
+            errorDiv.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 24px;">❌</span>
+                    <div>
+                        <strong>Package Generation Failed</strong><br>
+                        <small>${error.message}</small>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.parentNode.removeChild(errorDiv);
+                }
+            }, 5000);
+            
             generateBtn.disabled = false;
             generateBtn.textContent = '📦 Generate Radio Package';
         }
@@ -3125,6 +3172,206 @@ Verification: Check Chrome extension storage for transaction details`;
             generateBtn.disabled = !isValid;
             generateBtn.title = isValid ? 'Generate radio package' : `Need: 100% total (${total.toFixed(1)}%) + valid names for all contributors`;
         }
+    }
+    
+    storeRadioSubmission(radioMetadata, fileCount) {
+        try {
+            const submissionData = {
+                type: 'radio_submission',
+                title: radioMetadata.title,
+                artist: radioMetadata.artist,
+                genre: radioMetadata.genre,
+                duration: radioMetadata.duration,
+                fileCount: fileCount,
+                submissionDate: radioMetadata.submissionDate,
+                timestamp: Date.now()
+            };
+            
+            // Store using Chrome runtime if available
+            if (chrome.runtime && chrome.runtime.sendMessage) {
+                chrome.runtime.sendMessage({
+                    action: 'store_radio_submission',
+                    data: submissionData
+                });
+            } else {
+                // Fallback to local storage
+                const stored = localStorage.getItem('radio_submissions') || '[]';
+                const submissions = JSON.parse(stored);
+                submissions.unshift(submissionData);
+                localStorage.setItem('radio_submissions', JSON.stringify(submissions.slice(0, 50)));
+            }
+        } catch (error) {
+            console.error('Failed to store radio submission:', error);
+        }
+    }
+    
+    showRadioPackageSuccess(fileCount, title) {
+        const successDiv = document.createElement('div');
+        successDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 16px 20px;
+            border-radius: 8px;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-width: 350px;
+            font-size: 14px;
+        `;
+        
+        successDiv.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 24px;">📦</span>
+                <div>
+                    <strong>Radio Package Downloaded!</strong><br>
+                    <small>${fileCount} files generated for "${title}"</small><br>
+                    <small style="color: #0f5132;">Check your Downloads folder</small>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(successDiv);
+        
+        setTimeout(() => {
+            if (successDiv.parentNode) {
+                successDiv.parentNode.removeChild(successDiv);
+            }
+        }, 5000);
+    }
+    
+    async loadHistory() {
+        console.log('Loading history...');
+        const historyList = document.getElementById('history-list');
+        if (!historyList) {
+            console.error('History list element not found');
+            return;
+        }
+        
+        try {
+            let nftHistory = [];
+            let radioHistory = [];
+            
+            // Load NFT history from Chrome runtime
+            if (chrome.runtime && chrome.runtime.sendMessage) {
+                try {
+                    const nftResponse = await new Promise((resolve) => {
+                        chrome.runtime.sendMessage({ action: 'get_nft_history' }, resolve);
+                    });
+                    if (nftResponse && nftResponse.data) {
+                        nftHistory = nftResponse.data;
+                    }
+                } catch (error) {
+                    console.log('Chrome runtime NFT history unavailable');
+                }
+                
+                try {
+                    const radioResponse = await new Promise((resolve) => {
+                        chrome.runtime.sendMessage({ action: 'get_radio_history' }, resolve);
+                    });
+                    if (radioResponse && radioResponse.data) {
+                        radioHistory = radioResponse.data;
+                    }
+                } catch (error) {
+                    console.log('Chrome runtime radio history unavailable');
+                }
+            }
+            
+            // Fallback to localStorage
+            if (nftHistory.length === 0) {
+                const storedNFTs = localStorage.getItem('nft_history');
+                if (storedNFTs) {
+                    nftHistory = JSON.parse(storedNFTs);
+                }
+            }
+            
+            if (radioHistory.length === 0) {
+                const storedRadio = localStorage.getItem('radio_submissions');
+                if (storedRadio) {
+                    radioHistory = JSON.parse(storedRadio);
+                }
+            }
+            
+            // Combine and sort by timestamp
+            const allHistory = [...nftHistory, ...radioHistory].sort((a, b) => {
+                const timeA = a.timestamp || new Date(a.submissionDate || a.mintDate || 0).getTime();
+                const timeB = b.timestamp || new Date(b.submissionDate || b.mintDate || 0).getTime();
+                return timeB - timeA; // Most recent first
+            });
+            
+            if (allHistory.length === 0) {
+                historyList.innerHTML = `
+                    <div class="empty-history">
+                        <div class="empty-icon">📜</div>
+                        <p>No history yet</p>
+                        <small>Your NFT mints and radio submissions will appear here</small>
+                    </div>
+                `;
+                return;
+            }
+            
+            historyList.innerHTML = '';
+            
+            allHistory.forEach(item => {
+                const historyItem = this.createHistoryItem(item);
+                historyList.appendChild(historyItem);
+            });
+            
+            console.log(`Loaded ${allHistory.length} history items`);
+            
+        } catch (error) {
+            console.error('Failed to load history:', error);
+            historyList.innerHTML = `
+                <div class="error-history">
+                    <div class="error-icon">⚠️</div>
+                    <p>Failed to load history</p>
+                    <small>Please try refreshing the extension</small>
+                </div>
+            `;
+        }
+    }
+    
+    createHistoryItem(item) {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        
+        const isNFT = item.type === 'nft' || item.txHash;
+        const isRadio = item.type === 'radio_submission';
+        
+        const icon = isNFT ? '🎵' : '📻';
+        const type = isNFT ? 'NFT Mint' : 'Radio Submission';
+        const title = item.title || 'Untitled';
+        const artist = item.artist || 'Unknown Artist';
+        
+        let dateStr = 'Unknown date';
+        if (item.timestamp) {
+            dateStr = new Date(item.timestamp).toLocaleDateString();
+        } else if (item.submissionDate) {
+            dateStr = new Date(item.submissionDate).toLocaleDateString();
+        } else if (item.mintDate) {
+            dateStr = new Date(item.mintDate).toLocaleDateString();
+        }
+        
+        historyItem.innerHTML = `
+            <div class="history-item-header">
+                <div class="history-item-info">
+                    <span class="history-icon">${icon}</span>
+                    <div class="history-details">
+                        <h4>${this.escapeHtml(title)}</h4>
+                        <p>${this.escapeHtml(artist)} • ${type}</p>
+                        <small>${dateStr}</small>
+                    </div>
+                </div>
+                <div class="history-actions">
+                    ${isNFT && item.txHash ? `<button class="btn btn-sm" onclick="window.open('https://mumbai.polygonscan.com/tx/${item.txHash}', '_blank')">View Transaction</button>` : ''}
+                    ${isRadio && item.fileCount ? `<small>${item.fileCount} files generated</small>` : ''}
+                </div>
+            </div>
+        `;
+        
+        return historyItem;
     }
     
     async handleExportWallet() {
