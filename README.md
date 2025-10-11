@@ -61,18 +61,32 @@
 
 ## 🎪 **DEMO INSTRUCTIONS**
 
+### **🔑 AUTHENTICATION REQUIREMENTS**
+**Google Sign-In is MANDATORY for:**
+- **NFT Minting** (Web3 wallet creation required)
+- **Complete blockchain transactions**
+- **Full production experience**
+
+**Testing WITHOUT Sign-In:**
+- ✅ Upload audio files and AI analysis
+- ✅ Generate AI licensing terms
+- ✅ Radio submission packages
+- ✅ Smart Trees AI insights
+- ❌ **Gated at NFT minting** (authentication required)
+
 ### **Quick Demo (30 seconds):**
 1. Load extension in Chrome Developer Mode
 2. Upload audio file from `test-audio/` folder
 3. Watch AI generate comprehensive metadata and licensing
 4. Navigate between NFT minting, Radio submission, and Smart Trees insights
 5. See all 5 Chrome AI APIs working across integrated workflows
+6. **Note:** NFT minting requires Google Sign-In for wallet creation
 
 ### **Full Demo Flow:**
 1. **Profile Setup:** Complete artist information with social links
-2. **NFT Minting:** Upload → AI Analysis → License Generation → Mint
-3. **Radio Submission:** Same audio → Professional package → SAMRO compliance
-4. **Smart Trees:** View personalized insights and recommendations
+2. **NFT Minting:** Upload → AI Analysis → License Generation → **Sign In Required** → Mint
+3. **Radio Submission:** Same audio → Professional package → SAMRO compliance (No sign-in needed)
+4. **Smart Trees:** View personalized insights and recommendations (No sign-in needed)
 5. **Social Sharing:** Generate SEO-optimized social media content
 
 ---
@@ -137,10 +151,22 @@
 4. Select extracted folder
 5. Click BeatsChain icon to start demo
 
+### **Judge Testing Options:**
+**Option 1: Test Without Sign-In**
+- Experience complete AI workflow up to minting
+- See authentication gate at NFT minting (expected behavior)
+- Evaluate all 5 Chrome AI APIs in action
+
+**Option 2: Test With Google Sign-In**
+- Complete end-to-end experience
+- Real wallet creation and blockchain interaction
+- Full production workflow demonstration
+
 ### **Demo Assets:**
 - Test audio files in `test-audio/` folder
-- All features work without external setup
+- All AI features work without external setup
 - Chrome AI APIs provide full functionality
+- **Web3 features require Google Sign-In** (proper Web3 UX)
 
 ---
 

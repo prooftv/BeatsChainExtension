@@ -58,24 +58,10 @@ class BeatsChainApp {
                     await this.updateAuthenticatedUI(userProfile);
                 } else {
                     console.log('ℹ️ User not authenticated - sign in required for minting');
-                    // CHROME AI CHALLENGE 2025: Bypass authentication for judges
-                    console.log('🎯 Chrome Challenge Mode: Authentication bypassed for evaluation');
-                    this.currentUser = {
-                        email: 'chrome-judge@beatschain.demo',
-                        name: 'Chrome AI Challenge Judge',
-                        id: 'chrome-challenge-demo'
-                    };
                     this.showAuthenticationRequired();
                 }
             } catch (error) {
                 console.error('Authentication manager initialization failed:', error);
-                // CHROME AI CHALLENGE 2025: Bypass authentication for judges
-                console.log('🎯 Chrome Challenge Mode: Authentication bypassed for evaluation (error case)');
-                this.currentUser = {
-                    email: 'chrome-judge@beatschain.demo',
-                    name: 'Chrome AI Challenge Judge',
-                    id: 'chrome-challenge-demo'
-                };
                 this.showAuthenticationRequired();
             }
             
@@ -459,7 +445,9 @@ Verification: Check Chrome extension storage for transaction details`;
         const description = `${this.beatMetadata.title} - AI-generated music NFT with blockchain ownership and licensing`;
         document.getElementById('nft-title').textContent = this.beatMetadata.title;
         document.getElementById('nft-description').textContent = description;
-        document.getElementById('mint-nft').disabled = false;
+        const mintBtn = document.getElementById('mint-nft');
+        mintBtn.disabled = false;
+        mintBtn.textContent = 'Mint NFT (Demo - Sign In Required)';
     }
 
     async mintNFT() {
@@ -471,38 +459,6 @@ Verification: Check Chrome extension storage for transaction details`;
         statusDiv.textContent = 'Preparing to mint NFT...';
 
         try {
-            // CHROME AI CHALLENGE 2025: Show demo message for judges
-            if (this.currentUser && this.currentUser.id === 'chrome-challenge-demo') {
-                statusDiv.className = 'mint-status info';
-                statusDiv.innerHTML = `
-                    <div style="text-align: center; padding: 20px;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">🎯</div>
-                        <h3 style="color: #2196f3; margin: 0 0 12px 0;">Chrome AI Challenge Demo</h3>
-                        <p style="margin: 0 0 16px 0;">This demonstrates the complete NFT minting workflow.</p>
-                        <p style="margin: 0 0 16px 0; color: #666; font-size: 14px;">In production, users sign in with Google to mint real NFTs on blockchain.</p>
-                        <button id="continue-signin" style="background: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">
-                            🔑 Continue & Sign In
-                        </button>
-                    </div>
-                `;
-                mintBtn.textContent = 'Demo Complete ✅';
-                
-                // Add click handler for continue button
-                const continueBtn = statusDiv.querySelector('#continue-signin');
-                if (continueBtn) {
-                    continueBtn.addEventListener('click', () => {
-                        // Clear Chrome Challenge mode to allow real authentication
-                        this.currentUser = null;
-                        // Reset mint button and try again
-                        mintBtn.textContent = 'Mint NFT';
-                        mintBtn.disabled = false;
-                        statusDiv.textContent = 'Click "Mint NFT" to continue with authentication';
-                        statusDiv.className = 'mint-status';
-                    });
-                }
-                return;
-            }
-            
             // Get authenticated wallet address - REQUIRED for real transactions
             if (!this.authManager) {
                 throw new Error('Authentication required: Please sign in to mint NFTs');
@@ -1199,13 +1155,6 @@ Verification: Check Chrome extension storage for transaction details`;
     }
     
     showAuthenticationRequired() {
-        // CHROME AI CHALLENGE 2025: Skip authentication for judges
-        if (this.currentUser && this.currentUser.id === 'chrome-challenge-demo') {
-            console.log('🎯 Chrome Challenge: Skipping authentication requirement');
-            this.hideAuthenticationRequired();
-            return;
-        }
-        
         // Show authentication required message for all sections that need it
         const sections = ['licensing-section', 'minting-section', 'success-section'];
         
