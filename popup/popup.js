@@ -445,9 +445,7 @@ Verification: Check Chrome extension storage for transaction details`;
         const description = `${this.beatMetadata.title} - AI-generated music NFT with blockchain ownership and licensing`;
         document.getElementById('nft-title').textContent = this.beatMetadata.title;
         document.getElementById('nft-description').textContent = description;
-        const mintBtn = document.getElementById('mint-nft');
-        mintBtn.disabled = false;
-        mintBtn.textContent = 'Mint NFT (Demo - Sign In Required)';
+        document.getElementById('mint-nft').disabled = false;
     }
 
     async mintNFT() {
@@ -1175,7 +1173,7 @@ Verification: Check Chrome extension storage for transaction details`;
                 
                 authMessage.innerHTML = `
                     <div style="font-size: 24px; margin-bottom: 8px;">🔒</div>
-                    <h4 style="margin: 0 0 8px 0; color: #856404;">Authentication Required</h4>
+                    <h4 style="margin: 0 0 8px 0; color: #856404;">Demo - Authentication Required</h4>
                     <p style="margin: 0 0 12px 0;">Please sign in with Google to access minting features</p>
                     <button id="auth-signin-${sectionId}" class="btn btn-primary" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
                         🔑 Sign In with Google
