@@ -1162,6 +1162,13 @@ Verification: Check Chrome extension storage for transaction details`;
     }
     
     showAuthenticationRequired() {
+        // CHROME AI CHALLENGE 2025: Skip authentication for judges
+        if (this.currentUser && this.currentUser.id === 'chrome-challenge-demo') {
+            console.log('🎯 Chrome Challenge: Skipping authentication requirement');
+            this.hideAuthenticationRequired();
+            return;
+        }
+        
         // Show authentication required message for all sections that need it
         const sections = ['licensing-section', 'minting-section', 'success-section'];
         
