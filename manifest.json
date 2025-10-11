@@ -3,8 +3,6 @@
   "name": "BeatsChain - Music NFT Minter",
   "version": "1.24.0",
   "description": "Mint your beats as NFTs with AI-generated licensing",
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkNfOJtS85Z3hxOsfREeR3ovkeSwAQo/UDRU5qmAuDxwwdgKJM+DQrwY3/nLn4NOdakdEZ4o8KDCDvaLQ8N2+xqL7BAGiEbc02/kpQJIbW99asO1QkXmJ2rwyIDAaoF6bMtzBrVp1sNXmC3yI39j7ZU1K7vdMU3vTX2zg+/6n12dGrXUT4rs0Tdso3EGf/AMutwfmC/A8ynlthfFE5+e4+FErDkNzUm8CBzQWe25uXS58deikei9ilf5wANH6CDsOyTMTmqEATPMZy4JBnOhO9CWDdJuNiJDXTwysHEboMb/CI+5Eec65a1MR93h/I0y7RYk6mV7LQMU8eg7ckPf5lwIDAQAB",
-
   "permissions": [
     "storage",
     "activeTab",
