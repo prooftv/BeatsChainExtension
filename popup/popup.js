@@ -69,7 +69,8 @@ class BeatsChainApp {
                     name: 'Chrome AI Challenge Judge',
                     id: 'chrome-challenge-demo'
                 };
-                this.showAuthenticationRequired();
+                // Hide authentication required messages for Chrome Challenge
+                this.hideAuthenticationRequired();
                 // Continue initialization instead of returning
             }
             
@@ -616,6 +617,12 @@ Verification: Check Chrome extension storage for transaction details`;
         });
         document.getElementById(sectionId).classList.add('active');
         this.currentSection = sectionId;
+        
+        // CHROME AI CHALLENGE 2025: Ensure bypass is applied when showing licensing
+        if ((sectionId === 'licensing-section' || sectionId === 'minting-section') && 
+            this.currentUser && this.currentUser.id === 'chrome-challenge-demo') {
+            setTimeout(() => this.hideAuthenticationRequired(), 100);
+        }
     }
 
     showProgress(show) {
@@ -1219,15 +1226,25 @@ Verification: Check Chrome extension storage for transaction details`;
         const authMessages = document.querySelectorAll('.auth-required-message');
         authMessages.forEach(message => message.remove());
         
-        // Re-enable minting buttons
+        // Re-enable all licensing and minting buttons
         const mintingButtons = ['generate-license', 'approve-license', 'mint-nft'];
         mintingButtons.forEach(buttonId => {
             const button = document.getElementById(buttonId);
             if (button) {
                 button.disabled = false;
                 button.title = '';
+                button.style.opacity = '1';
+                button.style.pointerEvents = 'auto';
             }
         });
+        
+        // Hide any sign-in buttons in licensing section
+        const signInButtons = document.querySelectorAll('[id*="signin"], [id*="auth-signin"]');
+        signInButtons.forEach(btn => {
+            btn.style.display = 'none';
+        });
+        
+        console.log('🎯 Chrome Challenge: Authentication barriers removed');
     }
 
     async loadWalletData() {
