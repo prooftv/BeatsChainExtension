@@ -479,10 +479,27 @@ Verification: Check Chrome extension storage for transaction details`;
                         <div style="font-size: 48px; margin-bottom: 16px;">🎯</div>
                         <h3 style="color: #2196f3; margin: 0 0 12px 0;">Chrome AI Challenge Demo</h3>
                         <p style="margin: 0 0 16px 0;">This demonstrates the complete NFT minting workflow.</p>
-                        <p style="margin: 0; color: #666; font-size: 14px;">In production, users sign in with Google to mint real NFTs on blockchain.</p>
+                        <p style="margin: 0 0 16px 0; color: #666; font-size: 14px;">In production, users sign in with Google to mint real NFTs on blockchain.</p>
+                        <button id="continue-signin" style="background: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                            🔑 Continue & Sign In
+                        </button>
                     </div>
                 `;
                 mintBtn.textContent = 'Demo Complete ✅';
+                
+                // Add click handler for continue button
+                const continueBtn = statusDiv.querySelector('#continue-signin');
+                if (continueBtn) {
+                    continueBtn.addEventListener('click', () => {
+                        // Clear Chrome Challenge mode to allow real authentication
+                        this.currentUser = null;
+                        // Reset mint button and try again
+                        mintBtn.textContent = 'Mint NFT';
+                        mintBtn.disabled = false;
+                        statusDiv.textContent = 'Click "Mint NFT" to continue with authentication';
+                        statusDiv.className = 'mint-status';
+                    });
+                }
                 return;
             }
             
