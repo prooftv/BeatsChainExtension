@@ -62,8 +62,10 @@ class BeatsChainApp {
                 }
             } catch (error) {
                 console.error('Authentication manager initialization failed:', error);
+                // For Chrome Challenge: Continue with demo mode
+                console.log('🎯 Running in Chrome Challenge demo mode');
                 this.showAuthenticationRequired();
-                return;
+                // Don't return - continue initialization for demo
             }
             
             try {
