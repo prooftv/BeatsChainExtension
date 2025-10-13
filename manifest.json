@@ -47,7 +47,7 @@
   },
 
   "oauth2": {
-    "client_id": "1087013467936-beatschain-chrome-extension.apps.googleusercontent.com",
+    "client_id": "239753403483-d62qtbm41d29p7ldikackdrru77vd1g5.apps.googleusercontent.com",
     "scopes": ["openid", "email", "profile"]
   },
   "web_accessible_resources": [
