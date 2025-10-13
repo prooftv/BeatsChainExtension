@@ -1031,6 +1031,45 @@ textarea:focus {
     text-align: center;
 }
 
+.auth-context {
+    background: rgba(33, 150, 243, 0.1);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.auth-context h4 {
+    color: var(--bc-text-primary);
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.auth-context p {
+    color: var(--bc-text-secondary);
+    margin: 8px 0;
+    font-size: 13px;
+}
+
+.auth-context ul {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.auth-context li {
+    color: var(--bc-text-secondary);
+    font-size: 12px;
+    margin: 4px 0;
+}
+
+.auth-context small {
+    color: var(--bc-text-muted);
+    font-size: 11px;
+    font-style: italic;
+}
+
 .btn-google {
     background: #4285f4;
     color: white;
