@@ -735,6 +735,9 @@ Verification: Check Chrome extension storage for transaction details`;
         // Setup collapse functionality for upload analysis
         this.setupUploadAnalysisCollapse();
         
+        // Setup auth context collapse
+        this.setupAuthContextCollapse();
+        
         metadataDisplay.style.display = 'block';
     }
     
@@ -758,6 +761,29 @@ Verification: Check Chrome extension storage for transaction details`;
                 } else {
                     content.classList.add('collapsed');
                     toggleBtn.classList.add('collapsed');
+                    toggleBtn.textContent = '▶';
+                }
+            });
+        }
+    }
+    
+    setupAuthContextCollapse() {
+        const toggleBtn = document.getElementById('auth-toggle');
+        const content = document.getElementById('auth-details');
+        
+        if (toggleBtn && content && !toggleBtn.hasAttribute('data-auth-setup')) {
+            toggleBtn.setAttribute('data-auth-setup', 'true');
+            // Start expanded
+            toggleBtn.textContent = '▼';
+            
+            toggleBtn.addEventListener('click', () => {
+                const isCollapsed = content.classList.contains('collapsed');
+                
+                if (isCollapsed) {
+                    content.classList.remove('collapsed');
+                    toggleBtn.textContent = '▼';
+                } else {
+                    content.classList.add('collapsed');
                     toggleBtn.textContent = '▶';
                 }
             });
