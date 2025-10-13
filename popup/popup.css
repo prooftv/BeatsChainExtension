@@ -2417,7 +2417,7 @@ textarea:focus {
     padding: 0;
 }
 
-/* SAMRO Enhanced Section - Full Width Layout */
+/* SAMRO Enhanced Section - Match Track Info Layout */
 .samro-enhanced-section {
     width: 100%;
     max-width: none;
@@ -2425,9 +2425,9 @@ textarea:focus {
 }
 
 .samro-enhanced-section .form-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
     width: 100%;
 }
 
