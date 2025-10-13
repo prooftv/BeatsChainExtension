@@ -586,6 +586,7 @@ Verification: Check Chrome extension storage for transaction details`;
 
         if (section === 'mint') {
             this.showSection('upload-section');
+            this.autoFillFromProfile('nft');
         } else if (section === 'profile') {
             this.showSection('profile-section');
         } else if (section === 'history') {
@@ -596,6 +597,7 @@ Verification: Check Chrome extension storage for transaction details`;
         } else if (section === 'radio') {
             this.showSection('radio-section');
             this.loadRadioSubmission();
+            this.autoFillFromProfile('radio');
         } else if (section === 'insights') {
             this.showSection('insights-section');
             this.loadAIInsights();
@@ -3391,6 +3393,58 @@ Verification: Check Chrome extension storage for transaction details`;
         return historyItem;
     }
     
+    // Auto-fill functionality for cross-system data sharing
+    getSharedProfileData() {
+        const profile = this.getProfileBiography();
+        const enhanced = this.getEnhancedProfileData();
+        
+        return {
+            artistName: enhanced.displayName || enhanced.legalName || '',
+            stageName: enhanced.displayName !== enhanced.legalName ? enhanced.displayName : '',
+            biography: profile.biography || '',
+            social: profile.social || {},
+            contact: profile.contact || {}
+        };
+    }
+    
+    autoFillFromProfile(targetSystem) {
+        const sharedData = this.getSharedProfileData();
+        
+        if (targetSystem === 'nft') {
+            this.autoFillNFTForm(sharedData);
+        } else if (targetSystem === 'radio') {
+            this.autoFillRadioForm(sharedData);
+        }
+    }
+    
+    autoFillNFTForm(data) {
+        if (!data.artistName) return;
+        
+        const artistNameField = document.getElementById('artist-name');
+        const stageNameField = document.getElementById('stage-name');
+        
+        if (artistNameField && !artistNameField.value) {
+            artistNameField.value = data.artistName;
+        }
+        if (stageNameField && !stageNameField.value && data.stageName) {
+            stageNameField.value = data.stageName;
+        }
+    }
+    
+    autoFillRadioForm(data) {
+        if (!data.artistName) return;
+        
+        const radioArtistField = document.getElementById('radio-artist-name');
+        const radioStageField = document.getElementById('radio-stage-name');
+        
+        if (radioArtistField && !radioArtistField.value) {
+            radioArtistField.value = data.artistName;
+        }
+        if (radioStageField && !radioStageField.value && data.stageName) {
+            radioStageField.value = data.stageName;
+        }
+    }
+
     async handleExportWallet() {
         try {
             if (!this.authManager) {

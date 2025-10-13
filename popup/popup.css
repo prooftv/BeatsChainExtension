@@ -26,7 +26,7 @@
 }
 
 body {
-    width: 400px;
+    width: 800px;
     min-height: 600px;
     font-family: var(--bc-font-family);
     background: var(--bc-primary);
@@ -816,6 +816,15 @@ textarea:focus {
     backdrop-filter: blur(10px);
     border-top: 1px solid rgba(255, 255, 255, 0.2);
     padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.wallet-panel.collapsed .wallet-content {
+    display: none;
+}
+
+.wallet-panel.collapsed {
+    padding: 10px 15px;
 }
 
 .wallet-header {
@@ -972,6 +981,30 @@ textarea:focus {
     margin-top: 10px;
 }
 
+/* Two-column form layouts for 800px width */
+.form-grid-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+    margin-top: 10px;
+}
+
+.form-grid-two-col .form-row-full {
+    grid-column: 1 / -1;
+}
+
+/* Radio track info two-column layout */
+.track-info-form .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+}
+
+.track-info-form .form-row:nth-child(7),
+.track-info-form .form-row:nth-child(8) {
+    grid-column: 1 / -1;
+}
+
 .form-row {
     display: flex;
     flex-direction: column;
@@ -1075,6 +1108,16 @@ textarea:focus {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Fix empty space issue - hide empty containers */
+.radio-validation:empty,
+.audio-preview:empty,
+.metadata-display[style*="display: none"] {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
 }
 
 .validation-summary h5 {
@@ -1241,6 +1284,31 @@ textarea:focus {
 /* Radio Step Navigation Styles */
 .radio-steps {
     margin-bottom: 30px;
+}
+
+/* Radio side-by-side layout for 800px width */
+.radio-content {
+    display: flex;
+    gap: 20px;
+    min-height: 500px;
+}
+
+.radio-navigation {
+    flex: 0 0 250px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.radio-main-content {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-y: auto;
+    max-height: 500px;
 }
 
 .step-indicator {

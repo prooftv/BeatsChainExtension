@@ -70,27 +70,29 @@
                     <div class="enhanced-profile">
                         <h4>📝 Profile Information</h4>
                         <div class="profile-form">
-                            <div class="form-row">
-                                <label for="profile-legal-name">Legal Name:</label>
-                                <input type="text" id="profile-legal-name" class="form-input" placeholder="Full legal name for contracts and legal documents" maxlength="100">
-                                <small class="field-help">Used in contracts, licensing agreements, and legal documentation</small>
-                            </div>
-                            
-                            <div class="form-row">
-                                <label for="profile-display-name">Display Name:</label>
-                                <input type="text" id="profile-display-name" class="form-input" placeholder="Artist/stage name for public display" maxlength="100">
-                                <small class="field-help">Used in NFT metadata, public profiles, and branding</small>
-                            </div>
-                            
-                            <div class="form-row">
-                                <label for="profile-role">Primary Role:</label>
-                                <select id="profile-role" class="form-input">
-                                    <option value="">Select your primary role</option>
-                                    <option value="artist">Artist (Vocalist/Performer)</option>
-                                    <option value="producer">Producer (Beat Maker/Instrumentalist)</option>
-                                    <option value="both">Both Artist & Producer</option>
-                                </select>
-                                <small class="field-help">Affects UI features and metadata generation</small>
+                            <div class="form-grid-two-col">
+                                <div class="form-row">
+                                    <label for="profile-legal-name">Legal Name:</label>
+                                    <input type="text" id="profile-legal-name" class="form-input" placeholder="Full legal name for contracts and legal documents" maxlength="100">
+                                    <small class="field-help">Used in contracts, licensing agreements, and legal documentation</small>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <label for="profile-display-name">Display Name:</label>
+                                    <input type="text" id="profile-display-name" class="form-input" placeholder="Artist/stage name for public display" maxlength="100">
+                                    <small class="field-help">Used in NFT metadata, public profiles, and branding</small>
+                                </div>
+                                
+                                <div class="form-row form-row-full">
+                                    <label for="profile-role">Primary Role:</label>
+                                    <select id="profile-role" class="form-input">
+                                        <option value="">Select your primary role</option>
+                                        <option value="artist">Artist (Vocalist/Performer)</option>
+                                        <option value="producer">Producer (Beat Maker/Instrumentalist)</option>
+                                        <option value="both">Both Artist & Producer</option>
+                                    </select>
+                                    <small class="field-help">Affects UI features and metadata generation</small>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -485,41 +487,46 @@
             <!-- Radio Submission Section -->
             <section id="radio-section" class="section">
                 <h2>Radio Submission</h2>
+                <div class="radio-info">
+                    <p><strong>Independent Radio Submission System</strong></p>
+                    <small>Upload audio files specifically for radio submission - separate from NFT minting</small>
+                </div>
+                
                 <div class="radio-content">
-                    <div class="radio-info">
-                        <p><strong>Independent Radio Submission System</strong></p>
-                        <small>Upload audio files specifically for radio submission - separate from NFT minting</small>
-                    </div>
-                    
-                    <!-- Step Progress Indicator -->
-                    <div class="radio-steps">
-                        <div class="step-indicator">
-                            <div class="step active" data-step="1">
-                                <span class="step-number">1</span>
-                                <span class="step-label">Audio Upload</span>
-                            </div>
-                            <div class="step" data-step="2">
-                                <span class="step-number">2</span>
-                                <span class="step-label">Track Info</span>
-                            </div>
-                            <div class="step" data-step="3">
-                                <span class="step-number">3</span>
-                                <span class="step-label">Cover Image</span>
-                            </div>
-                            <div class="step" data-step="4">
-                                <span class="step-number">4</span>
-                                <span class="step-label">Validation</span>
-                            </div>
-                            <div class="step" data-step="5">
-                                <span class="step-number">5</span>
-                                <span class="step-label">Split Sheets</span>
-                            </div>
-                            <div class="step" data-step="6">
-                                <span class="step-number">6</span>
-                                <span class="step-label">Package</span>
+                    <!-- Left Navigation Panel -->
+                    <div class="radio-navigation">
+                        <div class="radio-steps">
+                            <div class="step-indicator">
+                                <div class="step active" data-step="1">
+                                    <span class="step-number">1</span>
+                                    <span class="step-label">Audio Upload</span>
+                                </div>
+                                <div class="step" data-step="2">
+                                    <span class="step-number">2</span>
+                                    <span class="step-label">Track Info</span>
+                                </div>
+                                <div class="step" data-step="3">
+                                    <span class="step-number">3</span>
+                                    <span class="step-label">Cover Image</span>
+                                </div>
+                                <div class="step" data-step="4">
+                                    <span class="step-number">4</span>
+                                    <span class="step-label">Validation</span>
+                                </div>
+                                <div class="step" data-step="5">
+                                    <span class="step-number">5</span>
+                                    <span class="step-label">Split Sheets</span>
+                                </div>
+                                <div class="step" data-step="6">
+                                    <span class="step-number">6</span>
+                                    <span class="step-label">Package</span>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Right Content Area -->
+                    <div class="radio-main-content">
                     
                     <!-- Step 1: Audio Upload -->
                     <div id="radio-step-1" class="radio-step active">
@@ -763,7 +770,8 @@
                         
                         <div id="package-status" class="package-status" style="display: none;"></div>
                     </div>
-                </div>
+                    </div> <!-- Close radio-main-content -->
+                </div> <!-- Close radio-content -->
             </section>
         </main>
 
