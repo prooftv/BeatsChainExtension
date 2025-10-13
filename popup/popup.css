@@ -33,6 +33,12 @@ body {
     color: var(--bc-text-primary);
     font-weight: 400;
     line-height: 1.5;
+    /* Optimize overall rendering performance */
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent horizontal scrolling */
+    overflow-x: hidden;
 }
 
 .container {
@@ -262,6 +268,32 @@ body {
 .history-list {
     max-height: 300px;
     overflow-y: auto;
+    /* Performance optimizations */
+    will-change: scroll-position;
+    transform: translateZ(0);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--bc-accent-green) rgba(255, 255, 255, 0.1);
+}
+
+/* History list scrollbar */
+.history-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.history-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+    background: var(--bc-accent-green);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+    background: var(--bc-accent-green-hover);
 }
 
 .history-item {
@@ -536,7 +568,7 @@ body {
     word-break: break-all;
 }
 
-/* Main Content */
+/* Main Content - Optimized Scroll Performance */
 .main {
     flex: 1;
     padding: 20px;
@@ -545,6 +577,32 @@ body {
     background: var(--bc-primary);
     height: calc(100vh - 140px);
     scroll-behavior: smooth;
+    /* Performance optimizations */
+    will-change: scroll-position;
+    transform: translateZ(0);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--bc-accent-green) var(--bc-surface);
+}
+
+/* Custom scrollbar for webkit browsers */
+.main::-webkit-scrollbar {
+    width: 8px;
+}
+
+.main::-webkit-scrollbar-track {
+    background: var(--bc-surface);
+    border-radius: 4px;
+}
+
+.main::-webkit-scrollbar-thumb {
+    background: var(--bc-accent-green);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.main::-webkit-scrollbar-thumb:hover {
+    background: var(--bc-accent-green-hover);
 }
 
 .section {
@@ -556,6 +614,9 @@ body {
     margin-bottom: 16px;
     border: 1px solid var(--bc-border);
     box-shadow: 0 2px 8px var(--bc-shadow);
+    /* Optimize rendering performance */
+    contain: layout style paint;
+    transform: translateZ(0);
 }
 
 .section.active {
@@ -892,6 +953,32 @@ textarea:focus {
     transition: all 0.3s ease;
     max-height: 350px;
     overflow-y: auto;
+    /* Performance optimizations */
+    will-change: scroll-position;
+    transform: translateZ(0);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--bc-accent-green) rgba(255, 255, 255, 0.1);
+}
+
+/* Wallet content scrollbar */
+.wallet-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.wallet-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.wallet-content::-webkit-scrollbar-thumb {
+    background: var(--bc-accent-green);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+.wallet-content::-webkit-scrollbar-thumb:hover {
+    background: var(--bc-accent-green-hover);
 }
 
 .wallet-balance {
@@ -1151,7 +1238,7 @@ textarea:focus {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Fix empty space issue - hide empty containers */
+/* Fix empty space issue - hide empty containers and optimize layout */
 .radio-validation:empty,
 .audio-preview:empty,
 .metadata-display[style*="display: none"] {
@@ -1159,6 +1246,72 @@ textarea:focus {
     margin: 0 !important;
     padding: 0 !important;
     height: 0 !important;
+}
+
+/* Upload page layout optimizations */
+.upload-section {
+    min-height: 0;
+    flex-shrink: 0;
+}
+
+.upload-area {
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+.metadata-display {
+    margin: 16px 0;
+    flex-shrink: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.artist-form {
+    margin: 16px 0;
+    flex-shrink: 0;
+}
+
+/* Radio upload optimizations */
+.radio-upload-section {
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+.radio-validation {
+    margin-bottom: 16px;
+    flex-shrink: 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Prevent layout shifts during content loading */
+.audio-preview {
+    min-height: 60px;
+    transition: all 0.3s ease;
+}
+
+.metadata-display {
+    transition: all 0.3s ease;
+}
+
+/* Smooth transitions for collapsible content */
+.analysis-content {
+    transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+    overflow: hidden;
+}
+
+.analysis-content.collapsed {
+    max-height: 0 !important;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+}
+
+.analysis-content:not(.collapsed) {
+    max-height: 500px;
+    opacity: 1;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
 }
 
 .validation-summary h5 {
@@ -1190,30 +1343,7 @@ textarea:focus {
     margin-bottom: 15px;
 }
 
-.contributor-item {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 20px;
-    padding: 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
 
-.contributor-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr 80px;
-    gap: 12px;
-    align-items: center;
-}
-
-.contributor-samro-row {
-    display: grid;
-    grid-template-columns: 2fr 40px;
-    gap: 12px;
-    align-items: center;
-}
 
 .contributor-item .form-input {
     margin-bottom: 0;
@@ -1357,6 +1487,32 @@ textarea:focus {
     overflow-y: auto;
     height: 480px;
     scroll-behavior: smooth;
+    /* Performance optimizations for radio content */
+    will-change: scroll-position;
+    transform: translateZ(0);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--bc-accent-green) rgba(255, 255, 255, 0.1);
+}
+
+/* Radio content scrollbar */
+.radio-main-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.radio-main-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.radio-main-content::-webkit-scrollbar-thumb {
+    background: var(--bc-accent-green);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+.radio-main-content::-webkit-scrollbar-thumb:hover {
+    background: var(--bc-accent-green-hover);
 }
 
 .step-indicator {
@@ -1653,6 +1809,32 @@ textarea:focus {
     padding: 15px;
     max-height: 450px;
     overflow-y: auto;
+    /* Performance optimizations for insights */
+    will-change: scroll-position;
+    transform: translateZ(0);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--bc-accent-green) rgba(255, 255, 255, 0.1);
+}
+
+/* Insights scrollbar */
+.insights-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.insights-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.insights-content::-webkit-scrollbar-thumb {
+    background: var(--bc-accent-green);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+.insights-content::-webkit-scrollbar-thumb:hover {
+    background: var(--bc-accent-green-hover);
 }
 
 .insights-header {
@@ -1698,6 +1880,32 @@ textarea:focus {
     max-height: 400px;
     overflow-y: auto;
     margin-bottom: 15px;
+    /* Performance optimizations */
+    will-change: scroll-position;
+    transform: translateZ(0);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--bc-accent-green) rgba(255, 255, 255, 0.1);
+}
+
+/* Insights list scrollbar */
+.insights-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.insights-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.insights-list::-webkit-scrollbar-thumb {
+    background: var(--bc-accent-green);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+.insights-list::-webkit-scrollbar-thumb:hover {
+    background: var(--bc-accent-green-hover);
 }
 
 .empty-insights {
@@ -2147,6 +2355,192 @@ textarea:focus {
     padding: 0;
 }
 
+/* SAMRO Fields - Force Vertical Layout */
+.samro-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.samro-field-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.samro-field-group {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+/* Split Sheets - Force Vertical Layout */
+.split-sheets-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.contributor-item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.contributor-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.contributor-samro-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Performance optimizations for all scrollable areas */
+.scrollable-content {
+    /* GPU acceleration for smooth scrolling */
+    will-change: scroll-position;
+    transform: translateZ(0);
+    -webkit-overflow-scrolling: touch;
+    /* Optimize repaints */
+    contain: layout style paint;
+    /* Smooth momentum scrolling */
+    scroll-behavior: smooth;
+}
+
+/* Apply to all major scrollable containers */
+.main,
+.radio-main-content,
+.insights-content,
+.insights-list,
+.history-list,
+.wallet-content,
+.metadata-display,
+.radio-validation {
+    @extend .scrollable-content;
+}
+
+/* Prevent scroll jank during animations */
+.section.active {
+    /* Optimize rendering during transitions */
+    will-change: transform, opacity;
+    transform: translateZ(0);
+}
+
+/* Optimize form rendering */
+.form-input {
+    /* Prevent layout thrashing */
+    contain: layout style;
+}
+
+/* Optimize button interactions */
+.btn {
+    /* Smooth hover animations */
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+}
+
+/* Optimize upload area interactions */
+.upload-area {
+    /* Smooth drag interactions */
+    will-change: transform, border-color, background-color;
+    backface-visibility: hidden;
+}
+
+/* Optimize metadata display transitions */
+.metadata-display {
+    /* Smooth show/hide transitions */
+    will-change: opacity, max-height;
+    backface-visibility: hidden;
+}
+
+/* Optimize audio preview rendering */
+.audio-preview {
+    /* Prevent reflow during audio loading */
+    contain: layout style;
+    will-change: opacity;
+}
+
+/* Optimize collapse animations */
+.analysis-content,
+.samro-content {
+    /* Smooth collapse transitions */
+    will-change: max-height, opacity, padding;
+    backface-visibility: hidden;
+}
+
+/* Optimize insight card interactions */
+.insight-card {
+    /* Smooth hover and expand animations */
+    will-change: transform, background-color;
+    backface-visibility: hidden;
+}
+
+/* Optimize step navigation */
+.step {
+    /* Smooth step transitions */
+    will-change: background-color;
+    backface-visibility: hidden;
+}
+
+/* Prevent layout shifts during content loading */
+.loading-placeholder {
+    min-height: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.8; }
+}
+
+/* Optimize radio step content */
+.radio-step {
+    /* Prevent layout shifts */
+    contain: layout style;
+    min-height: 200px;
+}
+
+.radio-step.active {
+    /* Smooth step transitions */
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Optimize contributor item rendering */
+.contributor-item {
+    /* Prevent layout thrashing */
+    contain: layout style;
+    will-change: transform;
+}
+
+/* Optimize package generation status */
+.package-status {
+    /* Smooth status transitions */
+    will-change: background-color, border-color;
+    transition: all 0.3s ease;
+}
+
 /* Responsive adjustments for radio steps */
 @media (max-width: 400px) {
     .step-indicator {
@@ -2164,5 +2558,15 @@ textarea:focus {
     
     .step-actions {
         flex-direction: column;
+    }
+    
+    /* Optimize mobile scrolling */
+    .main {
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: y proximity;
+    }
+    
+    .section {
+        scroll-snap-align: start;
     }
 }
