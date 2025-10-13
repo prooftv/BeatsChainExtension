@@ -1057,6 +1057,8 @@ textarea:focus {
 .auth-details {
     transition: all 0.3s ease;
     overflow: hidden;
+    max-height: 200px;
+    opacity: 1;
 }
 
 .auth-details.collapsed {

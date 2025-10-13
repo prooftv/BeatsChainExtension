@@ -773,8 +773,9 @@ Verification: Check Chrome extension storage for transaction details`;
         
         if (toggleBtn && content && !toggleBtn.hasAttribute('data-auth-setup')) {
             toggleBtn.setAttribute('data-auth-setup', 'true');
-            // Start expanded
-            toggleBtn.textContent = '▼';
+            // Start collapsed
+            toggleBtn.textContent = '▶';
+            content.classList.add('collapsed');
             
             toggleBtn.addEventListener('click', () => {
                 const isCollapsed = content.classList.contains('collapsed');
