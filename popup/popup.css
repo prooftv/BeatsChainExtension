@@ -2409,13 +2409,16 @@ textarea:focus {
 .samro-content {
     transition: all 0.3s ease;
     overflow: hidden;
+    max-height: 1000px;
+    opacity: 1;
 }
 
 .samro-content.collapsed {
-    max-height: 0;
-    opacity: 0;
-    margin: 0;
-    padding: 0;
+    max-height: 0 !important;
+    opacity: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transition: all 0.3s ease;
 }
 
 /* SAMRO Enhanced Section - Match Track Info Layout */

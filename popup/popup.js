@@ -807,6 +807,34 @@ Verification: Check Chrome extension storage for transaction details`;
         }
     }
     
+    setupSamroCollapse() {
+        const toggleBtn = document.getElementById('samro-toggle');
+        const content = document.getElementById('samro-content');
+        
+        if (toggleBtn && content && !toggleBtn.hasAttribute('data-samro-setup')) {
+            toggleBtn.setAttribute('data-samro-setup', 'true');
+            
+            // SAMRO starts EXPANDED by default (button shows ▼)
+            toggleBtn.textContent = '▼';
+            content.classList.remove('collapsed');
+            
+            toggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const isCollapsed = content.classList.contains('collapsed');
+                
+                if (isCollapsed) {
+                    content.classList.remove('collapsed');
+                    toggleBtn.textContent = '▼';
+                } else {
+                    content.classList.add('collapsed');
+                    toggleBtn.textContent = '▶';
+                }
+            });
+        }
+    }
+    
     showArtistForm() {
         const artistForm = document.getElementById('artist-form');
         if (artistForm) {
@@ -2368,6 +2396,9 @@ Verification: Check Chrome extension storage for transaction details`;
                 this.samroManager.initialize();
                 console.log('✅ SAMRO fields initialized');
             }
+            
+            // Setup SAMRO collapse functionality
+            this.setupSamroCollapse();
             
             // Initialize metadata form
             this.radioMetadataManager.initializeForm();
