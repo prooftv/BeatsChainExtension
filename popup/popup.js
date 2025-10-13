@@ -304,7 +304,68 @@ class BeatsChainApp {
     }
 
     async extractAudioMetadata(file, systemId = 'web3') {
-        return await this.audioManager.extractAudioMetadata(file, systemId);
+        const basicMetadata = await this.audioManager.extractAudioMetadata(file, systemId);
+        
+        // Enhance with Chrome AI if available
+        if (this.chromeAI && this.chromeAI.apis && this.chromeAI.apis.languageModel) {
+            try {
+                const enhancedMetadata = await this.enhanceMetadataWithAI(basicMetadata, file.name);
+                return { ...basicMetadata, ...enhancedMetadata };
+            } catch (error) {
+                console.log('AI enhancement failed, using basic metadata:', error);
+            }
+        }
+        
+        return basicMetadata;
+    }
+    
+    async enhanceMetadataWithAI(metadata, filename) {
+        try {
+            const prompt = `Analyze this music file and enhance the metadata:
+
+Filename: ${filename}
+Duration: ${metadata.duration}
+Detected Genre: ${metadata.suggestedGenre}
+Estimated BPM: ${metadata.estimatedBPM}
+Energy Level: ${metadata.energyLevel}
+
+Provide enhanced tags in JSON format:
+{
+  "mood": "energetic/chill/dark/uplifting",
+  "subgenre": "specific subgenre",
+  "instruments": ["list of likely instruments"],
+  "tempo": "slow/medium/fast/very fast",
+  "vibe": "party/workout/study/relaxing",
+  "enhancedGenre": "more specific genre"
+}`;
+            
+            const response = await this.chromeAI.apis.languageModel.prompt(prompt);
+            // Secure JSON parsing with validation
+            let enhanced;
+            try {
+                enhanced = JSON.parse(response);
+                // Validate structure
+                if (typeof enhanced !== 'object' || enhanced === null) {
+                    throw new Error('Invalid response format');
+                }
+            } catch (error) {
+                console.log('AI response parsing failed:', error);
+                return {};
+            }
+            
+            return {
+                mood: enhanced.mood,
+                subgenre: enhanced.subgenre,
+                instruments: enhanced.instruments,
+                tempo: enhanced.tempo,
+                vibe: enhanced.vibe,
+                enhancedGenre: enhanced.enhancedGenre || metadata.suggestedGenre,
+                aiEnhanced: true
+            };
+        } catch (error) {
+            console.log('AI metadata enhancement failed:', error);
+            return {};
+        }
     }
 
     // Utility methods now delegated to AudioManager
@@ -708,16 +769,64 @@ Verification: Check Chrome extension storage for transaction details`;
         if (artistForm) {
             artistForm.style.display = 'block';
             
-            const beatTitleInput = document.getElementById('beat-title');
-            if (beatTitleInput && this.beatMetadata.title) {
-                beatTitleInput.value = this.beatMetadata.title;
+            // Get shared profile data for auto-fill
+            const sharedData = this.getSharedProfileData();
+            
+            // Auto-fill from profile data
+            const artistNameInput = document.getElementById('artist-name');
+            if (artistNameInput && !artistNameInput.value && sharedData.artistName) {
+                artistNameInput.value = sharedData.artistName;
+                this.userInputManager.setUserInput('artist', sharedData.artistName, false);
             }
             
-            const genreSelect = document.getElementById('genre-select');
-            if (genreSelect && this.beatMetadata.suggestedGenre) {
-                genreSelect.value = this.beatMetadata.suggestedGenre;
+            const stageNameInput = document.getElementById('stage-name');
+            if (stageNameInput && !stageNameInput.value && sharedData.stageName) {
+                stageNameInput.value = sharedData.stageName;
+                this.userInputManager.setUserInput('stageName', sharedData.stageName, false);
             }
+            
+            // Auto-fill beat title from metadata
+            const beatTitleInput = document.getElementById('beat-title');
+            if (beatTitleInput && !beatTitleInput.value && this.beatMetadata.title) {
+                beatTitleInput.value = this.beatMetadata.title;
+                this.userInputManager.setUserInput('title', this.beatMetadata.title, false);
+            }
+            
+            // Use AI-enhanced genre if available
+            const genreSelect = document.getElementById('genre-select');
+            if (genreSelect && !genreSelect.value) {
+                const detectedGenre = this.beatMetadata.enhancedGenre || this.beatMetadata.suggestedGenre;
+                if (detectedGenre) {
+                    genreSelect.value = detectedGenre;
+                    this.userInputManager.setUserInput('genre', detectedGenre, false);
+                }
+            }
+            
+            // Setup input tracking for user changes
+            this.setupNFTInputTracking();
         }
+    }
+    
+    setupNFTInputTracking() {
+        const nftInputs = [
+            { id: 'artist-name', key: 'artist' },
+            { id: 'stage-name', key: 'stageName' },
+            { id: 'beat-title', key: 'title' },
+            { id: 'genre-select', key: 'genre' },
+            { id: 'content-type', key: 'content-type' }
+        ];
+        
+        nftInputs.forEach(({ id, key }) => {
+            const element = document.getElementById(id);
+            if (element && !element.hasAttribute('data-nft-tracked')) {
+                element.setAttribute('data-nft-tracked', 'true');
+                element.addEventListener('change', () => {
+                    if (element.value.trim()) {
+                        this.userInputManager.setUserInput(key, element.value.trim(), true);
+                    }
+                });
+            }
+        });
     }
     
     sanitizeInput(input) {
@@ -949,16 +1058,32 @@ Verification: Check Chrome extension storage for transaction details`;
             }
         }
         
-        successDiv.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span>✅</span>
-                <div>
-                    <strong>Welcome, ${user.name}!</strong><br>
-                    <small>You can now mint NFTs and access all features</small>
-                    ${enhancedText}
-                </div>
-            </div>
-        `;
+        const welcomeDiv = document.createElement('div');
+        welcomeDiv.style.cssText = 'display: flex; align-items: center; gap: 8px;';
+        
+        const checkSpan = document.createElement('span');
+        checkSpan.textContent = '✅';
+        
+        const contentDiv = document.createElement('div');
+        const strongEl = document.createElement('strong');
+        strongEl.textContent = `Welcome, ${this.sanitizeInput(user.name)}!`;
+        
+        const smallEl = document.createElement('small');
+        smallEl.textContent = 'You can now mint NFTs and access all features';
+        
+        contentDiv.appendChild(strongEl);
+        contentDiv.appendChild(document.createElement('br'));
+        contentDiv.appendChild(smallEl);
+        
+        if (enhancedText) {
+            const enhancedDiv = document.createElement('div');
+            enhancedDiv.innerHTML = enhancedText; // Already sanitized above
+            contentDiv.appendChild(enhancedDiv);
+        }
+        
+        welcomeDiv.appendChild(checkSpan);
+        welcomeDiv.appendChild(contentDiv);
+        successDiv.appendChild(welcomeDiv);
         
         document.body.appendChild(successDiv);
         
@@ -986,15 +1111,26 @@ Verification: Check Chrome extension storage for transaction details`;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         `;
         
-        errorDiv.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span>❌</span>
-                <div>
-                    <strong>Sign-in Failed</strong><br>
-                    <small>${message}</small>
-                </div>
-            </div>
-        `;
+        const errorContentDiv = document.createElement('div');
+        errorContentDiv.style.cssText = 'display: flex; align-items: center; gap: 8px;';
+        
+        const errorSpan = document.createElement('span');
+        errorSpan.textContent = '❌';
+        
+        const errorTextDiv = document.createElement('div');
+        const strongEl = document.createElement('strong');
+        strongEl.textContent = 'Sign-in Failed';
+        
+        const smallEl = document.createElement('small');
+        smallEl.textContent = this.sanitizeInput(message);
+        
+        errorTextDiv.appendChild(strongEl);
+        errorTextDiv.appendChild(document.createElement('br'));
+        errorTextDiv.appendChild(smallEl);
+        
+        errorContentDiv.appendChild(errorSpan);
+        errorContentDiv.appendChild(errorTextDiv);
+        errorDiv.appendChild(errorContentDiv);
         
         document.body.appendChild(errorDiv);
         
@@ -2334,6 +2470,13 @@ Verification: Check Chrome extension storage for transaction details`;
             console.log('📊 Displaying radio metadata analysis...');
             this.displayRadioMetadata(this.radioMetadata);
             
+            // Ensure metadata display is visible
+            const metadataDisplay = document.getElementById('radio-metadata-display');
+            if (metadataDisplay) {
+                metadataDisplay.style.display = 'block';
+                console.log('✅ Radio metadata display forced visible');
+            }
+            
             // Show next button for step progression
             const nextButton = document.getElementById('radio-step-1-next');
             if (nextButton) {
@@ -2355,37 +2498,48 @@ Verification: Check Chrome extension storage for transaction details`;
     populateTrackInfoFromMetadata() {
         if (!this.radioMetadata) return;
         
+        // Get shared profile data for auto-fill
+        const sharedData = this.getSharedProfileData();
+        
         // USER INPUT PRIORITY: Only suggest if user hasn't entered anything
         const titleInput = document.getElementById('radio-track-title');
         if (titleInput && !titleInput.value && this.radioMetadata.title) {
             titleInput.value = this.radioMetadata.title;
-            // Store as AI suggestion, not user input
             this.userInputManager.setUserInput('radio-title', this.radioMetadata.title, false);
         }
         
-        // Pre-populate genre if detected but don't override user selection
+        // Auto-fill artist name from profile
+        const artistInput = document.getElementById('radio-artist-name');
+        if (artistInput && !artistInput.value && sharedData.artistName) {
+            artistInput.value = sharedData.artistName;
+            this.userInputManager.setUserInput('radio-artist', sharedData.artistName, false);
+        }
+        
+        // Auto-fill stage name from profile
+        const stageInput = document.getElementById('radio-stage-name');
+        if (stageInput && !stageInput.value && sharedData.stageName) {
+            stageInput.value = sharedData.stageName;
+            this.userInputManager.setUserInput('radio-stage', sharedData.stageName, false);
+        }
+        
+        // Pre-populate genre with AI enhancement
         const genreSelect = document.getElementById('radio-genre');
-        if (genreSelect && !genreSelect.value && this.radioMetadata.suggestedGenre) {
-            // Map detected genre to radio genres
+        if (genreSelect && !genreSelect.value) {
             const genreMapping = {
-                'Hip-Hop': 'Hip-Hop',
-                'House': 'House',
-                'Electronic': 'Electronic',
-                'Pop': 'Pop',
-                'Rock': 'Rock',
-                'Jazz': 'Jazz',
-                'Trap': 'Hip-Hop'
+                'Hip-Hop': 'Hip-Hop', 'House': 'House', 'Electronic': 'Electronic',
+                'Pop': 'Pop', 'Rock': 'Rock', 'Jazz': 'Jazz', 'Trap': 'Hip-Hop'
             };
             
-            const mappedGenre = genreMapping[this.radioMetadata.suggestedGenre];
+            // Use AI-enhanced genre if available, fallback to basic detection
+            const detectedGenre = this.radioMetadata.enhancedGenre || this.radioMetadata.suggestedGenre;
+            const mappedGenre = genreMapping[detectedGenre];
+            
             if (mappedGenre) {
                 genreSelect.value = mappedGenre;
-                // Store as AI suggestion, not user input
                 this.userInputManager.setUserInput('radio-genre', mappedGenre, false);
             }
         }
         
-        // Add event listeners to track user changes
         this.setupRadioInputTracking();
     }
     
@@ -2437,15 +2591,31 @@ Verification: Check Chrome extension storage for transaction details`;
             updateElement('radio-meta-duration', metadata.duration);
             updateElement('radio-meta-quality', metadata.qualityLevel);
             updateElement('radio-meta-bpm', metadata.estimatedBPM);
-            updateElement('radio-meta-genre', metadata.suggestedGenre);
+            // Use AI-enhanced genre if available
+            updateElement('radio-meta-genre', metadata.enhancedGenre || metadata.suggestedGenre);
             updateElement('radio-meta-energy', metadata.energyLevel);
             updateElement('radio-meta-size', metadata.fileSize);
             
-            // Setup collapse functionality FIRST
-            this.setupRadioAnalysisCollapse();
+            // Show AI enhancements if available
+            if (metadata.aiEnhanced) {
+                const noteElement = document.querySelector('#radio-analysis-content .meta-note');
+                if (noteElement) {
+                    noteElement.textContent = 'Analysis enhanced with Chrome AI APIs';
+                    const enhancedSmall = document.createElement('small');
+                    enhancedSmall.textContent = `Mood: ${this.sanitizeInput(metadata.mood || 'N/A')} • Vibe: ${this.sanitizeInput(metadata.vibe || 'N/A')} • Tempo: ${this.sanitizeInput(metadata.tempo || 'N/A')}`;
+                    noteElement.appendChild(document.createElement('br'));
+                    noteElement.appendChild(enhancedSmall);
+                }
+            }
             
-            // Show the metadata display
+            // Show the metadata display FIRST
             metadataDisplay.style.display = 'block';
+            
+            // Setup collapse functionality after DOM is visible
+            setTimeout(() => {
+                this.setupRadioAnalysisCollapse();
+            }, 100);
+            
             console.log('✅ Radio metadata display updated and shown');
             
         } catch (error) {
@@ -2505,17 +2675,15 @@ Verification: Check Chrome extension storage for transaction details`;
         
         console.log('🔧 Setting up radio analysis collapse:', { toggleBtn: !!toggleBtn, content: !!content });
         
-        if (toggleBtn && content) {
-            // Remove existing listeners to prevent duplicates
-            const newToggleBtn = toggleBtn.cloneNode(true);
-            toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+        if (toggleBtn && content && !toggleBtn.hasAttribute('data-radio-setup')) {
+            toggleBtn.setAttribute('data-radio-setup', 'true');
             
             // Start collapsed
-            newToggleBtn.textContent = '▶';
-            newToggleBtn.classList.add('collapsed');
+            toggleBtn.textContent = '▶';
+            toggleBtn.classList.add('collapsed');
             content.classList.add('collapsed');
             
-            newToggleBtn.addEventListener('click', (e) => {
+            toggleBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -2524,16 +2692,18 @@ Verification: Check Chrome extension storage for transaction details`;
                 
                 if (isCollapsed) {
                     content.classList.remove('collapsed');
-                    newToggleBtn.classList.remove('collapsed');
-                    newToggleBtn.textContent = '▼';
+                    toggleBtn.classList.remove('collapsed');
+                    toggleBtn.textContent = '▼';
                 } else {
                     content.classList.add('collapsed');
-                    newToggleBtn.classList.add('collapsed');
-                    newToggleBtn.textContent = '▶';
+                    toggleBtn.classList.add('collapsed');
+                    toggleBtn.textContent = '▶';
                 }
             });
             
             console.log('✅ Radio analysis collapse setup complete');
+        } else if (toggleBtn && content) {
+            console.log('ℹ️ Radio analysis collapse already setup');
         } else {
             console.error('❌ Radio analysis collapse elements not found');
         }
@@ -3250,16 +3420,33 @@ Verification: Check Chrome extension storage for transaction details`;
             font-size: 14px;
         `;
         
-        successDiv.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 24px;">📦</span>
-                <div>
-                    <strong>Radio Package Downloaded!</strong><br>
-                    <small>${fileCount} files generated for "${title}"</small><br>
-                    <small style="color: #0f5132;">Check your Downloads folder</small>
-                </div>
-            </div>
-        `;
+        const successContentDiv = document.createElement('div');
+        successContentDiv.style.cssText = 'display: flex; align-items: center; gap: 12px;';
+        
+        const iconSpan = document.createElement('span');
+        iconSpan.style.fontSize = '24px';
+        iconSpan.textContent = '📦';
+        
+        const textDiv = document.createElement('div');
+        const strongEl = document.createElement('strong');
+        strongEl.textContent = 'Radio Package Downloaded!';
+        
+        const fileCountSmall = document.createElement('small');
+        fileCountSmall.textContent = `${fileCount} files generated for "${this.sanitizeInput(title)}"`;
+        
+        const folderSmall = document.createElement('small');
+        folderSmall.style.color = '#0f5132';
+        folderSmall.textContent = 'Check your Downloads folder';
+        
+        textDiv.appendChild(strongEl);
+        textDiv.appendChild(document.createElement('br'));
+        textDiv.appendChild(fileCountSmall);
+        textDiv.appendChild(document.createElement('br'));
+        textDiv.appendChild(folderSmall);
+        
+        successContentDiv.appendChild(iconSpan);
+        successContentDiv.appendChild(textDiv);
+        successDiv.appendChild(successContentDiv);
         
         document.body.appendChild(successDiv);
         
@@ -3382,22 +3569,55 @@ Verification: Check Chrome extension storage for transaction details`;
             dateStr = new Date(item.mintDate).toLocaleDateString();
         }
         
-        historyItem.innerHTML = `
-            <div class="history-item-header">
-                <div class="history-item-info">
-                    <span class="history-icon">${icon}</span>
-                    <div class="history-details">
-                        <h4>${this.escapeHtml(title)}</h4>
-                        <p>${this.escapeHtml(artist)} • ${type}</p>
-                        <small>${dateStr}</small>
-                    </div>
-                </div>
-                <div class="history-actions">
-                    ${isNFT && item.txHash ? `<button class="btn btn-sm" onclick="window.open('https://mumbai.polygonscan.com/tx/${item.txHash}', '_blank')">View Transaction</button>` : ''}
-                    ${isRadio && item.fileCount ? `<small>${item.fileCount} files generated</small>` : ''}
-                </div>
-            </div>
-        `;
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'history-item-header';
+        
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'history-item-info';
+        
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'history-icon';
+        iconSpan.textContent = icon;
+        
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'history-details';
+        
+        const titleH4 = document.createElement('h4');
+        titleH4.textContent = title;
+        
+        const artistP = document.createElement('p');
+        artistP.textContent = `${artist} • ${type}`;
+        
+        const dateSmall = document.createElement('small');
+        dateSmall.textContent = dateStr;
+        
+        detailsDiv.appendChild(titleH4);
+        detailsDiv.appendChild(artistP);
+        detailsDiv.appendChild(dateSmall);
+        
+        infoDiv.appendChild(iconSpan);
+        infoDiv.appendChild(detailsDiv);
+        
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'history-actions';
+        
+        if (isNFT && item.txHash) {
+            const viewBtn = document.createElement('button');
+            viewBtn.className = 'btn btn-sm';
+            viewBtn.textContent = 'View Transaction';
+            viewBtn.onclick = () => window.open(`https://mumbai.polygonscan.com/tx/${this.sanitizeInput(item.txHash)}`, '_blank');
+            actionsDiv.appendChild(viewBtn);
+        }
+        
+        if (isRadio && item.fileCount) {
+            const fileSmall = document.createElement('small');
+            fileSmall.textContent = `${item.fileCount} files generated`;
+            actionsDiv.appendChild(fileSmall);
+        }
+        
+        headerDiv.appendChild(infoDiv);
+        headerDiv.appendChild(actionsDiv);
+        historyItem.appendChild(headerDiv);
         
         return historyItem;
     }

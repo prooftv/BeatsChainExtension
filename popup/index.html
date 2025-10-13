@@ -715,15 +715,20 @@
                             
                             <div class="contributors-list">
                                 <div class="contributor-item">
-                                    <input type="text" placeholder="Primary Artist/Producer Name" class="form-input contributor-name">
-                                    <select class="form-input contributor-role">
-                                        <option value="artist">Artist</option>
-                                        <option value="producer">Producer</option>
-                                        <option value="songwriter">Songwriter</option>
-                                        <option value="vocalist">Vocalist</option>
-                                    </select>
-                                    <input type="number" placeholder="%" class="form-input contributor-percentage" min="0" max="100" value="100">
-                                    <input type="text" placeholder="SAMRO Number (optional)" class="form-input samro-number">
+                                    <div class="contributor-row">
+                                        <input type="text" placeholder="Primary Artist/Producer Name" class="form-input contributor-name">
+                                        <select class="form-input contributor-role">
+                                            <option value="artist">Artist</option>
+                                            <option value="producer">Producer</option>
+                                            <option value="songwriter">Songwriter</option>
+                                            <option value="vocalist">Vocalist</option>
+                                        </select>
+                                        <input type="number" placeholder="%" class="form-input contributor-percentage" min="0" max="100" value="100">
+                                    </div>
+                                    <div class="contributor-samro-row">
+                                        <input type="text" placeholder="SAMRO Number (optional)" class="form-input samro-number">
+                                        <button type="button" class="remove-contributor" style="display: none;">❌</button>
+                                    </div>
                                 </div>
                             </div>
                             <button id="add-contributor" class="btn btn-secondary">Add Contributor</button>
