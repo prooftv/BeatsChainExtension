@@ -776,23 +776,23 @@
         </main>
 
         <!-- Wallet Dashboard -->
-        <aside class="wallet-panel" id="wallet-panel">
-            <div class="wallet-header">
-                <h3>Wallet</h3>
-                <button id="toggle-wallet" class="btn-icon">👛</button>
+        <aside class="wallet-panel collapsed" id="wallet-panel">
+            <div class="wallet-header" id="wallet-header">
+                <h3>👛 Wallet</h3>
+                <button id="toggle-wallet" class="btn-icon">▶</button>
             </div>
-            <div class="wallet-content">
+            <div class="wallet-content" id="wallet-content">
                 <div class="wallet-balance">
                     <span>Balance: </span>
-                    <span id="wallet-balance">0 MATIC</span>
+                    <span id="wallet-balance">0.0000 MATIC</span>
                 </div>
                 <div class="nft-list">
-                    <h4 aria-label="Your NFT collection" role="heading" aria-level="4">Your NFTs</h4>
-                    <div id="nft-collection" aria-live="polite" aria-label="NFT collection list"></div>
+                    <h4>Your NFTs</h4>
+                    <div id="nft-collection"></div>
                 </div>
                 
                 <!-- WalletConnect Integration -->
-                <div class="wallet-connect-section" id="wallet-connect-section" style="display: none;">
+                <div class="wallet-connect-section" id="wallet-connect-section">
                     <h4>External Wallet</h4>
                     <button id="connect-external-wallet" class="btn btn-secondary btn-sm">🔗 Connect Wallet</button>
                     <div id="external-wallet-status" class="wallet-status" style="display: none;">
