@@ -2355,32 +2355,19 @@ textarea:focus {
     padding: 0;
 }
 
-/* SAMRO Fields - Force Vertical Layout */
-.samro-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.samro-field-row {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.samro-field-group {
+/* SAMRO Enhanced Section - Match Track Info Layout */
+.samro-enhanced-section .form-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
 }
 
-/* Split Sheets - Force Vertical Layout */
-.split-sheets-section {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+.samro-enhanced-section .form-row:nth-child(3),
+.samro-enhanced-section .form-row:nth-child(4) {
+    grid-column: 1 / -1;
 }
 
+/* Split Sheets - Vertical Layout for Contributors */
 .contributor-item {
     display: flex;
     flex-direction: column;
