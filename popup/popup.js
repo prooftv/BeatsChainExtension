@@ -95,6 +95,12 @@ class BeatsChainApp {
             
             await this.loadWalletData();
             await this.loadProfile();
+            
+            // Setup authentication context collapse on initialization
+            setTimeout(() => {
+                this.setupAuthContextCollapse();
+            }, 200);
+            
             this.isInitialized = true;
             console.log('BeatsChain initialized successfully');
         } catch (error) {
@@ -736,7 +742,9 @@ Verification: Check Chrome extension storage for transaction details`;
         this.setupUploadAnalysisCollapse();
         
         // Setup auth context collapse
-        this.setupAuthContextCollapse();
+        setTimeout(() => {
+            this.setupAuthContextCollapse();
+        }, 100);
         
         metadataDisplay.style.display = 'block';
     }
@@ -773,11 +781,19 @@ Verification: Check Chrome extension storage for transaction details`;
         
         if (toggleBtn && content && !toggleBtn.hasAttribute('data-auth-setup')) {
             toggleBtn.setAttribute('data-auth-setup', 'true');
-            // Start collapsed
-            toggleBtn.textContent = '▶';
-            content.classList.add('collapsed');
             
-            toggleBtn.addEventListener('click', () => {
+            // Ensure initial collapsed state matches HTML
+            if (!content.classList.contains('collapsed')) {
+                content.classList.add('collapsed');
+            }
+            if (toggleBtn.textContent !== '▶') {
+                toggleBtn.textContent = '▶';
+            }
+            
+            toggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 const isCollapsed = content.classList.contains('collapsed');
                 
                 if (isCollapsed) {
