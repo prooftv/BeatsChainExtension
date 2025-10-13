@@ -135,6 +135,15 @@ class BeatsChainApp {
         if (exportWalletBtn) {
             exportWalletBtn.addEventListener('click', this.handleExportWallet.bind(this));
         }
+        
+        // Wallet panel toggle
+        const walletToggle = document.getElementById('toggle-wallet');
+        const walletPanel = document.getElementById('wallet-panel');
+        if (walletToggle && walletPanel) {
+            walletToggle.addEventListener('click', () => {
+                walletPanel.classList.toggle('collapsed');
+            });
+        }
 
         // Upload functionality
         const uploadArea = document.getElementById('upload-area');

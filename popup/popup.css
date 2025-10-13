@@ -39,6 +39,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    position: relative;
 }
 
 /* Header */
@@ -539,8 +540,10 @@ body {
 .main {
     flex: 1;
     padding: 20px;
+    padding-bottom: 80px;
     overflow-y: auto;
     background: var(--bc-primary);
+    max-height: calc(100vh - 120px);
 }
 
 .section {
@@ -812,45 +815,82 @@ textarea:focus {
 
 /* Wallet Panel */
 .wallet-panel {
-    background: rgba(255, 255, 255, 0.1);
+    position: fixed;
+    bottom: 0;
+    right: 20px;
+    width: 280px;
+    background: rgba(26, 26, 26, 0.95);
     backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 15px;
+    border: 1px solid var(--bc-border);
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -4px 20px var(--bc-shadow);
+    z-index: 1000;
     transition: all 0.3s ease;
-}
-
-.wallet-panel.collapsed .wallet-content {
-    display: none;
+    max-height: 400px;
+    overflow: hidden;
 }
 
 .wallet-panel.collapsed {
-    padding: 10px 15px;
+    max-height: 50px;
+}
+
+.wallet-panel.collapsed .wallet-content {
+    opacity: 0;
+    max-height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
 }
 
 .wallet-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--bc-border);
+    cursor: pointer;
+    background: var(--bc-surface);
+    border-radius: 12px 12px 0 0;
+}
+
+.wallet-header:hover {
+    background: var(--bc-surface-light);
 }
 
 .wallet-header h3 {
-    color: white;
-    font-size: 16px;
+    color: var(--bc-text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
 }
 
 .btn-icon {
     background: none;
     border: none;
-    font-size: 18px;
+    color: var(--bc-text-secondary);
     cursor: pointer;
-    padding: 5px;
+    padding: 4px;
     border-radius: 4px;
-    transition: background 0.3s ease;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    transform: rotate(0deg);
+}
+
+.wallet-panel.collapsed .btn-icon {
+    transform: rotate(180deg);
 }
 
 .btn-icon:hover {
     background: rgba(255, 255, 255, 0.1);
+    color: var(--bc-text-primary);
+}
+
+.wallet-content {
+    padding: 16px;
+    transition: all 0.3s ease;
+    max-height: 350px;
+    overflow-y: auto;
 }
 
 .wallet-balance {
