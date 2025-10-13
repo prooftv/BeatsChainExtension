@@ -5,7 +5,6 @@
   "description": "Mint your beats as NFTs with AI-generated licensing",
   "permissions": [
     "storage",
-    "activeTab",
     "alarms",
     "identity"
   ],
@@ -48,7 +47,7 @@
 
   "oauth2": {
     "client_id": "239753403483-d62qtbm41d29p7ldikackdrru77vd1g5.apps.googleusercontent.com",
-    "scopes": ["openid", "email", "profile"]
+    "scopes": ["https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"]
   },
   "web_accessible_resources": [
     {
