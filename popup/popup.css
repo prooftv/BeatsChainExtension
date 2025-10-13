@@ -1183,8 +1183,8 @@ textarea:focus {
     grid-column: 1 / -1;
 }
 
-/* Radio track info two-column layout */
-.track-info-form .form-grid {
+/* Radio track info and SAMRO two-column layout */
+.track-info-form .form-grid, .samro-form .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px 20px;
@@ -1664,7 +1664,7 @@ textarea:focus {
     display: block;
 }
 
-.track-info-form {
+.track-info-form, .samro-form {
     background: rgba(255, 255, 255, 0.05);
     padding: 20px;
     border-radius: 8px;

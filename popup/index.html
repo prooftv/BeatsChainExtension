@@ -726,60 +726,55 @@
                     <!-- Step 5: Split Sheets -->
                     <div id="radio-step-5" class="radio-step">
                         <!-- SAMRO Compliance Fields -->
-                        <div class="samro-enhanced-section">
-                            <div class="samro-header">
-                                <h5>🏛️ SAMRO Compliance Fields</h5>
-                                <button class="collapse-btn" id="samro-toggle" type="button">▼</button>
-                            </div>
-                            <div class="samro-content" id="samro-content">
-                                <div class="form-grid">
-                                    <div class="form-row">
-                                        <label for="samro-composer-name">Composer Name *</label>
-                                        <input type="text" id="samro-composer-name" class="form-input" placeholder="Legal name of composer" required>
-                                        <small class="field-help">Person who created the musical composition</small>
-                                    </div>
-                                    <div class="form-row">
-                                        <label for="samro-composer-number">Composer SAMRO Number</label>
-                                        <input type="text" id="samro-composer-number" class="form-input" placeholder="SAMRO member number">
-                                    </div>
-                                    <div class="form-row">
-                                        <label for="samro-publisher">Publisher</label>
-                                        <input type="text" id="samro-publisher" class="form-input" placeholder="Publishing company name">
-                                        <small class="field-help">Company that owns publishing rights</small>
-                                    </div>
-                                    <div class="form-row">
-                                        <label for="samro-iswc">ISWC Code</label>
-                                        <input type="text" id="samro-iswc" class="form-input" placeholder="T-123456789-C">
-                                        <small class="field-help">International Standard Work Code for the composition</small>
-                                    </div>
-                                    <div class="form-row">
-                                        <label for="samro-work-type">Work Type *</label>
-                                        <select id="samro-work-type" class="form-input" required>
-                                            <option value="">Select Work Type</option>
-                                            <option value="original">Original Work</option>
-                                            <option value="arrangement">Arrangement</option>
-                                            <option value="adaptation">Adaptation</option>
-                                            <option value="translation">Translation</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-row">
-                                        <label for="samro-territory">Territory Rights</label>
-                                        <select id="samro-territory" class="form-input">
-                                            <option value="south-africa">South Africa</option>
-                                            <option value="africa">Africa</option>
-                                            <option value="worldwide">Worldwide</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-row">
-                                        <label for="samro-performance-share">Performance Rights Share (%)</label>
-                                        <input type="number" id="samro-performance-share" class="form-input" min="0" max="100" value="50">
-                                        <small class="field-help">Percentage of performance royalties</small>
-                                    </div>
-                                    <div class="form-row">
-                                        <label for="samro-mechanical-share">Mechanical Rights Share (%)</label>
-                                        <input type="number" id="samro-mechanical-share" class="form-input" min="0" max="100" value="50">
-                                        <small class="field-help">Percentage of mechanical royalties</small>
-                                    </div>
+                        <h4>🏛️ SAMRO Compliance Fields</h4>
+                        <div class="samro-form">
+                            <div class="form-grid">
+                                <div class="form-row">
+                                    <label for="samro-composer-name">Composer Name *</label>
+                                    <input type="text" id="samro-composer-name" class="form-input" placeholder="Legal name of composer" required>
+                                    <small class="field-help">Person who created the musical composition</small>
+                                </div>
+                                <div class="form-row">
+                                    <label for="samro-composer-number">Composer SAMRO Number</label>
+                                    <input type="text" id="samro-composer-number" class="form-input" placeholder="SAMRO member number">
+                                </div>
+                                <div class="form-row">
+                                    <label for="samro-publisher">Publisher</label>
+                                    <input type="text" id="samro-publisher" class="form-input" placeholder="Publishing company name">
+                                    <small class="field-help">Company that owns publishing rights</small>
+                                </div>
+                                <div class="form-row">
+                                    <label for="samro-iswc">ISWC Code</label>
+                                    <input type="text" id="samro-iswc" class="form-input" placeholder="T-123456789-C">
+                                    <small class="field-help">International Standard Work Code for the composition</small>
+                                </div>
+                                <div class="form-row">
+                                    <label for="samro-work-type">Work Type *</label>
+                                    <select id="samro-work-type" class="form-input" required>
+                                        <option value="">Select Work Type</option>
+                                        <option value="original">Original Work</option>
+                                        <option value="arrangement">Arrangement</option>
+                                        <option value="adaptation">Adaptation</option>
+                                        <option value="translation">Translation</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <label for="samro-territory">Territory Rights</label>
+                                    <select id="samro-territory" class="form-input">
+                                        <option value="south-africa">South Africa</option>
+                                        <option value="africa">Africa</option>
+                                        <option value="worldwide">Worldwide</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <label for="samro-performance-share">Performance Rights Share (%)</label>
+                                    <input type="number" id="samro-performance-share" class="form-input" min="0" max="100" value="50">
+                                    <small class="field-help">Percentage of performance royalties</small>
+                                </div>
+                                <div class="form-row">
+                                    <label for="samro-mechanical-share">Mechanical Rights Share (%)</label>
+                                    <input type="number" id="samro-mechanical-share" class="form-input" min="0" max="100" value="50">
+                                    <small class="field-help">Percentage of mechanical royalties</small>
                                 </div>
                             </div>
                         </div>
