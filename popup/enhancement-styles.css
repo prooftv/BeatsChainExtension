@@ -196,16 +196,27 @@
     gap: 10px;
 }
 
+.isrc-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.isrc-input-group .form-input {
+    flex: 1;
+}
+
 .isrc-generate-btn {
-    padding: 6px 12px;
+    padding: 8px 12px;
     font-size: 12px;
     background: var(--bc-accent-purple);
     border: 1px solid var(--bc-accent-purple);
     border-radius: var(--bc-radius);
-    color: var(--bc-text-primary);
+    color: white;
     cursor: pointer;
     font-family: var(--bc-font-family);
     font-weight: 600;
+    white-space: nowrap;
     transition: all 0.2s ease;
 }
 

@@ -228,6 +228,12 @@ class BeatsChainApp {
             growBranchBtn.addEventListener('click', this.growNewBranch.bind(this));
         }
         
+        // ISRC generation event
+        const generateISRCBtn = document.getElementById('generate-isrc-btn');
+        if (generateISRCBtn) {
+            generateISRCBtn.addEventListener('click', this.handleGenerateISRC.bind(this));
+        }
+        
         const addContributorBtn = document.getElementById('add-contributor');
         if (addContributorBtn) {
             addContributorBtn.addEventListener('click', this.addContributor.bind(this));
@@ -1975,6 +1981,41 @@ Verification: Check Chrome extension storage for transaction details`;
             growBtn.textContent = originalText;
             growBtn.disabled = false;
         }
+    }
+    
+    async handleGenerateISRC() {
+        const generateBtn = document.getElementById('generate-isrc-btn');
+        const isrcInput = document.getElementById('radio-isrc');
+        
+        if (!generateBtn || !isrcInput) return;
+        
+        const originalText = generateBtn.textContent;
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Generating...';
+        
+        try {
+            if (this.isrcManager) {
+                const newISRC = await this.isrcManager.generateISRC();
+                if (newISRC) {
+                    isrcInput.value = newISRC;
+                    // Mark as user input since they clicked generate
+                    this.userInputManager.setUserInput('radio-isrc', newISRC, true);
+                    generateBtn.textContent = '✓ Generated';
+                } else {
+                    generateBtn.textContent = 'Failed';
+                }
+            } else {
+                generateBtn.textContent = 'Unavailable';
+            }
+        } catch (error) {
+            console.error('ISRC generation failed:', error);
+            generateBtn.textContent = 'Error';
+        }
+        
+        setTimeout(() => {
+            generateBtn.textContent = originalText;
+            generateBtn.disabled = false;
+        }, 2000);
     }
     
     formatTimestamp(timestamp) {

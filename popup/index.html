@@ -649,7 +649,11 @@
                                 </div>
                                 <div class="form-row">
                                     <label for="radio-isrc">ISRC Code</label>
-                                    <input type="text" id="radio-isrc" class="form-input" placeholder="ZA-XXX-XX-XXXXX (optional)" pattern="ZA-[A-Z0-9]{3}-[0-9]{2}-[0-9]{5}">
+                                    <div class="isrc-input-group">
+                                        <input type="text" id="radio-isrc" class="form-input" placeholder="ZA-80G-YY-NNNNN (professional format)" pattern="ZA-[A-Z0-9]{3}-[0-9]{2}-[0-9]{5}">
+                                        <button type="button" id="generate-isrc-btn" class="btn btn-secondary btn-sm isrc-generate-btn">Generate ISRC</button>
+                                    </div>
+                                    <small class="field-help">International Standard Recording Code - Professional 80G registrant authority</small>
                                 </div>
                                 <div class="form-row">
                                     <label for="radio-content-rating">Content Rating *</label>
