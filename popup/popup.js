@@ -228,11 +228,7 @@ class BeatsChainApp {
             growBranchBtn.addEventListener('click', this.growNewBranch.bind(this));
         }
         
-        // ISRC generation event
-        const generateISRCBtn = document.getElementById('generate-isrc-btn');
-        if (generateISRCBtn) {
-            generateISRCBtn.addEventListener('click', this.handleGenerateISRC.bind(this));
-        }
+        // ISRC generation handled by ISRCManager
         
         const addContributorBtn = document.getElementById('add-contributor');
         if (addContributorBtn) {
