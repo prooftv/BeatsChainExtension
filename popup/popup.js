@@ -2391,6 +2391,25 @@ Verification: Check Chrome extension storage for transaction details`;
             this.splitSheetsManager = new SplitSheetsManager();
             this.radioMetadataManager = new RadioMetadataManager();
             
+            // Initialize ISRC Manager
+            if (window.ISRCManager) {
+                this.isrcManager = new ISRCManager();
+                await this.isrcManager.initialize();
+                console.log('✅ ISRC Manager initialized with 80G registrant');
+                
+                // Enhance Audio Manager with ISRC tagging
+                if (window.AudioTaggingManager && this.audioManager) {
+                    AudioTaggingManager.enhanceAudioManager(this.audioManager, this.isrcManager);
+                    console.log('✅ Audio Manager enhanced with ISRC tagging');
+                }
+                
+                // Enhance Image Processing with ISRC tagging
+                if (window.ImageTaggingManager) {
+                    ImageTaggingManager.enhanceImageProcessing(this);
+                    console.log('✅ Image processing enhanced with ISRC tagging');
+                }
+            }
+            
             // Initialize SAMRO manager if available
             if (this.samroManager) {
                 this.samroManager.initialize();
@@ -2401,7 +2420,7 @@ Verification: Check Chrome extension storage for transaction details`;
             this.setupSamroCollapse();
             
             // Initialize metadata form
-            this.radioMetadataManager.initializeForm();
+            await this.radioMetadataManager.initializeForm();
             
             // Show radio upload section if no audio file exists
             this.showRadioUploadSection();
