@@ -1987,13 +1987,23 @@ Verification: Check Chrome extension storage for transaction details`;
         const generateBtn = document.getElementById('generate-isrc-btn');
         const isrcInput = document.getElementById('radio-isrc');
         
-        if (!generateBtn || !isrcInput) return;
+        if (!generateBtn || !isrcInput) {
+            console.error('ISRC button or input not found');
+            return;
+        }
         
         const originalText = generateBtn.textContent;
         generateBtn.disabled = true;
         generateBtn.textContent = 'Generating...';
         
         try {
+            // Ensure ISRC manager is initialized
+            if (!this.isrcManager && window.ISRCManager) {
+                this.isrcManager = new ISRCManager();
+                await this.isrcManager.initialize();
+                console.log('✅ ISRC Manager initialized on demand');
+            }
+            
             if (this.isrcManager) {
                 const newISRC = await this.isrcManager.generateISRC();
                 if (newISRC) {
@@ -2001,14 +2011,17 @@ Verification: Check Chrome extension storage for transaction details`;
                     // Mark as user input since they clicked generate
                     this.userInputManager.setUserInput('radio-isrc', newISRC, true);
                     generateBtn.textContent = '✓ Generated';
+                    console.log('✅ ISRC generated:', newISRC);
                 } else {
                     generateBtn.textContent = 'Failed';
+                    console.error('❌ ISRC generation returned null');
                 }
             } else {
                 generateBtn.textContent = 'Unavailable';
+                console.error('❌ ISRC Manager not available');
             }
         } catch (error) {
-            console.error('ISRC generation failed:', error);
+            console.error('❌ ISRC generation failed:', error);
             generateBtn.textContent = 'Error';
         }
         
