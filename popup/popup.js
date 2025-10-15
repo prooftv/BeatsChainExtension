@@ -24,6 +24,10 @@ class BeatsChainApp {
         this.radioFormats = null;
         // Smart Trees AI Intelligence
         this.smartTreesAI = null;
+        // Monetization Systems
+        this.adminDashboard = null;
+        this.usageLimits = null;
+        this.sponsorContent = null;
         this.isInitialized = false;
     }
 
@@ -92,6 +96,9 @@ class BeatsChainApp {
             
             // Initialize Smart Trees AI
             await this.initializeSmartTreesAI();
+            
+            // Initialize Monetization Systems
+            await this.initializeMonetizationSystems();
             
             await this.loadWalletData();
             await this.loadProfile();
@@ -202,6 +209,17 @@ class BeatsChainApp {
         const googleSignIn = document.getElementById('google-signin');
         if (googleSignIn) {
             googleSignIn.addEventListener('click', this.handleGoogleSignIn.bind(this));
+        }
+        
+        // Radio system sign-in buttons
+        const radioSignInBtn = document.getElementById('radio-signin-btn');
+        if (radioSignInBtn) {
+            radioSignInBtn.addEventListener('click', this.handleGoogleSignIn.bind(this));
+        }
+        
+        const radioLimitSignIn = document.getElementById('radio-limit-signin');
+        if (radioLimitSignIn) {
+            radioLimitSignIn.addEventListener('click', this.handleGoogleSignIn.bind(this));
         }
 
         // Image upload
@@ -1247,6 +1265,14 @@ Verification: Check Chrome extension storage for transaction details`;
                 profileWallet.textContent = `${walletAddress.substring(0, 6)}...${walletAddress.substring(-4)}`;
             }
             
+            // Update radio package limits UI
+            this.updateRadioPackageLimits(true);
+            
+            // Update usage limits UI
+            if (this.usageLimits) {
+                this.usageLimits.updatePackageLimitUI();
+            }
+            
             // Show enhanced authentication features
             if (userProfile.enhanced) {
                 this.updateRoleBasedUI(userProfile.role);
@@ -1372,6 +1398,25 @@ Verification: Check Chrome extension storage for transaction details`;
         }
     }
     
+    updateRadioPackageLimits(isAuthenticated) {
+        const currentLimitEl = document.getElementById('radio-current-limit');
+        const upgradeOption = document.getElementById('radio-upgrade-option');
+        const radioSignInBtns = document.querySelectorAll('#radio-signin-btn, #radio-limit-signin');
+        
+        if (currentLimitEl) {
+            currentLimitEl.textContent = isAuthenticated ? '4 per day' : '1 per day';
+        }
+        
+        if (upgradeOption) {
+            upgradeOption.style.display = isAuthenticated ? 'none' : 'flex';
+        }
+        
+        // Hide radio sign-in buttons when authenticated
+        radioSignInBtns.forEach(btn => {
+            if (btn) btn.style.display = isAuthenticated ? 'none' : 'inline-block';
+        });
+    }
+    
     showAuthenticationRequired() {
         // Show authentication required message for all sections that need it
         const sections = ['licensing-section', 'minting-section', 'success-section'];
@@ -1410,6 +1455,9 @@ Verification: Check Chrome extension storage for transaction details`;
                 }
             }
         });
+        
+        // Update radio package limits for anonymous users
+        this.updateRadioPackageLimits(false);
         
         // Disable minting-related buttons
         const mintingButtons = ['generate-license', 'approve-license', 'mint-nft'];
@@ -1587,6 +1635,45 @@ Verification: Check Chrome extension storage for transaction details`;
             }
         } catch (error) {
             console.log('Smart Trees AI initialization failed:', error);
+        }
+    }
+    
+    async initializeMonetizationSystems() {
+        try {
+            // Initialize Admin Dashboard for admin users
+            if (this.authManager && this.authManager.hasPermission && this.authManager.hasPermission('admin_panel')) {
+                if (window.AdminDashboardManager) {
+                    this.adminDashboard = new AdminDashboardManager();
+                    await this.adminDashboard.initialize(this.authManager);
+                    console.log('✅ Admin Dashboard initialized');
+                }
+            }
+            
+            // Initialize Usage Limits Manager
+            if (window.UsageLimitsManager) {
+                this.usageLimits = new UsageLimitsManager();
+                await this.usageLimits.initialize(this.authManager, this.adminDashboard);
+                console.log('✅ Usage Limits Manager initialized');
+            }
+            
+            // Initialize Sponsor Content Manager
+            if (window.SponsorContentManager) {
+                this.sponsorContent = new SponsorContentManager();
+                await this.sponsorContent.initialize(this.adminDashboard);
+                await this.sponsorContent.ensureCompliance();
+                
+                // Enhance existing systems with sponsor content
+                if (this.isrcManager) {
+                    this.sponsorContent.enhanceISRCGeneration(this.isrcManager);
+                }
+                this.sponsorContent.enhancePackageGeneration(this);
+                
+                console.log('✅ Sponsor Content Manager initialized');
+                window.sponsorContentManager = this.sponsorContent;
+            }
+            
+        } catch (error) {
+            console.log('Monetization systems initialization failed:', error);
         }
     }
     
@@ -2986,6 +3073,19 @@ Verification: Check Chrome extension storage for transaction details`;
             return;
         }
         
+        // Check usage limits
+        if (this.usageLimits) {
+            const limitCheck = await this.usageLimits.canGeneratePackage('radio');
+            if (!limitCheck.allowed) {
+                const packageSection = document.getElementById('radio-step-6');
+                const existingMessage = packageSection.querySelector('.limit-reached-message');
+                if (existingMessage) existingMessage.remove();
+                
+                this.usageLimits.showLimitReachedMessage(limitCheck, packageSection);
+                return;
+            }
+        }
+        
         // Collect contributors from UI
         this.splitSheetsManager.contributors = [];
         const contributorItems = document.querySelectorAll('.contributor-item');
@@ -3185,6 +3285,11 @@ Verification: Check Chrome extension storage for transaction details`;
             
             URL.revokeObjectURL(url);
             
+            // Record package generation for usage limits
+            if (this.usageLimits) {
+                await this.usageLimits.recordPackageGeneration('radio');
+            }
+            
             // Show success with format count and download notification
             const formatCount = files.length;
             generateBtn.textContent = `✅ ${formatCount} Files Generated!`;
@@ -3194,6 +3299,11 @@ Verification: Check Chrome extension storage for transaction details`;
             
             // Store radio submission in history
             this.storeRadioSubmission(radioMetadata, formatCount);
+            
+            // Update usage limits UI
+            if (this.usageLimits) {
+                this.usageLimits.updatePackageLimitUI();
+            }
             
             setTimeout(() => {
                 generateBtn.textContent = '📦 Generate Radio Package';

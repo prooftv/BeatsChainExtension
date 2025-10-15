@@ -508,6 +508,20 @@
                     <small>Upload audio files specifically for radio submission - separate from NFT minting</small>
                 </div>
                 
+                <!-- Package Limits & Sign-in Context -->
+                <div class="package-limits-context" id="radio-package-limits">
+                    <div class="limits-info">
+                        <div class="current-limit">
+                            <span class="limit-icon">📦</span>
+                            <span class="limit-text">Package Limit: <strong id="radio-current-limit">1 per day</strong></span>
+                        </div>
+                        <div class="upgrade-option" id="radio-upgrade-option">
+                            <span class="upgrade-text">Sign in for <strong>4x more packages daily</strong></span>
+                            <button id="radio-signin-btn" class="btn btn-primary btn-sm">🔑 Sign In</button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="radio-content">
                     <!-- Left Navigation Panel -->
                     <div class="radio-navigation">
@@ -847,6 +861,14 @@
                             <button id="generate-radio-package" class="btn btn-primary">Generate Professional Package</button>
                         </div>
                         
+                        <div class="package-limit-reminder" id="radio-package-reminder" style="display: none;">
+                            <div class="limit-warning">
+                                <span class="warning-icon">⚠️</span>
+                                <span class="warning-text">Daily package limit reached. <strong>Sign in for 4x more packages!</strong></span>
+                                <button id="radio-limit-signin" class="btn btn-primary btn-sm">🔑 Sign In</button>
+                            </div>
+                        </div>
+                        
                         <div id="package-status" class="package-status" style="display: none;"></div>
                     </div>
                     </div> <!-- Close radio-main-content -->
@@ -911,6 +933,9 @@
     <script src="../lib/isrc-manager.js"></script>
     <script src="../lib/audio-tagging-manager.js"></script>
     <script src="../lib/image-tagging-manager.js"></script>
+    <script src="../lib/admin-dashboard.js"></script>
+    <script src="../lib/usage-limits.js"></script>
+    <script src="../lib/sponsor-content.js"></script>
     <script src="radio-navigation.js"></script>
     <!-- Main Application -->
     <script src="popup.js" type="module"></script>
